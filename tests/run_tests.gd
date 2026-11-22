@@ -3322,6 +3322,9 @@ func _training_run_checks() -> void:
 	var hold := 0
 	var steps_seen := {}
 	var parts_seen := {}
+	var intros_seen := {}
+	var note_back_ok := false
+	var tried_back := false
 	for f in 6000:
 		var tr: TutorialRun = main.tutorial_run
 		if tr == null:
@@ -3334,9 +3337,18 @@ func _training_run_checks() -> void:
 		if main.state == main.State.INFO and main._info_t > Tuning.INFO_MIN_TIME:
 			main._touch_pressed("")
 		if tr.frozen and tr.phase == "note":
-			var part: String = TutorialRun.STEPS[tr.i].notes[tr.note_i][0]
-			parts_seen[part] = main.hud.coach_marker != null and main.hud.coach_marker.target == main.hud.hud_part(part)
-			if f % 10 == 0:
+			var part: String = tr.note_list[tr.note_i][0]
+			if part == "":
+				intros_seen[TutorialRun.STEPS[tr.i].id] = main.hud.coach_marker.title == TutorialRun.STEPS[tr.i].title
+			else:
+				parts_seen[part] = main.hud.coach_marker != null and main.hud.coach_marker.target == main.hud.hud_part(part)
+			if not tried_back and tr.note_i == 1 and tr._note_t > TutorialRun.NOTE_MIN:
+				tried_back = true
+				var chips_ok: bool = main.hud.coach_marker.chips == ["back", "next"]
+				var back_at: Vector2 = (main.hud.coach_marker.chip_rects()["back"] as Rect2).get_center()
+				main._touch_pressed(main.hud.action_at(back_at))
+				note_back_ok = chips_ok and tr.note_i == 0 and main.hud.coach_marker.chips == ["next"]
+			elif f % 10 == 0:
 				main._touch_pressed("")   # any tap moves on
 		elif tr.frozen:
 			froze = true
@@ -3350,6 +3362,9 @@ func _training_run_checks() -> void:
 	check(main.tutorial_run == null and main.tutorial_run_done and SaveData.load_tutorial_run_done(), "the training run ends and is saved as done")
 	check(TutorialRun.STEPS.all(func(st): return steps_seen.has(st.id)), "it goes through every step (%s)" % ", ".join(steps_seen.keys()))
 	check(main.state == main.State.TITLE, "...and ends on the main menu")
+	check(TutorialRun.STEPS.filter(func(st): return st.has("title")).all(func(st): return intros_seen.get(st.id, false)),
+			"every step opens with its own note that waits for a tap %s" % [intros_seen])
+	check(note_back_ok, "a note's Back chip returns to the previous note (and the first has only Next)")
 	check(["hearts", "chase", "score", "distance", "meat", "primal"].all(func(k): return parts_seen.get(k, false)),
 			"it points out the hearts, hunter meter, points, distance, meat and PRIMAL energy %s" % [parts_seen])
 	# the menu tour: Marketplace, Camp, Encyclopedia

@@ -288,6 +288,7 @@ func _setup_input() -> void:
 		"market": [KEY_M, KEY_K],
 		"herd": [KEY_H],
 		"tutorial": [KEY_U],
+		"note_back": [KEY_LEFT, KEY_BACKSPACE],
 		"booster_1": [KEY_B],
 		"booster_2": [KEY_N],
 		"booster_3": [KEY_COMMA],
@@ -3281,7 +3282,10 @@ func _tutorial_allows(action: String) -> bool:
 	if action in ["pause", "stop", "sound"]:
 		return true
 	if tutorial_run.phase == "note":
-		tutorial_run.note_tap()   # a HUD note: any tap moves on
+		if action == "note_back":
+			tutorial_run.note_back()
+		else:
+			tutorial_run.note_tap()   # a note: Next, or any other tap, moves on
 		return false
 	if action == "":
 		return false
@@ -3290,7 +3294,7 @@ func _tutorial_allows(action: String) -> bool:
 
 ## The HUD action a key press stands for (for the training run's freeze).
 func _key_action(event: InputEvent) -> String:
-	for pair in [["jump", "jump"], ["slide", "slide"], ["attack", "attack"], ["booster_1", "slot_0"],
+	for pair in [["note_back", "note_back"], ["jump", "jump"], ["slide", "slide"], ["attack", "attack"], ["booster_1", "slot_0"],
 			["booster_2", "slot_1"], ["booster_3", "slot_2"], ["pause", "pause"], ["stop", "stop"]]:
 		if event.is_action_pressed(pair[0]):
 			return pair[1]

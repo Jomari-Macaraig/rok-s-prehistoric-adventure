@@ -633,6 +633,10 @@ func _speaker(img: Image, on: bool) -> void:
 
 
 func action_at(p: Vector2) -> String:
+	if coach_marker != null:
+		var chip := coach_marker.chip_at(p)   # a tutorial note's Back / Next
+		if chip != "":
+			return "note_" + chip
 	for b in buttons:
 		if b.hit(p):
 			return b.action
@@ -657,8 +661,8 @@ func coach(action: String, text: String, under := false) -> bool:
 ## The coach marker on any control (a HUD part, or a screen's Back button).
 ## It lives on its own layer above everything, the Market, Camp and Field
 ## Guide included, so the menu tour can point inside them.
-func coach_control(target: Control, text: String, under := false) -> bool:
-	if target == null:
+func coach_control(target: Control, text: String, under := false, chips: Array = [], title := "") -> bool:
+	if target == null and title == "":
 		return false
 	if coach_marker == null:
 		var layer := CanvasLayer.new()
@@ -668,8 +672,14 @@ func coach_control(target: Control, text: String, under := false) -> bool:
 		coach_marker = CoachMarker.new()
 		coach_marker.name = "Coach"
 		layer.add_child(coach_marker)
-	coach_marker.show_on(target, text, under)
+	coach_marker.show_on(target, text, under, chips, title)
 	return true
+
+
+## A tutorial note: on a HUD part (hud_part key), or free-standing near the
+## top with a heading (key ""), with Back / Next chips.
+func coach_note(key: String, title: String, text: String, chips: Array) -> bool:
+	return coach_control(hud_part(key) if key != "" else null, text, false, chips, title)
 
 
 ## The HUD part the training run explains: hearts, chase (hunter meter),

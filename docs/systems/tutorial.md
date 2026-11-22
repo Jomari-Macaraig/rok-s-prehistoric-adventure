@@ -30,7 +30,9 @@ and ends on the main menu. What it marks learned or taught is already known,
 and the Raptor is only lent if it isn't unlocked yet.
 
 **How each step works** (`TutorialRun.STEPS`)
-1. A banner names the step; one thing spawns ahead of Rok.
+1. A note names the step (its title and hint, frozen, until a tap; the user
+   wanted nothing to move on by itself). A retry after a hit skips it. Then
+   one thing spawns ahead of Rok.
 2. At the step's trigger distance (`at`, px from Rok's hitbox) the world
    **freezes**: main skips `_play_step`, Rok's and the hunter's animations
    hold, and a coach ring sits on the button with a few words.
@@ -55,13 +57,18 @@ and the Raptor is only lent if it isn't unlocked yet.
 | 8 | Shapeshift | the Raptor's crumbling bridge (`force_gate`) | 520 px before the gap: Raptor button; once the whole bridge is behind, Rok's button "Back to Rok to save energy" |
 | 9 | Finish | – | an info card: YOU'RE READY! (the Marketplace, the Camp, the Encyclopedia) |
 
-**HUD notes** (a step's `notes`, the user's request): the world freezes and
-the coach marker boxes one part of the HUD (`Hud.hud_part`: hearts, chase,
-score, distance, meat, primal) with a sentence and "(tap to continue)". Any
-tap (or key) moves to the next note after `NOTE_MIN` (0.45 s), so a stray tap
-can't skip one (`TutorialRun.note_tap`, routed by `main._tutorial_allows`).
-The step's banner is cleared so it doesn't sit under the bubble. Wide targets
-get a rounded box instead of a ring (`CoachMarker._draw`).
+**Notes** (`note_list`: [HUD part or "", title, text]; the user's request):
+the world freezes and the coach marker shows the note. A step's intro is a
+free-standing bubble with a heading near the top. HUD notes (a step's
+`notes`) box one part of the HUD (`Hud.hud_part`: hearts, chase, score,
+distance, meat, primal). Every note has a **Next ›** chip, plus **‹ Back**
+from the second note of a group on (`CoachMarker.chips`, hit-tested first by
+`Hud.action_at` as `note_next` / `note_back`; keys: any key for Next, Left
+or Backspace for Back). Any tap is Next, after `NOTE_MIN` (0.45 s) so a stray
+tap can't skip one (`TutorialRun.note_tap` / `note_back`, routed by
+`main._tutorial_allows`). Back stays within the group (e.g. from the hunter
+meter back to the hearts, or to the step's intro). Wide targets get a rounded
+box instead of a ring (`CoachMarker._draw`).
 
 **Forgiving by design**: hearts refill every frame, the hunter's gap is
 pinned, speed stays at `START_SPEED`, random hazards are held

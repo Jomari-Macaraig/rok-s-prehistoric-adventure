@@ -12,8 +12,11 @@ extends RefCounted
 ## hunter can't catch up. Random hazards are held off, the ground stays flat,
 ## and the Raptor is lent for its step only. Stop skips the whole run.
 ##
-## The HUD is explained along the way ("notes": the world freezes, the coach
-## points at one part of the screen, any tap goes to the next): hearts, the
+## Nothing moves on by itself (the user's rule): each step opens with a note
+## (its title and hint, frozen, until a tap), and the HUD is explained along
+## the way the same way ("notes": the coach points at one part of the screen).
+## Notes have Next and Back chips; any tap is Next, Back returns to the
+## previous note of the same group. Explained: hearts, the
 ## hunter meter, points and distance first; the meat counter once meat is
 ## grabbed; the PRIMAL bar after the amber. A finished run then hands over to
 ## the menu tour (menu_tour.gd: Marketplace, Camp, Encyclopedia).
@@ -70,8 +73,11 @@ var _wait := 0.0
 var _taught: Array = []   # coach lessons this run taught (marked learned at the end)
 var hold_left := 0.0      # MIN_HOLD still to run after a jump press
 var release_pending := false   # the player let go during it (main._release_jump)
-var note_i := 0           # which of the step's notes is showing (phase "note")
+var note_i := 0           # which note is showing (phase "note")
+var note_list: Array = [] # the notes now: [HUD part or "", title, text]
+var note_after := ""      # when they're done: "spawn" (the step's thing) or "advance" (next step)
 var _note_t := 0.0
+var _intro_done := -1     # step whose intro note was shown (a retry skips it)
 
 
 func _init(main_node, start_step := 0) -> void:
@@ -115,21 +121,26 @@ func step(delta: float) -> void:
 						+ "New dinosaurs join you the farther you run. Good luck!", SpriteLib.tex("res://assets/portraits/rok.png"), Color(1.0, 0.8, 0.35))
 				phase = "done"
 				return
-			g.hud.show_banner(s.title, s.hint, Color(1.0, 0.85, 0.45), 3.2)
 			hit = false
+			var notes := []
+			if _intro_done != i:
+				_intro_done = i
+				notes.append(["", String(s.title), String(s.hint)])   # the step's intro, until a tap
 			if not s.has("spawn") and s.has("notes"):
-				_start_notes()   # nothing to dodge: just the notes
+				notes.append_array(s.notes)   # nothing to dodge: just the notes
+			if not notes.is_empty():
+				_start_notes(notes, "spawn" if s.has("spawn") else "advance")
 				return
 			thing = _spawn(s)
 			phase = "approach"
 		"approach":
 			if s.id == "amber":
 				if thing == null or not is_instance_valid(thing) or not g.course.pickups.has(thing) or thing.position.x < Tuning.PLAYER_X - 200.0:
-					_start_notes()   # collected (or passed): what the PRIMAL bar is
+					_start_notes(s.notes, "advance")   # collected (or passed): what the PRIMAL bar is
 				return
 			if s.id == "meat":
 				if g.run_meat > 0:
-					_start_notes()   # the counter has something to point at
+					_start_notes(s.notes, "advance")   # the counter has something to point at
 				elif thing == null or not is_instance_valid(thing) or (g.course.pickups.has(thing) and thing.position.x < Tuning.PLAYER_X - 150.0):
 					_repeat()   # missed it
 				return
@@ -208,36 +219,47 @@ func pressed(action: String) -> bool:
 	return true
 
 
-## Freeze on the step's first note (or go on if it has none).
-func _start_notes() -> void:
-	var s := step_data()
-	if not s.has("notes"):
-		_next()
-		return
+## Freeze on the first of `notes` ([HUD part or "", (title,) text]); after
+## the last, `after`: "spawn" the step's thing, or "advance" to the next step.
+func _start_notes(notes: Array, after: String) -> void:
+	note_list = notes.map(func(n): return n if n.size() == 3 else [n[0], "", n[1]])
+	note_after = after
 	note_i = 0
 	_freeze_world()
-	game.hud.clear_banner()   # the step's banner would sit under the note's bubble
+	game.hud.clear_banner()   # a banner would sit under the note's bubble
 	phase = "note"
 	_show_note()
 
 
 func _show_note() -> void:
-	var n: Array = step_data().notes[note_i]
+	var n: Array = note_list[note_i]
 	_note_t = 0.0
-	game.hud.coach_part(String(n[0]), String(n[1]) + "\n(tap to continue)")
+	game.hud.coach_note(String(n[0]), String(n[1]), String(n[2]), (["back"] if note_i > 0 else []) + ["next"])
 
 
-## Any tap while a note shows: the next note, or on with the run.
+## Next (the chip, or a tap anywhere): the next note, or on with the run.
 func note_tap() -> void:
 	if phase != "note" or _note_t < NOTE_MIN:
 		return
 	note_i += 1
-	if note_i < (step_data().notes as Array).size():
+	if note_i < note_list.size():
 		_show_note()
 		return
-	_taught.append(String(step_data().id))
 	_unfreeze()
+	if note_after == "spawn":
+		thing = _spawn(step_data())
+		phase = "approach"
+		return
+	_taught.append(String(step_data().id))
 	_advance()
+
+
+## Back: the previous note of this group (nothing before the first).
+func note_back() -> void:
+	if phase != "note" or note_i == 0:
+		return
+	note_i -= 1
+	_show_note()
 
 
 func _freeze_world() -> void:
