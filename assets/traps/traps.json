@@ -1,0 +1,465 @@
+{
+ "forest_water": {
+  "duration_ms": [
+   160,
+   160,
+   160,
+   160,
+   160,
+   160,
+   160,
+   160
+  ],
+  "loop": true,
+  "events": {},
+  "left": [
+   74,
+   224
+  ],
+  "mid": [
+   75,
+   224
+  ],
+  "right": [
+   74,
+   224
+  ],
+  "anchor": [
+   0,
+   105.0
+  ],
+  "surface_y": 105.0
+ },
+ "forest_log_break": {
+  "duration_ms": [
+   200,
+   120,
+   100,
+   80,
+   100,
+   120,
+   160,
+   400
+  ],
+  "loop": false,
+  "events": {
+   "impact_frame": 2,
+   "suggested_remove_obstacle_collision_at_frame": 3,
+   "final_remains_frame": 7
+  },
+  "frame": [
+   224,
+   224
+  ],
+  "anchor": [
+   112.0,
+   213.5
+  ],
+  "bounds0": [
+   13.5625,
+   84.875,
+   212.1875,
+   213.5
+  ]
+ },
+ "spinosaurus_swim": {
+  "duration_ms": [
+   120,
+   120,
+   120,
+   120,
+   120,
+   120,
+   120,
+   120
+  ],
+  "loop": true,
+  "events": {},
+  "frame": [
+   224,
+   168
+  ],
+  "anchor": [
+   112.0,
+   105.0
+  ],
+  "bounds0": [
+   49.4375,
+   64.3125,
+   207.8125,
+   159.6875
+  ]
+ },
+ "desert_quicksand": {
+  "duration_ms": [
+   180,
+   180,
+   180,
+   180,
+   180,
+   180,
+   180,
+   180
+  ],
+  "loop": true,
+  "events": {},
+  "left": [
+   74,
+   224
+  ],
+  "mid": [
+   75,
+   224
+  ],
+  "right": [
+   74,
+   224
+  ],
+  "anchor": [
+   0,
+   105.0
+  ],
+  "surface_y": 105.0
+ },
+ "desert_bridge_collapse": {
+  "duration_ms": [
+   500,
+   200,
+   200,
+   100,
+   100,
+   100,
+   100,
+   400
+  ],
+  "loop": false,
+  "events": {
+   "warning_frames": [
+    1,
+    2
+   ],
+   "suggested_remove_middle_floor_collision_at_frame": 3,
+   "open_gap_frame": 7
+  },
+  "frame": [
+   224,
+   224
+  ],
+  "anchor": [
+   112.0,
+   105.0
+  ],
+  "bounds0": [
+   7.4375,
+   103.25,
+   216.125,
+   161.4375
+  ]
+ },
+ "desert_wall_break": {
+  "duration_ms": [
+   200,
+   120,
+   100,
+   80,
+   100,
+   120,
+   160,
+   400
+  ],
+  "loop": false,
+  "events": {
+   "impact_frame": 2,
+   "suggested_remove_obstacle_collision_at_frame": 3,
+   "final_remains_frame": 7
+  },
+  "frame": [
+   224,
+   224
+  ],
+  "anchor": [
+   112.0,
+   213.5
+  ],
+  "bounds0": [
+   38.9375,
+   72.625,
+   183.75,
+   213.0625
+  ]
+ },
+ "volcanic_lava": {
+  "duration_ms": [
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140,
+   140
+  ],
+  "loop": true,
+  "events": {},
+  "left": [
+   74,
+   224
+  ],
+  "mid": [
+   75,
+   224
+  ],
+  "right": [
+   74,
+   224
+  ],
+  "anchor": [
+   0,
+   105.0
+  ],
+  "surface_y": 105.0
+ },
+ "volcanic_steam": {
+  "duration_ms": [
+   700,
+   220,
+   220,
+   100,
+   150,
+   130,
+   220,
+   660
+  ],
+  "loop": true,
+  "events": {
+   "warning_frames": [
+    1,
+    2
+   ],
+   "active_frames": [
+    3,
+    4,
+    5
+   ],
+   "cooling_frame": 6,
+   "safe_frames": [
+    0,
+    7
+   ]
+  },
+  "frame": [
+   224,
+   224
+  ],
+  "anchor": [
+   112.0,
+   213.5
+  ],
+  "bounds0": [
+   49.875,
+   150.9375,
+   175.0,
+   213.0625
+  ]
+ },
+ "volcanic_boulder": {
+  "duration_ms": [
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100,
+   100
+  ],
+  "loop": true,
+  "events": {},
+  "frame": [
+   224,
+   224
+  ],
+  "anchor": [
+   112.0,
+   213.5
+  ],
+  "bounds0": [
+   27.125,
+   43.75,
+   199.9375,
+   213.0625
+  ]
+ },
+ "volcanic_wall_break": {
+  "duration_ms": [
+   200,
+   120,
+   100,
+   80,
+   100,
+   120,
+   160,
+   400
+  ],
+  "loop": false,
+  "events": {
+   "impact_frame": 2,
+   "suggested_remove_obstacle_collision_at_frame": 3,
+   "final_remains_frame": 7
+  },
+  "frame": [
+   224,
+   224
+  ],
+  "anchor": [
+   112.0,
+   213.5
+  ],
+  "bounds0": [
+   31.0625,
+   55.125,
+   195.5625,
+   213.5
+  ]
+ },
+ "existing_stone_break": {
+  "duration_ms": [
+   200,
+   120,
+   100,
+   80,
+   100,
+   120,
+   160,
+   400
+  ],
+  "loop": false,
+  "events": {
+   "impact_frame": 2,
+   "suggested_remove_obstacle_collision_at_frame": 3,
+   "final_remains_frame": 7
+  },
+  "frame": [
+   346,
+   230
+  ],
+  "anchor": [
+   172.8,
+   219.6
+  ],
+  "bounds0": [
+   131.85,
+   163.8,
+   213.75,
+   219.6
+  ]
+ },
+ "existing_boulder_break": {
+  "duration_ms": [
+   200,
+   120,
+   100,
+   80,
+   100,
+   120,
+   160,
+   400
+  ],
+  "loop": false,
+  "events": {
+   "impact_frame": 2,
+   "suggested_remove_obstacle_collision_at_frame": 3,
+   "final_remains_frame": 7
+  },
+  "frame": [
+   346,
+   230
+  ],
+  "anchor": [
+   172.8,
+   219.6
+  ],
+  "bounds0": [
+   99.9,
+   132.3,
+   245.70000000000002,
+   219.6
+  ]
+ },
+ "existing_fence_break": {
+  "duration_ms": [
+   200,
+   120,
+   100,
+   80,
+   100,
+   120,
+   160,
+   400
+  ],
+  "loop": false,
+  "events": {
+   "impact_frame": 2,
+   "suggested_remove_obstacle_collision_at_frame": 3,
+   "final_remains_frame": 7
+  },
+  "frame": [
+   346,
+   230
+  ],
+  "anchor": [
+   172.8,
+   219.6
+  ],
+  "bounds0": [
+   91.35000000000001,
+   134.1,
+   254.25,
+   219.6
+  ]
+ },
+ "existing_log_break": {
+  "duration_ms": [
+   200,
+   120,
+   100,
+   80,
+   100,
+   120,
+   160,
+   400
+  ],
+  "loop": false,
+  "events": {
+   "impact_frame": 2,
+   "suggested_remove_obstacle_collision_at_frame": 3,
+   "final_remains_frame": 7
+  },
+  "frame": [
+   346,
+   230
+  ],
+  "anchor": [
+   172.8,
+   219.6
+  ],
+  "bounds0": [
+   76.05,
+   141.3,
+   269.55,
+   219.6
+  ]
+ },
+ "forest_overhead": {
+  "size": [
+   295,
+   116
+  ]
+ },
+ "desert_fossil_arch": {
+  "size": [
+   275,
+   104
+  ]
+ }
+}

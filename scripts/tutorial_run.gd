@@ -1,0 +1,341 @@
+class_name TutorialRun
+extends RefCounted
+## The training run (the user's request): a short scripted first run that
+## teaches the controls one at a time. main starts it (main.start_tutorial) on
+## a fresh save's first tap, or from the main menu's "?" button.
+##
+## Each step spawns one thing ahead of Rok. When it's at the right distance
+## the world FREEZES (main skips _play_step; Rok and the hunter hold their
+## pose) and a coach ring sits on the button to press, with a few words. That
+## press un-freezes the world at exactly the moment it works. A miss (Rok gets
+## hit) just repeats the step ("Try again!"). Nothing costs hearts and the
+## hunter can't catch up. Random hazards are held off, the ground stays flat,
+## and the Raptor is lent for its step only. Stop skips the whole run.
+##
+## The HUD is explained along the way ("notes": the world freezes, the coach
+## points at one part of the screen, any tap goes to the next): hearts, the
+## hunter meter, points and distance first; the meat counter once meat is
+## grabbed; the PRIMAL bar after the amber. A finished run then hands over to
+## the menu tour (menu_tour.gd: Marketplace, Camp, Encyclopedia).
+##
+## Steps (STEPS): jump a rock, hold JUMP over a log, double-jump a wall, slide
+## under a ledge, ATTACK a rock, an egg and its slot, become the Raptor for its
+## crumbling bridge and back to Rok, amber (it only exists once a dinosaur is
+## unlocked: config/requirements.cfg), then a card about the Market,
+## Camp and Encyclopedia. Afterwards coach hints (tutorial.gd) cover the rest.
+
+## kind, what to spawn, the button, its words, the trigger distance (px from
+## Rok's hitbox to the thing), and a banner shown as the step starts.
+## "notes": [HUD part, words] shown one at a time (Hud.coach_part), before the
+## step's spawn when it has none, or once its pickup is collected.
+const STEPS := [
+	{"id": "hud", "title": "YOUR SCREEN", "hint": "A quick look around before the T-rex closes in.",
+		"notes": [["hearts", "Your HEARTS. Crashing into things costs\none. Lose them all and the run ends."],
+			["chase", "The HUNTER behind you. Stumbles let it\ncatch up. If it reaches Rok, you're caught!"],
+			["score", "Your POINTS. Clear hazards and\ngrab things to score more."],
+			["distance", "How far you've run, and the zone.\nRun farther to unlock new dinosaurs."]]},
+	{"id": "jump", "spawn": "small", "button": "jump", "text": "Tap to jump!", "at": 70.0,
+		"title": "RUN, ROK!", "hint": "The T-rex is right behind you. Hop over what's in your way."},
+	{"id": "high_jump", "spawn": "log", "button": "jump", "text": "Hold to jump higher!", "at": 150.0, "hold": true,
+		"title": "BIGGER THINGS", "hint": "Hold JUMP longer to leap higher."},
+	{"id": "double_jump", "spawn": "wall", "button": "jump", "text": "Tap to jump!", "at": 140.0, "air": "Tap again in mid-air!",
+		"title": "TALL WALLS", "hint": "Jump, then jump again in mid-air."},
+	{"id": "slide", "spawn": "ledge", "button": "slide", "text": "Tap to slide under!", "at": 110.0,
+		"title": "LOW LEDGES", "hint": "Slide under them."},
+	{"id": "attack", "spawn": "small", "button": "attack", "text": "Tap to smash it!", "at": 60.0,
+		"title": "ATTACK", "hint": "Smash small things in your way. Weapons and dinosaurs break bigger ones."},
+	{"id": "meat", "spawn": "meat", "title": "MEAT", "hint": "Grab the meat!",
+		"notes": [["meat", "MEAT you collected this run. Spend it\nin the MARKETPLACE after the run."]]},
+	{"id": "booster", "spawn": "egg", "button": "slot_0", "text": "Use your power-up!",
+		"title": "POWER-UPS", "hint": "Grab the Dino Egg. It goes in a slot until you use it."},
+	{"id": "shift", "spawn": "raptor_gate", "button": "form_1", "text": "Become the Raptor!", "at": 520.0,
+		"title": "SHAPESHIFT", "hint": "Some paths need a dinosaur. Only the light Raptor crosses this bridge.",
+		"back": "Back to Rok to save energy"},
+	{"id": "amber", "spawn": "amber", "title": "AMBER", "hint": "Dinosaurs use PRIMAL energy. Amber fills it back up.",
+		"notes": [["primal", "PRIMAL energy. Dinosaurs use it up and\namber fills it. Empty means back to Rok."]]},
+	{"id": "finish"},
+]
+
+const STEP_PAUSE := 1.2   # s of plain running between steps
+const NOTE_MIN := 0.45    # s a note stays before a tap moves on (so a stray tap doesn't skip it)
+const MIN_HOLD := 0.2     # s every jump here counts as held (a 0.07 s tap is too small a hop to clear a rock)
+
+var game                  # main.gd
+var i := 0                # current step
+var phase := "start"      # start, approach, frozen, air, after, back, done
+var frozen := false
+var thing: Node2D         # the spawned obstacle (or gate marker)
+var hit := false          # Rok got hit during this step (it repeats)
+var _wait := 0.0
+var _taught: Array = []   # coach lessons this run taught (marked learned at the end)
+var hold_left := 0.0      # MIN_HOLD still to run after a jump press
+var release_pending := false   # the player let go during it (main._release_jump)
+var note_i := 0           # which of the step's notes is showing (phase "note")
+var _note_t := 0.0
+
+
+func _init(main_node, start_step := 0) -> void:
+	game = main_node
+	i = start_step
+	_wait = 1.0   # a moment of running first
+
+
+func step_data() -> Dictionary:
+	return STEPS[i]
+
+
+## Every frame of the training run (also while frozen).
+func step(delta: float) -> void:
+	var g = game
+	g.health = g.max_health()            # nothing costs hearts here
+	g.chase_gap = Tuning.CHASE_GAP_MAX   # and the hunter can't catch up
+	g.speed = Tuning.START_SPEED
+	g.course.holding = true              # no random hazards
+	g.course.starter_egg = false
+	g.terrain.calm = true                # flat ground only
+	if String(step_data().id) == "shift":
+		g.energy = maxf(g.energy, 60.0)  # the lent Raptor mustn't tire out on its bridge
+	if hold_left > 0.0:
+		hold_left -= delta
+		if hold_left <= 0.0 and release_pending:
+			release_pending = false
+			g.player.release_jump()
+	if g.player.invuln > 0.0 and phase in ["approach", "air", "after"]:
+		hit = true
+	var s := step_data()
+	_note_t += delta
+	match phase:
+		"start":
+			_wait -= delta
+			if _wait > 0.0:
+				return
+			if s.id == "finish":
+				g.queue_info("YOU'RE READY!", "Run as far as you can. Collect meat and spend it in the MARKETPLACE. " \
+						+ "Level up and equip your dinosaurs at the CAMP. Learn about everything you meet in the ENCYCLOPEDIA.\n\n" \
+						+ "New dinosaurs join you the farther you run. Good luck!", SpriteLib.tex("res://assets/portraits/rok.png"), Color(1.0, 0.8, 0.35))
+				phase = "done"
+				return
+			g.hud.show_banner(s.title, s.hint, Color(1.0, 0.85, 0.45), 3.2)
+			hit = false
+			if not s.has("spawn") and s.has("notes"):
+				_start_notes()   # nothing to dodge: just the notes
+				return
+			thing = _spawn(s)
+			phase = "approach"
+		"approach":
+			if s.id == "amber":
+				if thing == null or not is_instance_valid(thing) or not g.course.pickups.has(thing) or thing.position.x < Tuning.PLAYER_X - 200.0:
+					_start_notes()   # collected (or passed): what the PRIMAL bar is
+				return
+			if s.id == "meat":
+				if g.run_meat > 0:
+					_start_notes()   # the counter has something to point at
+				elif thing == null or not is_instance_valid(thing) or (g.course.pickups.has(thing) and thing.position.x < Tuning.PLAYER_X - 150.0):
+					_repeat()   # missed it
+				return
+			if s.id == "booster":
+				if g.slots[0] != "":
+					_freeze(s.button, s.text)
+				elif thing == null or not is_instance_valid(thing) or (g.course.pickups.has(thing) and thing.position.x < Tuning.PLAYER_X - 150.0):
+					_repeat()   # missed the egg
+				return
+			if s.id == "shift":
+				var mk = _gate_marker()
+				if mk != null and Course.gate_x0(mk) - Tuning.PLAYER_X <= float(s.at):
+					thing = mk
+					_freeze(s.button, s.text)
+				return
+			if not _alive(thing):
+				return
+			if _ahead(thing) <= float(s.at) and g.player.on_ground:
+				_freeze(s.button, s.text)
+		"frozen", "note":
+			pass   # waiting for the press (pressed() / note_tap())
+		"air":
+			if g.player.vy >= -60.0 and not g.player.on_ground:
+				_freeze(s.button, s.air)
+			elif g.player.on_ground:
+				phase = "after"
+		"after":
+			if s.id == "booster":
+				_wait -= delta
+				if _wait <= 0.0:
+					_next()
+				return
+			if s.id == "shift":
+				# the whole bridge behind Rok (turning back mid-bridge would drop him in)
+				if thing == null or not is_instance_valid(thing) or not g.course.markers.has(thing) \
+						or Course.gate_x0(thing) + g.terrain.gate_width() < Tuning.PLAYER_X - 120.0:
+					phase = "back"
+					_freeze("form_0", s.back)
+				return
+			if not _alive(thing) or thing.hitbox().end.x < g.player.hitbox().position.x - 10.0:
+				if hit and _alive(thing):
+					_repeat()
+				else:
+					_next()
+		"done":
+			if g.state == g.State.PLAYING:   # the last card was tapped away
+				g.end_tutorial(false)
+
+
+## main calls this when the player presses a button; true if it was the one
+## the frozen step wanted (the world then moves again).
+func pressed(action: String) -> bool:
+	if not frozen:
+		return false
+	var s := step_data()
+	var want: String = "form_0" if phase == "back" else String(s.get("button", ""))
+	if action != want:
+		return false
+	_unfreeze()
+	if action == "jump":
+		hold_left = MIN_HOLD
+		release_pending = false
+	_taught.append(String(s.id))
+	if phase == "back":
+		_taught.append("energy")
+		phase = "start"
+		_advance()
+		return true
+	if s.has("air") and game.player.on_ground:
+		phase = "air"   # now the mid-air tap
+	elif s.id == "booster":
+		_wait = 1.2
+		phase = "after"
+	else:
+		phase = "after"
+	return true
+
+
+## Freeze on the step's first note (or go on if it has none).
+func _start_notes() -> void:
+	var s := step_data()
+	if not s.has("notes"):
+		_next()
+		return
+	note_i = 0
+	_freeze_world()
+	game.hud.clear_banner()   # the step's banner would sit under the note's bubble
+	phase = "note"
+	_show_note()
+
+
+func _show_note() -> void:
+	var n: Array = step_data().notes[note_i]
+	_note_t = 0.0
+	game.hud.coach_part(String(n[0]), String(n[1]) + "\n(tap to continue)")
+
+
+## Any tap while a note shows: the next note, or on with the run.
+func note_tap() -> void:
+	if phase != "note" or _note_t < NOTE_MIN:
+		return
+	note_i += 1
+	if note_i < (step_data().notes as Array).size():
+		_show_note()
+		return
+	_taught.append(String(step_data().id))
+	_unfreeze()
+	_advance()
+
+
+func _freeze_world() -> void:
+	frozen = true
+	game.player.sprite.pause()
+	game.trex.process_mode = Node.PROCESS_MODE_DISABLED
+
+
+func _freeze(button: String, text: String) -> void:
+	frozen = true
+	if phase != "back":
+		phase = "frozen"
+	var g = game
+	g.player.sprite.pause()
+	g.trex.process_mode = Node.PROCESS_MODE_DISABLED
+	g.hud.coach(button, text)
+
+
+func _unfreeze() -> void:
+	frozen = false
+	var g = game
+	g.player.sprite.play()
+	g.trex.process_mode = Node.PROCESS_MODE_INHERIT
+	g.hud.hide_coach()
+
+
+func _next() -> void:
+	_advance()
+
+
+func _advance() -> void:
+	i = mini(i + 1, STEPS.size() - 1)
+	phase = "start"
+	_wait = STEP_PAUSE
+	thing = null
+
+
+## Rok was hit (or missed the egg): the same step again.
+func _repeat() -> void:
+	game.hud.show_banner("TRY AGAIN!", "Wait for the hint, then tap.", Color(1.0, 0.7, 0.5), 1.6)
+	phase = "start"
+	_wait = STEP_PAUSE
+	if _alive(thing):
+		game.course.remove_obstacle(thing)
+	thing = null
+
+
+func _alive(n) -> bool:
+	return n != null and is_instance_valid(n) and n is Obstacle and game.course.obstacles.has(n)
+
+
+func _ahead(o: Obstacle) -> float:
+	return o.hitbox().position.x - game.player.hitbox().end.x
+
+
+func _gate_marker():
+	for m in game.course.markers:
+		if is_instance_valid(m) and m.get_meta("form", -1) == Forms.RAPTOR:
+			return m
+	return null
+
+
+func _spawn(s: Dictionary):
+	var g = game
+	var c: Course = g.course
+	var x: float = c.view_width() + 160.0
+	c._ground = g.terrain.height_at(x) if g.terrain.height_at(x) < Terrain.PIT else Tuning.GROUND_Y
+	match String(s.spawn):
+		"small":
+			return c._obstacle("small", ["Stones_02"], 1.3, x)   # always the same rock (random ones vary in size)
+		"log":
+			return c.log_(x)
+		"wall":
+			return c.rock_wall(x, 2)
+		"ledge":
+			return c.ledge(x)
+		"amber":
+			for k in 5:
+				var t := k / 4.0
+				c._pickup("amber", Vector2(x + k * 70.0, c._ground - 90.0 - sin(t * PI) * 60.0))
+			return c.pickups[-1]
+		"egg":
+			c._pickup("egg", Vector2(x, c._ground - 70.0))
+			return c.pickups[-1]
+		"meat":
+			for k in 3:
+				c._pickup("meat", Vector2(x + k * 70.0, c._ground - 60.0))
+			return c.pickups[-1]
+		"raptor_gate":
+			if not g.unlocked.has(Forms.RAPTOR):
+				g.unlocked.append(Forms.RAPTOR)   # lent for this step (end_tutorial takes it back)
+				g.lent_raptor = true
+			g.energy = 100.0
+			c.force_gate("gate_raptor")
+			return null
+	return null
+
+
+## Lessons this run taught (the coach won't repeat them).
+func taught() -> Array:
+	return _taught.duplicate()

@@ -1,0 +1,1032 @@
+{
+ "raptor": {
+  "attack": {
+   "frame": [
+    204,
+    138
+   ],
+   "pivot": [
+    93,
+    135
+   ],
+   "scale": 0.4316,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "rok": {
+  "attack_stone_axe": {
+   "frame": [
+    185,
+    206
+   ],
+   "pivot": [
+    81,
+    203
+   ],
+   "scale": 0.6003,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_bow": {
+   "frame": [
+    168,
+    201
+   ],
+   "pivot": [
+    61,
+    198
+   ],
+   "scale": 0.485,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": 4,
+   "direction": "forward"
+  },
+  "attack_torch": {
+   "frame": [
+    188,
+    209
+   ],
+   "pivot": [
+    84,
+    206
+   ],
+   "scale": 0.6214,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_club": {
+   "frame": [
+    193,
+    203
+   ],
+   "pivot": [
+    87,
+    200
+   ],
+   "scale": 0.6549,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_flint_spear": {
+   "frame": [
+    214,
+    200
+   ],
+   "pivot": [
+    84,
+    197
+   ],
+   "scale": 0.7073,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_bone_hammer": {
+   "frame": [
+    187,
+    208
+   ],
+   "pivot": [
+    79,
+    205
+   ],
+   "scale": 0.5105,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_sling": {
+   "frame": [
+    202,
+    201
+   ],
+   "pivot": [
+    82,
+    198
+   ],
+   "scale": 0.6274,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": 4,
+   "direction": "forward"
+  }
+ },
+ "triceratops": {
+  "attack": {
+   "frame": [
+    210,
+    133
+   ],
+   "pivot": [
+    100,
+    130
+   ],
+   "scale": 0.4394,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "spinosaurus": {
+  "attack": {
+   "frame": [
+    196,
+    129
+   ],
+   "pivot": [
+    99,
+    126
+   ],
+   "scale": 0.4308,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "pteranodon": {
+  "attack": {
+   "frame": [
+    217,
+    152
+   ],
+   "pivot": [
+    74,
+    148
+   ],
+   "scale": 0.5781,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "allosaurus": {
+  "attack": {
+   "frame": [
+    252,
+    157
+   ],
+   "pivot": [
+    116,
+    155
+   ],
+   "scale": 0.5336,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "ankylosaurus": {
+  "attack": {
+   "frame": [
+    269,
+    141
+   ],
+   "pivot": [
+    137,
+    138
+   ],
+   "scale": 0.5591,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "rearward"
+  }
+ },
+ "baryonyx": {
+  "attack": {
+   "frame": [
+    235,
+    125
+   ],
+   "pivot": [
+    116,
+    123
+   ],
+   "scale": 0.4733,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "brachiosaurus": {
+  "attack": {
+   "frame": [
+    136,
+    159
+   ],
+   "pivot": [
+    71,
+    157
+   ],
+   "scale": 0.3948,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "downward"
+  }
+ },
+ "carnotaurus": {
+  "attack": {
+   "frame": [
+    183,
+    118
+   ],
+   "pivot": [
+    81,
+    115
+   ],
+   "scale": 0.3797,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "dilophosaurus": {
+  "attack": {
+   "frame": [
+    179,
+    117
+   ],
+   "pivot": [
+    84,
+    115
+   ],
+   "scale": 0.3763,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "dimorphodon": {
+  "attack": {
+   "frame": [
+    207,
+    153
+   ],
+   "pivot": [
+    89,
+    134
+   ],
+   "scale": 0.5668,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "diplodocus": {
+  "attack": {
+   "frame": [
+    216,
+    93
+   ],
+   "pivot": [
+    118,
+    91
+   ],
+   "scale": 0.4485,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "rearward"
+  }
+ },
+ "gallimimus": {
+  "attack": {
+   "frame": [
+    139,
+    121
+   ],
+   "pivot": [
+    66,
+    119
+   ],
+   "scale": 0.3604,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "iguanodon": {
+  "attack": {
+   "frame": [
+    218,
+    158
+   ],
+   "pivot": [
+    108,
+    156
+   ],
+   "scale": 0.5153,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "kentrosaurus": {
+  "attack": {
+   "frame": [
+    254,
+    172
+   ],
+   "pivot": [
+    131,
+    170
+   ],
+   "scale": 0.6398,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "rearward"
+  }
+ },
+ "pachycephalosaurus": {
+  "attack": {
+   "frame": [
+    203,
+    142
+   ],
+   "pivot": [
+    90,
+    140
+   ],
+   "scale": 0.4474,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "parasaurolophus": {
+  "attack": {
+   "frame": [
+    224,
+    157
+   ],
+   "pivot": [
+    105,
+    155
+   ],
+   "scale": 0.4855,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "quetzalcoatlus": {
+  "attack": {
+   "frame": [
+    165,
+    134
+   ],
+   "pivot": [
+    94,
+    132
+   ],
+   "scale": 0.4291,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "stegosaurus": {
+  "attack": {
+   "frame": [
+    237,
+    142
+   ],
+   "pivot": [
+    121,
+    140
+   ],
+   "scale": 0.5844,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "rearward"
+  }
+ },
+ "therizinosaurus": {
+  "attack": {
+   "frame": [
+    178,
+    159
+   ],
+   "pivot": [
+    84,
+    157
+   ],
+   "scale": 0.459,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  }
+ },
+ "nira": {
+  "attack_stone_axe": {
+   "frame": [
+    147,
+    188
+   ],
+   "pivot": [
+    76,
+    185
+   ],
+   "scale": 0.4692,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_bow": {
+   "frame": [
+    140,
+    180
+   ],
+   "pivot": [
+    71,
+    177
+   ],
+   "scale": 0.3889,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": 4,
+   "direction": "forward"
+  },
+  "attack_torch": {
+   "frame": [
+    156,
+    193
+   ],
+   "pivot": [
+    64,
+    190
+   ],
+   "scale": 0.4781,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_club": {
+   "frame": [
+    146,
+    180
+   ],
+   "pivot": [
+    72,
+    177
+   ],
+   "scale": 0.4321,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_flint_spear": {
+   "frame": [
+    186,
+    183
+   ],
+   "pivot": [
+    92,
+    179
+   ],
+   "scale": 0.5872,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_bone_hammer": {
+   "frame": [
+    149,
+    182
+   ],
+   "pivot": [
+    73,
+    179
+   ],
+   "scale": 0.4375,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_sling": {
+   "frame": [
+    158,
+    184
+   ],
+   "pivot": [
+    71,
+    181
+   ],
+   "scale": 0.4476,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": 4,
+   "direction": "forward"
+  }
+ },
+ "boro": {
+  "attack_stone_axe": {
+   "frame": [
+    156,
+    189
+   ],
+   "pivot": [
+    60,
+    187
+   ],
+   "scale": 0.4591,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_bow": {
+   "frame": [
+    135,
+    179
+   ],
+   "pivot": [
+    44,
+    177
+   ],
+   "scale": 0.3875,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": 4,
+   "direction": "forward"
+  },
+  "attack_torch": {
+   "frame": [
+    162,
+    192
+   ],
+   "pivot": [
+    56,
+    190
+   ],
+   "scale": 0.4715,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_club": {
+   "frame": [
+    165,
+    198
+   ],
+   "pivot": [
+    66,
+    196
+   ],
+   "scale": 0.4833,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_flint_spear": {
+   "frame": [
+    188,
+    181
+   ],
+   "pivot": [
+    67,
+    178
+   ],
+   "scale": 0.521,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_bone_hammer": {
+   "frame": [
+    164,
+    195
+   ],
+   "pivot": [
+    59,
+    193
+   ],
+   "scale": 0.4715,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": null,
+   "direction": "forward"
+  },
+  "attack_sling": {
+   "frame": [
+    162,
+    181
+   ],
+   "pivot": [
+    61,
+    178
+   ],
+   "scale": 0.5387,
+   "times": [
+    40,
+    40,
+    40,
+    50,
+    110,
+    90,
+    80,
+    70
+   ],
+   "active": 4,
+   "release": 4,
+   "direction": "forward"
+  }
+ }
+}

@@ -1,0 +1,4062 @@
+{
+	"allosaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			267.0,
+			233.0
+		],
+		"pivot": [
+			133.260273972603,
+			220.712328767123
+		]
+	},
+	"ankylosaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			268.0,
+			161.0
+		],
+		"pivot": [
+			133.797909407666,
+			150.522648083624
+		]
+	},
+	"baryonyx": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			274.0,
+			205.0
+		],
+		"pivot": [
+			136.837416481069,
+			192.427616926503
+		]
+	},
+	"boro": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					120.0,
+					180.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					120.0,
+					180.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			252,
+			224
+		],
+		"pivot": [
+			126.0,
+			213.5
+		]
+	},
+	"brachiosaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			237.0,
+			197.0
+		],
+		"pivot": [
+			118.393509127789,
+			189.922920892495
+		]
+	},
+	"carnotaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			199.0,
+			174.0
+		],
+		"pivot": [
+			99.5555555555556,
+			164.888888888889
+		]
+	},
+	"centrosaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			287.0,
+			201.0
+		],
+		"pivot": [
+			143.157894736842,
+			189.684210526316
+		]
+	},
+	"coelophysis": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			232.0,
+			163.0
+		],
+		"pivot": [
+			115.987055016181,
+			153.68284789644
+		]
+	},
+	"deinonychus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			190.0,
+			143.0
+		],
+		"pivot": [
+			94.9403973509934,
+			133.509933774834
+		]
+	},
+	"dilophosaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			208.0,
+			156.0
+		],
+		"pivot": [
+			103.884057971014,
+			146.086956521739
+		]
+	},
+	"dimorphodon": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			265.0,
+			212.0
+		],
+		"pivot": [
+			132.266666666667,
+			201.706666666667
+		]
+	},
+	"diplodocus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			262.0,
+			150.0
+		],
+		"pivot": [
+			130.962241169306,
+			142.655298416565
+		]
+	},
+	"dsungaripterus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			222.0,
+			162.0
+		],
+		"pivot": [
+			110.781725888325,
+			153.583756345178
+		]
+	},
+	"euoplocephalus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			277.0,
+			194.0
+		],
+		"pivot": [
+			138.378378378378,
+			183.351351351351
+		]
+	},
+	"gallimimus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			238.0,
+			167.0
+		],
+		"pivot": [
+			119.06976744186,
+			157.767441860465
+		]
+	},
+	"iguanodon": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			335.0,
+			235.0
+		],
+		"pivot": [
+			167.724137931035,
+			222.234482758621
+		]
+	},
+	"kentrosaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			271.0,
+			190.0
+		],
+		"pivot": [
+			135.576323987539,
+			179.638629283489
+		]
+	},
+	"nira": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					120.0,
+					180.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					120.0,
+					180.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			252,
+			224
+		],
+		"pivot": [
+			126.0,
+			213.5
+		]
+	},
+	"nyctosaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			154.0,
+			152.0
+		],
+		"pivot": [
+			77.6823529411766,
+			147.341176470589
+		]
+	},
+	"oviraptor": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			156.0,
+			156.0
+		],
+		"pivot": [
+			77.913043478261,
+			148.521739130435
+		]
+	},
+	"pachycephalosaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			233.0,
+			175.0
+		],
+		"pivot": [
+			116.441471571906,
+			163.745819397993
+		]
+	},
+	"parasaurolophus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			337.0,
+			202.0
+		],
+		"pivot": [
+			168.304498269896,
+			189.342560553633
+		]
+	},
+	"pteranodon": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			224.0,
+			224.0
+		],
+		"pivot": [
+			112.0,
+			213.5
+		]
+	},
+	"quetzalcoatlus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			194.0,
+			194.0
+		],
+		"pivot": [
+			96.7804878048781,
+			186.30243902439
+		]
+	},
+	"raptor": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			224.0,
+			196.0
+		],
+		"pivot": [
+			112.0,
+			185.5
+		]
+	},
+	"rhamphorhynchus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			243.0,
+			182.0
+		],
+		"pivot": [
+			121.160305343512,
+			174.167938931298
+		]
+	},
+	"rok": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			252.0,
+			224.0
+		],
+		"pivot": [
+			126.0,
+			213.5
+		]
+	},
+	"spinosaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			224.0,
+			168.0
+		],
+		"pivot": [
+			112.0,
+			157.5
+		]
+	},
+	"stegosaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			269.0,
+			189.0
+		],
+		"pivot": [
+			134.736842105263,
+			178.526315789474
+		]
+	},
+	"styracosaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			238.0,
+			167.0
+		],
+		"pivot": [
+			118.58310626703,
+			157.122615803815
+		]
+	},
+	"tapejara": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			179.0,
+			164.0
+		],
+		"pivot": [
+			89.0018691588783,
+			157.607476635514
+		]
+	},
+	"therizinosaurus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			233.0,
+			210.0
+		],
+		"pivot": [
+			116.642685851319,
+			201.208633093525
+		]
+	},
+	"triceratops": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			252.0,
+			168.0
+		],
+		"pivot": [
+			126.0,
+			157.5
+		]
+	},
+	"tupandactylus": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			155.0,
+			154.0
+		],
+		"pivot": [
+			84.5705794947995,
+			148.873699851412
+		]
+	},
+	"utahraptor": {
+		"clips": {
+			"dizzy": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "dizzy",
+				"times": [
+					140.0,
+					140.0,
+					140.0,
+					140.0
+				]
+			},
+			"dizzy_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"dizzy_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "dizzy",
+				"times": [
+					90.0,
+					110.0
+				]
+			},
+			"snag": {
+				"frames": [
+					2.0,
+					3.0,
+					4.0,
+					5.0
+				],
+				"loop": true,
+				"sheet": "snag",
+				"times": [
+					130.0,
+					130.0,
+					130.0,
+					130.0
+				]
+			},
+			"snag_enter": {
+				"frames": [
+					0.0,
+					1.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					80.0,
+					100.0
+				]
+			},
+			"snag_exit": {
+				"frames": [
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "snag",
+				"times": [
+					100.0,
+					120.0
+				]
+			},
+			"trip": {
+				"frames": [
+					0.0,
+					1.0,
+					2.0,
+					3.0,
+					4.0,
+					5.0,
+					6.0,
+					7.0
+				],
+				"loop": false,
+				"sheet": "trip",
+				"times": [
+					70.0,
+					90.0,
+					80.0,
+					110.0,
+					140.0,
+					120.0,
+					100.0,
+					140.0
+				]
+			}
+		},
+		"frame": [
+			196.0,
+			157.0
+		],
+		"pivot": [
+			97.9234972677597,
+			149.333333333333
+		]
+	}
+}

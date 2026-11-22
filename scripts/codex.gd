@@ -1,0 +1,876 @@
+class_name Codex
+extends CanvasLayer
+## The Field Guide: an encyclopedia of what the player has unlocked or been
+## taught. Dinosaurs appear once unlocked; hazards and terrain once taught
+## (Progression.taught). Everything else shows as a silhouette with the
+## distance where it is discovered. Entries discovered since the guide was
+## last opened carry a NEW tag.
+
+signal closed
+
+const INK := Color(0.32, 0.17, 0.06)
+const PAPER := Color(0.97, 0.9, 0.74)
+const CARD := Color(0.93, 0.83, 0.62)
+const P := "res://assets/props/%s.png"
+
+## Hazards and terrain, in the order they are taught.
+const HAZARDS := [
+	{"key": "trex", "name": "The T-rex", "icon": "res://assets/portraits/trex.png", "always": true, "facts": "trex",
+		"text": "Always on Rok's tail, running at exactly his pace. Only stumbles (trips, snags, dizziness, thorns, shield hits), climbing hills and its charges let it close in; on flat ground as Rok you never lose ground. If it reaches him, it's over.", "counter": "Pull away with a fast dino (Raptor, Pteranodon), by sliding downhill, or with an egg booster. Any lead you build is yours to keep."},
+	{"key": "small", "name": "Rocks & Mushrooms", "icon": "Stones_03",
+		"text": "Low and easy. A single jump clears them. They won't end your run: Rok trips over a rock and the T-rex gains on him, and a mushroom squashes, its spores making him dizzy for a few seconds (lower jumps).", "counter": "Every form can jump them. Triceratops and Spinosaurus smash them."},
+	{"key": "thorn_bush", "name": "Thorn Bushes", "icon": "Grasses_16",
+		"text": "A prickly bush. Brushing it won't end your run, but Rok stumbles and the T-rex gains on him.", "counter": "Spinosaurus tramples thorns."},
+	{"key": "log", "name": "Logs & Stumps", "icon": "Logs_03",
+		"text": "Long and low. Jump early, and hold JUMP for a longer leap.", "counter": "Triceratops and Spinosaurus smash them."},
+	{"key": "boulder", "name": "Boulders", "icon": "Stones_04",
+		"text": "Tall and heavy. Needs a full jump.", "counter": "Triceratops smashes them."},
+	{"key": "gate_raptor", "name": "Crumbling Bridge", "icon": "Logs_05", "gate": true,
+		"text": "Thin twigs over a gap too wide to jump. They snap under heavy feet.", "counter": "DINO GATE: cross as the light Raptor (or fly over)."},
+	{"key": "gate_tri", "name": "Barricades", "icon": "res://assets/props/Tile-3_09.png", "gate": true,
+		"text": "Log barricades (forest), cracked sandstone (desert) and basalt (volcanic), stacked to the sky. Too tall to jump or fly over.", "counter": "DINO GATE: charge through as Triceratops."},
+	{"key": "quicksand", "name": "Quicksand", "icon": "res://assets/props/Other_08.png",
+		"text": "Desert sand that swallows anyone who lingers. Rok sinks in under a second; heavy dinos even faster. Once the Raptor joins you, the sand runs deep: too wide to jump as the world speeds up, and it grabs anyone who lands in it.", "counter": "Jump across while it's narrow. Deep sand: dash over as the Raptor (it barely sinks) or fly."},
+	{"key": "large_hill", "name": "Big Hills", "icon": "res://assets/terrain/slope_up.png",
+		"text": "A long climb and a long descent. Climbing slows Rok and the T-rex gains.", "counter": "SLIDE down the far side to pull away. The fast Raptor isn't slowed by climbing."},
+	{"key": "fence", "name": "Fences", "icon": "Fences_01",
+		"text": "Wide wooden fences. Time your jump.", "counter": "Spinosaurus tramples them."},
+	{"key": "pit", "name": "Pits", "icon": "res://assets/terrain/cap_right.png",
+		"text": "Gaps in the ground. Fall in and the run ends.", "counter": "Jump across, or fly over as Pteranodon."},
+	{"key": "bridge", "name": "Log Bridges", "icon": "Logs_04",
+		"text": "Thick logs laid over a pit. Sturdy enough for anyone.", "counter": "No transformation needed."},
+	{"key": "ledge", "name": "Low Ledges", "icon": "res://assets/traps/forest_overhead.png",
+		"text": "Low branches with hanging vines (forest), fossil rib arches (desert) and floating rock (volcanic). Tap SLIDE to get under them. Running into a forest vine just snags Rok (the T-rex gains), but the solid arches and rock end the run.", "counter": "Raptor, Triceratops and Pteranodon fit underneath standing."},
+	{"key": "wall", "name": "Rock Walls", "icon": "Tile-3_08",
+		"text": "Stacked stone. Jump, then jump again in mid-air.", "counter": "Triceratops smashes them. Raptor leaps them."},
+	{"key": "gate_spino", "name": "Bramble Wall", "icon": "Grasses_15", "gate": true,
+		"text": "A towering wall of thorns.", "counter": "DINO GATE: only Spinosaurus can trample through. A shield won't save anyone else."},
+	{"key": "tall_fence", "name": "Tall Fences", "icon": "Fences_03",
+		"text": "A tall post fence. Double-jump to clear it.", "counter": "Spinosaurus tramples them."},
+	{"key": "gate_water", "name": "Flooded Crossing", "icon": "res://assets/props/Terrain-variation_03.png", "gate": true,
+		"text": "Deep forest water, far too wide to jump.", "counter": "DINO GATE: swim across as Spinosaurus, or fly as Pteranodon."},
+	{"key": "steam", "name": "Steam Vents", "icon": "trap:volcanic_steam:4",
+		"text": "Volcanic vents that puff (warning), then blast a scalding column. A blast makes Rok stumble and the T-rex gains.", "counter": "Watch the rhythm. The cone itself is harmless."},
+	{"key": "rolling_boulder", "name": "Rolling Boulders", "icon": "res://assets/props/Stones_05.png",
+		"text": "Glowing volcanic boulders rolling straight at you, faster than you'd think.", "counter": "Jump or fly over, or smash as Triceratops."},
+	{"key": "hunter_carnotaurus", "name": "Carnotaurus (Desert hunter)", "icon": "res://assets/portraits/carnotaurus.png", "facts": "carnotaurus",
+		"text": "In the Desert the Carnotaurus takes over the hunt. It keeps your pace, but its charges are short and fierce.", "counter": "When it charges, turn Runner or use an egg right away."},
+	{"key": "hunter_allosaurus", "name": "Allosaurus (Volcanic hunter)", "icon": "res://assets/portraits/allosaurus.png", "facts": "allosaurus",
+		"text": "In the Volcanic Badlands the Allosaurus hunts you. It's relentless: its charges last longest of all.", "counter": "Save eggs and Runner energy for the badlands; slide downhill to win back ground."},
+	{"key": "stampede", "name": "Stampedes", "icon": "res://assets/portraits/gallimimus.png",
+		"text": "Wild dinosaurs running straight at you, a different one in each zone: a head-down Pachycephalosaurus in the forest, a lightning-fast Gallimimus in the desert, a spiky Kentrosaurus in the badlands. Running into one bumps Rok and the T-rex gains, but once it's past you the T-rex stops to eat it.", "counter": "Jump over them."},
+	{"key": "swooper", "name": "Swoopers", "icon": "res://assets/portraits/dimorphodon.png",
+		"text": "Flying reptiles swooping at head height: a small Dimorphodon in the forest, a bobbing Pteranodon in the desert, a giant Quetzalcoatlus in the badlands. Hit one and the T-rex gains, but it snaps them up behind you.", "counter": "Slide under them. The Raptor fits underneath standing."},
+	{"key": "diver", "name": "Diving Flyers", "icon": "res://assets/portraits/quetzalcoatlus.png",
+		"text": "Some swoopers come in high, out of reach, then screech and dive at you, levelling out at head height just as they reach you.", "counter": "Slide as it swoops down, or ATTACK it once it's low. Jumping into the dive gets you hit."},
+	{"key": "gate_lava", "name": "Lava Channel", "icon": "res://assets/terrain/cap_left.png", "gate": true,
+		"text": "A river of molten rock, far too wide to jump.", "counter": "DINO GATE: fly over as Pteranodon."},
+	{"key": "gate_ptera", "name": "Wide Canyon", "icon": "res://assets/terrain/cap_left.png", "gate": true,
+		"text": "A chasm far wider than any jump.", "counter": "DINO GATE: fly over as Pteranodon."},
+	{"key": "combo", "name": "Combos", "icon": "Mushrooms_05",
+		"text": "Familiar hazards back to back. Land, then jump again.", "counter": "Plan your next form before you land."},
+	{"key": "hard_combo", "name": "Tougher Combos", "icon": "Fences_03",
+		"text": "Longer, harder chains of everything you know, three hazards at a time.", "counter": "Read ahead and pick each form early."},
+]
+
+const TERRAIN := [
+	{"key": "islands", "name": "Floating Islands", "icon": "Terrain-variation_03", "always": true,
+		"text": "Floating ground you can land on. Amber and eggs often wait on top, and some come as staircases."},
+	{"key": "hill", "name": "Hills", "icon": "res://assets/terrain/slope_up.png",
+		"text": "Gentle bumps. Rok runs right over them."},
+	{"key": "slope", "name": "Slopes & Plateaus", "icon": "res://assets/terrain/mid_a.png",
+		"text": "The ground climbs to higher levels and back down."},
+	{"key": "drop", "name": "Drops", "icon": "res://assets/terrain/drop.png",
+		"text": "Sudden steps down. Watch for hazards at the bottom."},
+	{"key": "sky_trail", "name": "Sky Trails", "icon": "Other_07",
+		"text": "High waves of amber that end in an egg. Easiest to collect by flying."},
+]
+
+static var ITEMS := [
+	{"name": "Amber", "icon": "Other_07",
+		"text": "Fills your PRIMAL energy (+25), which powers the dinosaur forms. Worth +25 points."},
+	{"name": "Meat", "icon": "res://assets/items/meat.png",
+		"text": "Rok's Market money. Every piece you grab is banked when the run ends; spend it in the Market on power-ups and a third booster slot. Worth +25 points."},
+	{"name": "Heart", "icon": "heart",
+		"text": "Rok has 3 hearts (up to 6 with Heart Containers from the Market, on sale by best score), each split into quarters. Every hit costs some: a crash a whole heart, a snag or a wild-dinosaur bump half, a trip, a dizzy mushroom, thorns or steam a quarter. Armor softens hits (at Armor 10 a crash costs half a heart). Pits, water, lava, quicksand, dino gates and being caught are still the end. A rare heart in a run heals one."},
+	# found later in runs: revealed once met (`seen` key), else "???" with where to look
+	{"name": "Big Meat", "icon": "res://assets/items/meat.png", "art": "res://assets/items/big_meat.png", "seen": "big_meat",
+		"hint": "Run past %d m in one go to find it." % int(Tuning.BIG_MEAT_FROM_M),
+		"text": "Richer meat that turns up as a run goes on: worth %d meat. The further you get, the more of the meat is golden." % Tuning.BIG_MEAT_VALUE},
+	{"name": "Rare Fossil", "icon": "Other_07", "art": "res://assets/items/fossil.png", "seen": "fossil",
+		"hint": "Run past %d m in one go to find one." % int(Tuning.FOSSIL_FROM_M),
+		"text": "An ancient ammonite, found only deep into long runs: %d meat and %d points." % [Tuning.FOSSIL_MEAT, Tuning.FOSSIL_SCORE]},
+	{"name": "Milestone Chest", "icon": "res://assets/items/meat.png", "art": "res://assets/items/chest_closed.png", "seen": "chest",
+		"hint": "Run %d m in one go to find one." % int(Tuning.CHEST_EVERY_M),
+		"text": "One waits on the ground every %d m of a run (and an early one near the start): run into it. Common chests hold meat or XP, rare ones can hold a power-up or a heart, and epic ones a Primal Frenzy or full hearts. The further you get, the rarer they are." % int(Tuning.CHEST_EVERY_M)},
+	{"name": "Combo & Primal Frenzy", "icon": "Other_07", "seen": "combo",
+		"hint": "Clear a few hazards in a row without a stumble.",
+		"text": "Every hazard cleared without a stumble builds your combo: x1.5 points after 5, up to x5 after 60, and from x2 every meat counts double or more. A stumble or a long gap ends it. The streak also fills the gold meter: full, Rok goes into a Primal Frenzy and smashes through everything for a few seconds (pits still bite!)."}
+]
+
+var tab := 0
+var unlocked: Array = []
+var best_m := 0.0
+var seen: Array = []
+var viewed: Array = []      # entry ids already looked at in the guide
+var boosters_owned: Array = ["egg"]   # set by main: unlocked power-ups
+## Expansion dinosaurs the player owns (main.dinos_owned): their pages are revealed.
+static var species_owned: Array = []
+## Badge progress (main.badge_stats / badge_tiers), and whether a tier was
+## earned since the guide was last opened (lights the book button's badge).
+static var badge_stats: Dictionary = {}
+static var badge_tiers: Dictionary = {}
+static var badges_new := false
+var _new_ids: Array = []
+
+var root: Control
+var grid: HBoxContainer      # the shelf: one tile per entry (its full page kept inside, hidden)
+var scroll: ScrollContainer
+var scene: MarketScene       # the Elder's cave (MarketScene kind "elder")
+var hero: AnimatedSprite2D   # the hero you play, come to listen
+var bubble: PanelContainer   # the Elder's speech bubble
+var tail: Polygon2D
+var pscroll: ScrollContainer
+var page: VBoxContainer      # the chosen entry's page, in the bubble
+var shelf: VBoxContainer
+var selected := -1           # index of the chosen tile on the shelf (-1 = the Elder's greeting)
+var _drag_target: ScrollContainer
+var _drag_dist := 0.0
+var _tile_h := 150.0
+var progress_label: Label
+var tab_buttons: Array[Button] = []
+var _fling := 0.0        # scroll momentum (px/s) after a drag
+var _dragging := false
+
+
+func _ready() -> void:
+	layer = 20
+	visible = false
+	root = Control.new()
+	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(root)
+	root.add_child(Market.backdrop("res://assets/bg/bg_2.png", Color(0.45, 0.6, 0.8)))   # its own scene: the Elder's cave
+	scene = MarketScene.new()
+	scene.kind = "elder"
+	scene.sign_text = "ELDER"
+	scene.style = "niches"   # the entries sit in niches carved in the stone
+	root.add_child(scene)
+	hero = AnimatedSprite2D.new()
+	hero.name = "Hero"
+	hero.centered = false
+	root.add_child(hero)
+
+	var header := HBoxContainer.new()
+	header.name = "Header"
+	header.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	header.offset_left = Tuning.UI_MARGIN
+	header.offset_right = -Tuning.UI_MARGIN
+	header.offset_top = 14
+	header.add_theme_constant_override("separation", 12)
+	root.add_child(header)
+	var close := _button("‹ Back", Vector2(130, 52))
+	close.pressed.connect(close_guide)
+	close.name = "Back"
+	header.add_child(close)
+	var title := _text("FIELD GUIDE", 40)
+	header.add_child(Market.title_banner("encyclopedia", title))
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(spacer)
+	var pill := PanelContainer.new()
+	var pst := StyleBoxFlat.new()
+	pst.bg_color = Color(0.25, 0.13, 0.06, 0.75)
+	pst.set_corner_radius_all(16)
+	pst.content_margin_left = 14
+	pst.content_margin_right = 14
+	pill.add_theme_stylebox_override("panel", pst)
+	header.add_child(pill)
+	progress_label = _text("", 22, Color(1, 0.95, 0.82))
+	progress_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	pill.add_child(progress_label)
+
+	# the Elder's speech bubble: the chosen entry's page
+	bubble = PanelContainer.new()
+	bubble.name = "Bubble"
+	var bs := StyleBoxFlat.new()
+	bs.bg_color = Color(1.0, 0.97, 0.88, 0.97)
+	bs.set_corner_radius_all(22)
+	bs.set_border_width_all(4)
+	bs.border_color = Color(0.45, 0.25, 0.1)
+	bs.set_content_margin_all(14)
+	bs.shadow_color = Color(0, 0, 0, 0.25)
+	bs.shadow_size = 8
+	bubble.add_theme_stylebox_override("panel", bs)
+	root.add_child(bubble)
+	tail = Polygon2D.new()
+	tail.color = Color(1.0, 0.97, 0.88)
+	root.add_child(tail)
+	pscroll = ScrollContainer.new()
+	pscroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	bubble.add_child(pscroll)
+	page = VBoxContainer.new()
+	page.name = "Page"
+	page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	page.add_theme_constant_override("separation", 6)
+	pscroll.add_child(page)
+
+	# the shelf: the tabs, then the entries in niches, in a row
+	shelf = VBoxContainer.new()
+	shelf.name = "Shelf"
+	shelf.add_theme_constant_override("separation", 8)
+	root.add_child(shelf)
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override("separation", 8)
+	shelf.add_child(tabs)
+	for i in 6:
+		var b := _button(["Dinosaurs", "Hazards & Terrain", "Items", "Power-Ups", "Zones", "Badges"][i], Vector2(0, 46))
+		b.toggle_mode = true
+		b.pressed.connect(func(): _show_tab(i))
+		tabs.add_child(b)
+		tab_buttons.append(b)
+	scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	shelf.add_child(scroll)
+	grid = HBoxContainer.new()
+	grid.add_theme_constant_override("separation", 12)
+	scroll.add_child(grid)
+	root.resized.connect(_layout)
+
+
+## Place everything around the Elder's cave (it follows the screen size).
+func _layout() -> void:
+	var w := root.size.x
+	var h := root.size.y
+	var gy: float = scene.ground_y
+	var hs: Vector2 = scene.hero_spot()
+	hero.position = hs
+	var left := hs.x + 110.0
+	var right: float = scene.cave_x() - 160.0
+	bubble.position = Vector2(left, 78.0)
+	bubble.size = Vector2(maxf(right - left, 440.0), gy - 78.0 - 24.0)
+	var by := bubble.position.y + bubble.size.y * 0.5
+	var bx := bubble.position.x + bubble.size.x - 2.0
+	var elder := Vector2(scene.cave_x() + 60.0, gy - 150.0)
+	tail.polygon = PackedVector2Array([Vector2(bx, by - 18.0), Vector2(bx, by + 18.0), elder])
+	shelf.position = Vector2(Tuning.UI_MARGIN, gy + 28.0)
+	shelf.size = Vector2(w - Tuning.UI_MARGIN * 2.0, h - gy - 36.0)
+	_tile_h = maxf(shelf.size.y - 46.0 - 8.0 - 14.0, 120.0)
+	scene.band = Rect2(0.0, gy + 26.0, w, h - gy - 26.0)
+	scene.tiles_top = shelf.position.y + 54.0
+	scene.shelf_y = scene.tiles_top + _tile_h
+	for t in grid.get_children():
+		(t as Control).custom_minimum_size.y = _tile_h
+
+
+## Drag to scroll on touch screens (and with a mouse drag on desktop, where
+## clicks arrive as touches): sideways along the shelf, up and down in the
+## Elder's bubble. Handled here because the tiles would otherwise swallow it.
+func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+	var drag := event as InputEventScreenDrag
+	if drag:
+		_dragging = true
+		_drag_dist += drag.relative.length()
+		if _drag_target == null:
+			_drag_target = pscroll if pscroll.get_global_rect().has_point(drag.position) else scroll
+		if _drag_target == pscroll:
+			pscroll.scroll_vertical -= int(drag.relative.y)
+			_fling = -drag.velocity.y
+		else:
+			scroll.scroll_horizontal -= int(drag.relative.x)
+			_fling = -drag.velocity.x
+		get_viewport().set_input_as_handled()
+		return
+	var t := event as InputEventScreenTouch
+	if t:
+		if t.pressed:
+			_fling = 0.0
+			_drag_dist = 0.0
+			_drag_target = null
+		else:
+			_dragging = false
+
+
+func _process(delta: float) -> void:
+	if not visible or _dragging or absf(_fling) < 5.0:
+		return
+	if _drag_target == pscroll:
+		pscroll.scroll_vertical += int(_fling * delta)
+	else:
+		scroll.scroll_horizontal += int(_fling * delta)
+	_fling = lerpf(_fling, 0.0, minf(delta * 5.0, 1.0))
+
+
+func _text(t: String, size: int, color := INK) -> Label:
+	var l := Label.new()
+	l.text = t
+	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_color_override("font_color", color)
+	return l
+
+
+func _button(t: String, min_size: Vector2) -> Button:
+	var b := Button.new()
+	b.text = t
+	b.custom_minimum_size = min_size
+	b.focus_mode = Control.FOCUS_NONE
+	b.add_theme_font_size_override("font_size", 22)
+	for state in ["normal", "hover", "pressed", "hover_pressed"]:
+		var sb := StyleBoxFlat.new()
+		var on: bool = state == "pressed" or state == "hover_pressed"
+		sb.bg_color = Color(0.55, 0.3, 0.12) if on else Color(0.85, 0.7, 0.45)
+		sb.set_corner_radius_all(12)
+		sb.set_border_width_all(3)
+		sb.border_color = Color(0.45, 0.25, 0.1)
+		sb.content_margin_left = 16
+		sb.content_margin_right = 16
+		b.add_theme_stylebox_override(state, sb)
+	b.add_theme_color_override("font_color", INK)
+	b.add_theme_color_override("font_hover_color", INK)
+	b.add_theme_color_override("font_pressed_color", Color(1, 0.95, 0.85))
+	b.add_theme_color_override("font_hover_pressed_color", Color(1, 0.95, 0.85))
+	return b
+
+
+# ------------------------------------------------------------ data
+
+## Every entry id the player currently knows.
+static func known_ids(p_unlocked: Array, p_best_m: float, p_seen: Array) -> Array:
+	var ids := []
+	for f in Forms.ORDER:
+		if p_unlocked.has(f):
+			ids.append("dino_%d" % f)
+	for id in Dinos.ids():
+		if species_owned.has(id):
+			ids.append("dino_" + id)
+	for h in HAZARDS + TERRAIN:
+		if h.get("always", false) or Progression.taught(h.key, p_best_m, p_seen):
+			ids.append(h.key)
+	for i in Zones.ZONES.size():
+		if zone_known(i, p_best_m, p_seen):
+			ids.append("zone_" + Zones.ZONES[i].id)
+	return ids
+
+
+static func zone_known(i: int, p_best_m: float, p_seen: Array) -> bool:
+	return i == 0 or p_seen.has("zone_" + Zones.ZONES[i].id) or p_best_m >= i * Zones.ZONE_LEN_M
+
+
+static func total_entries() -> int:
+	return Forms.ORDER.size() + Dinos.ids().size() + HAZARDS.size() + TERRAIN.size() + Zones.ZONES.size()
+
+
+## True if something was discovered since the guide was last opened.
+static func has_new(p_unlocked: Array, p_best_m: float, p_seen: Array, p_viewed: Array) -> bool:
+	if badges_new:
+		return true
+	for id in known_ids(p_unlocked, p_best_m, p_seen):
+		if not p_viewed.has(id):
+			return true
+	return false
+
+
+# ------------------------------------------------------------ open / close
+
+func open_guide(p_unlocked: Array, p_best_m: float, p_seen: Array, p_viewed: Array) -> void:
+	unlocked = p_unlocked
+	best_m = p_best_m
+	seen = p_seen
+	viewed = p_viewed
+	var known := known_ids(unlocked, best_m, seen)
+	_new_ids = known.filter(func(id): return not viewed.has(id))
+	progress_label.text = "Discovered %d / %d    " % [known.size(), total_entries()]
+	visible = true
+	Market.enter(root)
+	hero.sprite_frames = SpriteLib.character(Forms.ROK)
+	if not hero.has_node("Gear"):
+		var gl := GearLayer.new()
+		gl.name = "Gear"
+		hero.add_child(gl)
+	(hero.get_node("Gear") as GearLayer).hero = String(Forms.get_data(Forms.ROK).id)
+	hero.offset = -Vector2(Forms.get_data(Forms.ROK).pivot)
+	hero.scale = Vector2.ONE * 1.25
+	hero.play("idle")
+	_layout()
+	_show_tab(tab)
+
+
+func close_guide() -> void:
+	visible = false
+	closed.emit()
+
+
+## Ids to remember as viewed once the guide has been opened.
+func viewed_after_open() -> Array:
+	badges_new = false
+	var out := viewed.duplicate()
+	for id in known_ids(unlocked, best_m, seen):
+		if not out.has(id):
+			out.append(id)
+	return out
+
+
+func _show_tab(i: int) -> void:
+	tab = i
+	for k in tab_buttons.size():
+		tab_buttons[k].button_pressed = k == i
+	for c in grid.get_children():
+		grid.remove_child(c)   # out of the tree now, so new cards keep their names
+		c.queue_free()
+	scroll.scroll_horizontal = 0
+	selected = -1
+	match i:
+		0:
+			for f in Forms.ORDER:
+				_dino_card(f)
+			for id in Dinos.ids():
+				_species_card(id)
+		1:
+			for h in HAZARDS:
+				_hazard_card(h, true)
+			for h in TERRAIN:
+				_hazard_card(h, false)
+		2:
+			for it in ITEMS:
+				var icon: Texture2D = Hearts.icon(Hearts.QUARTERS) if it.icon == "heart" else _tex(it.icon)
+				if it.has("art") and ResourceLoader.exists(it.art):
+					icon = load(it.art)
+				if it.has("seen") and not seen.has(it.seen):
+					_card(icon, "???", it.hint, "", true, false)
+					continue
+				_card(icon, it.name, it.text, "", false, false)
+		3:
+			_powerup_cards()
+		4:
+			var icons := ["res://assets/bg/bg_2.png", "res://assets/bg/desert_far.png", "res://assets/bg/volcanic_far.png"]
+			for zi in Zones.ZONES.size():
+				var z: Dictionary = Zones.ZONES[zi]
+				var start := int(zi * Zones.ZONE_LEN_M)
+				if not zone_known(zi, best_m, seen):
+					_card(load(icons[zi]), "???", "Reach %d m to discover." % start, "", true, false)
+					continue
+				_card(load(icons[zi]), z.name, z.blurb,
+						"From %d m, then every %d m after" % [start, int(Zones.ZONE_LEN_M * Zones.ZONES.size())],
+						false, _new_ids.has("zone_" + z.id), Color(0.55, 0.35, 0.15))
+			_card(load("res://assets/props/Other_07.png"), "Day & Night",
+					"Night falls every %d m and lasts a while. At night the world dims, stars and the moon come out, and fireflies glow in the forest." % int(Zones.DAY_CYCLE_M),
+					"Hazards work the same, but they're harder to spot!", false, false, Color(0.3, 0.35, 0.6))
+		5:
+			for id in Badges.DATA:
+				_badge_card(id)
+	select(0)
+
+
+## Pick an entry off the shelf: the Elder tells you about it (its full page
+## in the bubble). -1 shows his greeting.
+func select(i: int) -> void:
+	if _drag_dist > 12.0:
+		return   # that was a scroll, not a tap
+	var tiles := grid.get_children().filter(func(c): return not c.is_queued_for_deletion())
+	selected = i if i >= 0 and i < tiles.size() else -1
+	for k in tiles.size():
+		for st in ["normal", "hover", "pressed", "hover_pressed"]:
+			(tiles[k] as Button).add_theme_stylebox_override(st, _tile_box(k == selected))
+	for c in page.get_children():
+		page.remove_child(c)
+		c.queue_free()
+	pscroll.scroll_vertical = 0
+	if selected < 0:
+		var g := _text("Sit by the fire, little runner. What would you know?", 22)
+		g.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		page.add_child(g)
+		return
+	var tile: Node = tiles[selected]
+	var locked: bool = tile.get_meta("locked", false)
+	var nm: String = tile.get_meta("title", "")
+	var line := _text("“That one you have not seen yet. Run further, and you will.”" if locked else "“Ah, %s. Listen...”" % nm, 18, Color(0.55, 0.3, 0.1))
+	line.name = "Says"
+	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	page.add_child(line)
+	var full: Control = tile.get_node("Card").duplicate()
+	full.visible = true
+	_compact(full)
+	page.add_child(full)
+
+
+## Fit a page in the bubble: narrower text and a smaller picture than the old
+## two-column cards used.
+func _compact(n: Node) -> void:
+	for c in n.get_children():
+		if c is Label and (c as Label).custom_minimum_size.x > 220.0:
+			(c as Label).custom_minimum_size.x = 220.0
+		elif c is TextureRect and (c as TextureRect).custom_minimum_size.x >= 84.0:
+			(c as TextureRect).custom_minimum_size = Vector2(80, 80)
+			(c as TextureRect).size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		_compact(c)
+
+
+## A shelf tile in its niche; the chosen one glows.
+func _tile_box(chosen: bool) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.17, 0.13, 0.11)
+	sb.set_corner_radius_all(14)
+	sb.set_border_width_all(5 if chosen else 4)
+	sb.border_color = Color(1.0, 0.75, 0.3) if chosen else Color(0.32, 0.29, 0.27)
+	return sb
+
+
+## Put an entry on the shelf: a tile with its picture and name (and NEW),
+## its full page kept inside it, hidden ("Card"), for the bubble.
+func _add_entry(card: Control, tex: Texture2D, title: String, locked: bool, is_new: bool, tile_name := "") -> void:
+	var b := Button.new()
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(150, _tile_h)
+	if tile_name != "":
+		b.name = tile_name
+	b.set_meta("title", title)
+	b.set_meta("locked", locked)
+	for st in ["normal", "hover", "pressed", "hover_pressed"]:
+		b.add_theme_stylebox_override(st, _tile_box(false))
+	var idx := grid.get_child_count()
+	b.pressed.connect(func(): select(idx))
+	var vb := VBoxContainer.new()
+	vb.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vb.offset_left = 6
+	vb.offset_right = -6
+	vb.offset_top = 6
+	vb.offset_bottom = -6
+	vb.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_theme_constant_override("separation", 2)
+	b.add_child(vb)
+	var ic := TextureRect.new()
+	ic.texture = tex
+	ic.custom_minimum_size = Vector2(0, 70)
+	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	if locked:
+		ic.modulate = Color(0.12, 0.07, 0.03, 0.85)
+	vb.add_child(ic)
+	var l := _text(title, 16, Color(1, 0.96, 0.85) if not locked else Color(0.75, 0.7, 0.62))
+	l.add_theme_color_override("font_outline_color", Color(0.15, 0.08, 0.03))
+	l.add_theme_constant_override("outline_size", 6)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(l)
+	if is_new:
+		var tag := _text(" NEW ", 14, Color(1, 0.97, 0.9))
+		var ts := StyleBoxFlat.new()
+		ts.bg_color = Color(0.85, 0.3, 0.15)
+		ts.set_corner_radius_all(8)
+		tag.add_theme_stylebox_override("normal", ts)
+		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vb.add_child(tag)
+	Herd._ignore_mouse(b)
+	card.name = "Card"
+	card.visible = false
+	b.add_child(card)
+	grid.add_child(b)
+
+
+## "Speed ■■■■□ Fast: pulls away from the T-rex". Energy pips are orange
+## (more = hungrier); the others green.
+## `of` is the scale: 5 for the form cards' gameplay pips, 10 for a species'
+## attributes (smaller pips so the row stays the same width).
+func _stat_row(label: String, pips: int, note: String, cost: bool, of := 5) -> Control:
+	var hb := HBoxContainer.new()
+	hb.add_theme_constant_override("separation", 6)
+	var l := _text(label, 16, Color(0.4, 0.22, 0.08))
+	l.custom_minimum_size = Vector2(62, 0)
+	hb.add_child(l)
+	var pip_box := HBoxContainer.new()
+	pip_box.add_theme_constant_override("separation", 3)
+	pip_box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	for i in of:
+		var p := ColorRect.new()
+		p.custom_minimum_size = Vector2(16 if of <= 5 else 7, 11)
+		var on := Color(0.92, 0.55, 0.15) if cost else Color(0.4, 0.68, 0.25)
+		p.color = on if i < pips else Color(0.55, 0.45, 0.32, 0.45)
+		pip_box.add_child(p)
+	hb.add_child(pip_box)
+	var n := _text(note, 15, Color(0.45, 0.3, 0.15))
+	hb.add_child(n)
+	return hb
+
+
+## Power-ups: owned ones normally; locked ones show their art greyed out
+## with what they'll do, waiting for the market.
+func _powerup_cards() -> void:
+	for kind in Boosters.DATA:
+		var d: Dictionary = Boosters.DATA[kind]
+		var owned := boosters_owned.has(kind)
+		var body: String = d.desc
+		if kind == "egg":
+			body += " Carry it in a booster slot (1 of each type) and tap the slot to use it."
+		var meta := "+%d points when picked up" % d.score if owned else ("LOCKED · in the Market for %d meat" % Market.price(kind)) + ("" if Market.on_sale(kind, best_m) else " (on sale from %d m)" % Market.unlock_m(kind))
+		_card(Boosters.icon(kind), d.name, body, meta, false, false,
+				Color(0.85, 0.55, 0.15) if owned else Color(0.5, 0.42, 0.34))
+		if not owned:
+			var card: Control = grid.get_child(grid.get_child_count() - 1)
+			var icon := card.find_children("*", "TextureRect", true, false)[0] as TextureRect
+			icon.modulate = Color(0.45, 0.42, 0.4, 0.85)   # greyed out until bought
+			(card.get_theme_stylebox("panel") as StyleBoxFlat).bg_color = Color(0.82, 0.75, 0.62)
+
+
+func _tex(icon: String) -> Texture2D:
+	if icon.begins_with("trap:"):   # a frame of a trap's animation, e.g. "trap:volcanic_steam:4"
+		var parts := icon.split(":")
+		return SpriteLib.trap(parts[1]).get_frame_texture("a", int(parts[2]))
+	return load(icon if icon.begins_with("res://") else P % icon)
+
+
+func _dino_card(f: int) -> void:
+	var d: Dictionary = Forms.DATA[f]   # the original form (expansion dinosaurs have their own pages)
+	var tex: Texture2D = SpriteLib.tex("res://assets/portraits/%s.png" % d.id)
+	if not unlocked.has(f):
+		_card(tex, "???", "Run %d m in one go to unlock." % Progression.unlock_m(f), "", true, false)
+		return
+	var breaks: Array = d.breaks
+	var meta := []
+	if breaks.size() > 0:
+		meta.append("Smashes: " + ", ".join(breaks.map(func(k): return {"small": "small hazards", "wood": "logs", "rock": "rocks & walls", "fence": "fences", "thorns": "thorns"}.get(k, k))))
+	if d.score_mult > 1.0:
+		meta.append("Score ×%s" % str(d.score_mult))
+	var how: String = {
+		Forms.ROK: "The hero. Can double-jump: tap JUMP again in mid-air. Costs no energy, and runs at the T-rex's pace.",
+		Forms.RAPTOR: "Fast and light: outruns the T-rex (even uphill), has the highest leap and a double jump, and earns double points.",
+		Forms.TRICERATOPS: "A living battering ram that charges straight through rocks, walls and logs. It can only single-jump.",
+		Forms.SPINOSAURUS: "Huge and tough. Tramples fences and logs, and each transformation gives a shield that survives one hit.",
+		Forms.PTERANODON: "Takes to the sky. Hold JUMP to climb, let go to glide. Flies over pits and walls.",
+	}[f]
+	_card(tex, d.name, how, "  ·  ".join(meta), false,
+			_new_ids.has("dino_%d" % f), d.color, dino_stats(f), d.id)
+
+
+## [label, pips 1-5, note] rows for a dinosaur card.
+static func dino_stats(f: int) -> Array:
+	var d: Dictionary = Forms.DATA[f]
+	var rows := []
+	var chase: float = Tuning.CHASE_RECOVER + d.get("chase_rate", 0.0)
+	var vs := "pulls away from the T-rex" if chase > 0.0 else ("keeps pace with the T-rex" if chase == 0.0 else "the T-rex gains on it")
+	rows.append(["Speed", clampi(ceili(int(d.speed) / 2.0), 1, 5), "%s: %s" % [d.speed_label, vs]])   # 10-point speed on 5 pips
+	var h: float = d.jump * d.jump / (2.0 * Tuning.GRAVITY)
+	if d.get("flies", false):
+		rows.append(["Jump", 5, "Flies"])
+	else:
+		rows.append(["Jump", clampi(int(round(h / 52.0)), 1, 5), "double jump" if d.air_jumps > 0 else "single jump"])
+	if f == Forms.ROK:
+		rows.append(["Energy", 0, "Free"])
+	else:
+		rows.append(["Energy", clampi(int(ceil(d.drain / 13.0 * 5.0)), 1, 5), "uses %d per second" % int(d.drain)])
+	return rows
+
+
+## An expansion dinosaur's page: revealed once bought (category, attributes,
+## its trade-off and real-world facts), a silhouette until then.
+func _species_card(id: String) -> void:
+	var tex := Dinos.icon(id)
+	var cat: Dictionary = Dinos.CATEGORIES[Dinos.category_of(id)]
+	if not species_owned.has(id):
+		_card(tex, "???", "A %s for the %s button. Buy it in the Market once you %s." % [
+				String(cat.name).to_lower(), cat.name, Market.lock_text(id, best_m).replace(" ✓", "").replace(" · ", " and ")], "", true, false)
+		return
+	var rows := []
+	for a in Dinos.ATTRS:
+		var sv := Dinos.stat(id, a)
+		rows.append([Dinos.ATTR_NAMES[a], int(roundf(sv)), ("%s/10, its speciality" if a == cat.lean else "%s/10") % Dinos.fmt(sv), Dinos.ATTR_MAX])
+	var how := "%s %s. Equip it at the Camp to play as it on the %s button." % [Dinos.desc(id), cat.role, cat.name]
+	_card(tex, Dinos.name_of(id), how, "%s · %s · Lv %d★  ·  %s" % [cat.name, Dinos.tier_label(id), Dinos.level(id), Dinos.tradeoff(id)], false,
+			_new_ids.has("dino_" + id), Forms.DATA[cat.form].color, rows, id)
+
+
+## A badge: its medal at the tier earned, the next goal, a progress bar
+## and the three tiers (with their meat rewards).
+func _badge_card(id: String) -> void:
+	var b: Dictionary = Badges.DATA[id]
+	var t := int(badge_tiers.get(id, 0))
+	var v := float(badge_stats.get(b.stat, 0.0))
+	var card := PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var cs := StyleBoxFlat.new()
+	cs.bg_color = CARD
+	cs.set_corner_radius_all(14)
+	cs.set_border_width_all(3)
+	cs.border_color = Badges.TIER_COLORS[t - 1].darkened(0.2) if t > 0 else Color(0.5, 0.42, 0.34)
+	cs.set_content_margin_all(12)
+	card.add_theme_stylebox_override("panel", cs)
+	var hb := HBoxContainer.new()
+	hb.add_theme_constant_override("separation", 14)
+	card.add_child(hb)
+	var icon := TextureRect.new()
+	icon.texture = Badges.icon(id, t)
+	icon.custom_minimum_size = Vector2(84, 84)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	hb.add_child(icon)
+	var vb := VBoxContainer.new()
+	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vb.add_theme_constant_override("separation", 4)
+	hb.add_child(vb)
+	vb.add_child(_text(b.name + ("  ·  " + Badges.TIERS[t - 1] if t > 0 else ""), 24))
+	var done := t >= Badges.TIERS.size()
+	var goal := _text("All tiers earned!" if done else Badges.goal_text(id, t), 18)
+	goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	goal.custom_minimum_size = Vector2(260, 0)
+	vb.add_child(goal)
+	# what each tier unlocks, one line per tier: "Silver unlocks Deinonychus, Carnotaurus"
+	var by_tier := {}
+	for u in Badges.unlocks(id):
+		if not by_tier.has(u[1]):
+			by_tier[u[1]] = []
+		by_tier[u[1]].append(Market.item_name(u[0]))
+	var tier_keys := by_tier.keys()
+	tier_keys.sort()
+	if Badges.PERKS.has(id):
+		var pk := _text("Permanent bonus: " + "  ·  ".join(range(1, 4).map(func(t): return "%s %s" % [Badges.TIERS[t - 1], Badges.perk_text(id, t)])), 15, Color(0.25, 0.5, 0.2))
+		pk.name = "Perk"
+		pk.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		vb.add_child(pk)
+	for tk in tier_keys:
+		var un := _text("%s unlocks %s" % [Badges.TIERS[tk - 1], ", ".join(by_tier[tk])], 15, Color(0.55, 0.28, 0.1))
+		un.name = "Unlocks"
+		un.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		vb.add_child(un)
+	var bar := ProgressBar.new()
+	bar.name = "Progress"
+	bar.show_percentage = false
+	bar.custom_minimum_size = Vector2(0, 14)
+	bar.max_value = Badges.target(id, t)
+	bar.value = minf(v, bar.max_value)
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.4, 0.3, 0.2, 0.35)
+	bg.set_corner_radius_all(7)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Badges.TIER_COLORS[mini(t, 2)]
+	fill.set_corner_radius_all(7)
+	bar.add_theme_stylebox_override("background", bg)
+	bar.add_theme_stylebox_override("fill", fill)
+	vb.add_child(bar)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	vb.add_child(row)
+	row.add_child(_text("%d / %d" % [int(v), Badges.target(id, t)], 16, Color(0.45, 0.3, 0.18)))
+	for k in Badges.TIERS.size():
+		var got := k < t
+		row.add_child(_text(("✓ " if got else "") + "%s +%d" % [Badges.TIERS[k], Badges.TIER_REWARD[k]], 15,
+				Badges.TIER_COLORS[k].darkened(0.35) if got else Color(0.55, 0.45, 0.35)))
+	_add_entry(card, Badges.icon(id, t), b.name, false, false, "Badge_" + id)
+
+
+func _hazard_card(h: Dictionary, is_hazard: bool) -> void:
+	# its look in the zone where it's first met (HazardIcons; "" = its own icon)
+	var first_m := Progression.intro_m(h.key)
+	var tex := HazardIcons.icon(h.key, "" if is_inf(first_m) else String(Zones.zone_at(first_m).id))
+	if not h.get("always", false) and not Progression.taught(h.key, best_m, seen):
+		_card(tex, "???", "Discovered at %d m." % int(Progression.intro_m(h.key)), "", true, false)
+		return
+	var counter: String = h.get("counter", "")
+	var accent := Color(0.75, 0.3, 0.15) if h.get("gate", false) else Color(0.45, 0.25, 0.1)
+	_card(tex, h.name, h.text, counter, false, _new_ids.has(h.key), accent, [], h.get("facts", ""), _zone_looks(h.key))
+
+
+## A row with a hazard's look in each zone it differs in (nothing if it
+## looks the same everywhere or only lives in one zone).
+func _zone_looks(key: String) -> Control:
+	var zones := HazardIcons.variant_zones(key)
+	if zones.size() < 2:
+		return null
+	var row := HBoxContainer.new()
+	row.name = "ZoneLooks"
+	row.add_theme_constant_override("separation", 10)
+	for zid in zones:
+		var v := VBoxContainer.new()
+		v.add_theme_constant_override("separation", 0)
+		var ic := TextureRect.new()
+		ic.texture = HazardIcons.icon(key, zid)
+		ic.custom_minimum_size = Vector2(78, 52)
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		v.add_child(ic)
+		var z: Dictionary = Zones.ZONES[Zones.ZONES.map(func(d): return d.id).find(zid)]
+		var cap := _text(String(z.name).replace(" Badlands", ""), 14, Color(0.5, 0.35, 0.2))
+		cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(cap)
+		row.add_child(v)
+	return row
+
+
+func _card(tex: Texture2D, name: String, body: String, meta: String, locked: bool, is_new: bool,
+		accent := Color(0.45, 0.25, 0.1), stats := [], facts_id := "", extra: Control = null) -> void:
+	var card := PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var cs := StyleBoxFlat.new()
+	cs.bg_color = CARD if not locked else Color(0.78, 0.7, 0.55)
+	cs.set_corner_radius_all(14)
+	cs.set_border_width_all(3)
+	cs.border_color = accent if not locked else Color(0.5, 0.4, 0.3)
+	cs.set_content_margin_all(12)
+	card.add_theme_stylebox_override("panel", cs)
+	var hb := HBoxContainer.new()
+	hb.add_theme_constant_override("separation", 14)
+	card.add_child(hb)
+	var icon := TextureRect.new()
+	icon.texture = tex
+	icon.custom_minimum_size = Vector2(110, 110)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	if locked:
+		icon.modulate = Color(0.12, 0.07, 0.03, 0.85)   # silhouette
+	hb.add_child(icon)
+	var vb := VBoxContainer.new()
+	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vb.add_theme_constant_override("separation", 4)
+	hb.add_child(vb)
+	var top := HBoxContainer.new()
+	vb.add_child(top)
+	top.add_child(_text(name, 26, INK if not locked else Color(0.35, 0.28, 0.2)))
+	if is_new:
+		var tag := _text(" NEW ", 16, Color(1, 0.97, 0.9))
+		var ts := StyleBoxFlat.new()
+		ts.bg_color = Color(0.85, 0.3, 0.15)
+		ts.set_corner_radius_all(8)
+		tag.add_theme_stylebox_override("normal", ts)
+		tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		top.add_child(tag)
+	var b := _text(body, 19)
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.custom_minimum_size = Vector2(300, 0)
+	vb.add_child(b)
+	for row in stats:
+		vb.add_child(_stat_row(row[0], row[1], row[2], row[0] == "Energy", row[3] if row.size() > 3 else 5))
+	if meta != "":
+		var m := _text(meta, 17, Color(0.55, 0.28, 0.1))
+		m.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		m.custom_minimum_size = Vector2(300, 0)
+		vb.add_child(m)
+	if facts_id != "" and not DinoFacts.for_id(facts_id).is_empty():
+		vb.add_child(_facts_box(facts_id))
+	if extra != null:
+		vb.add_child(extra)
+	_add_entry(card, tex, name, locked, is_new)
+
+
+## A "learn about the real animal" panel: basics, then a Did you know? fact.
+func _facts_box(id: String) -> Control:
+	var f := DinoFacts.for_id(id)
+	var box := PanelContainer.new()
+	box.name = "Facts"
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color(0.93, 0.88, 0.74)
+	st.set_corner_radius_all(10)
+	st.set_content_margin_all(10)
+	box.add_theme_stylebox_override("panel", st)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 4)
+	box.add_child(v)
+	v.add_child(_text(String(f.heading).to_upper(), 18, Color(0.2, 0.4, 0.3)))
+	var basics := _text(DinoFacts.text(id), 17)
+	basics.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	basics.custom_minimum_size = Vector2(300, 0)
+	v.add_child(basics)
+	var dyk := _text("Did you know? " + String(f.fact), 17, Color(0.5, 0.22, 0.08))
+	dyk.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	dyk.custom_minimum_size = Vector2(300, 0)
+	v.add_child(dyk)
+	return box
