@@ -66,7 +66,9 @@ from the second note of a group on (`CoachMarker.chips`, hit-tested first by
 `Hud.action_at` as `note_next` / `note_back`; keys: any key for Next, Left
 or Backspace for Back). Any tap is Next, after `NOTE_MIN` (0.45 s) so a stray
 tap can't skip one (`TutorialRun.note_tap` / `note_back`, routed by
-`main._tutorial_allows`). Back stays within the group (e.g. from the hunter
+`main._tutorial_allows`). Only taps and real key presses count: mouse motion,
+drags and key releases are ignored while the run is frozen (they used to
+skip notes on desktop). Back stays within the group (e.g. from the hunter
 meter back to the hearts, or to the step's intro). Wide targets get a rounded
 box instead of a ring (`CoachMarker._draw`).
 

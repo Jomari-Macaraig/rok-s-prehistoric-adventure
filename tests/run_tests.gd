@@ -3325,6 +3325,8 @@ func _training_run_checks() -> void:
 	var intros_seen := {}
 	var note_back_ok := false
 	var tried_back := false
+	var tried_still := false
+	var note_still := false
 	for f in 6000:
 		var tr: TutorialRun = main.tutorial_run
 		if tr == null:
@@ -3342,7 +3344,24 @@ func _training_run_checks() -> void:
 				intros_seen[TutorialRun.STEPS[tr.i].id] = main.hud.coach_marker.title == TutorialRun.STEPS[tr.i].title
 			else:
 				parts_seen[part] = main.hud.coach_marker != null and main.hud.coach_marker.target == main.hud.hud_part(part)
-			if not tried_back and tr.note_i == 1 and tr._note_t > TutorialRun.NOTE_MIN:
+			if not tried_still and tr._note_t > TutorialRun.NOTE_MIN:
+				# moving the mouse, a drag or letting go of a key doesn't move on
+				tried_still = true
+				var before := [tr.i, tr.note_i, tr.phase]
+				var mm := InputEventMouseMotion.new()
+				mm.position = Vector2(400, 300)
+				mm.relative = Vector2(30, 5)
+				main._unhandled_input(mm)
+				var dr := InputEventScreenDrag.new()
+				dr.position = Vector2(420, 300)
+				main._unhandled_input(dr)
+				var up := InputEventKey.new()
+				up.keycode = KEY_SPACE
+				up.physical_keycode = KEY_SPACE
+				up.pressed = false
+				main._unhandled_input(up)
+				note_still = before == [tr.i, tr.note_i, tr.phase]
+			elif not tried_back and tr.note_i == 1 and tr._note_t > TutorialRun.NOTE_MIN:
 				tried_back = true
 				var chips_ok: bool = main.hud.coach_marker.chips == ["back", "next"]
 				var back_at: Vector2 = (main.hud.coach_marker.chip_rects()["back"] as Rect2).get_center()
@@ -3364,6 +3383,7 @@ func _training_run_checks() -> void:
 	check(main.state == main.State.TITLE, "...and ends on the main menu")
 	check(TutorialRun.STEPS.filter(func(st): return st.has("title")).all(func(st): return intros_seen.get(st.id, false)),
 			"every step opens with its own note that waits for a tap %s" % [intros_seen])
+	check(note_still, "a note waits: moving the mouse, a drag or a key release doesn't move it on")
 	check(note_back_ok, "a note's Back chip returns to the previous note (and the first has only Next)")
 	check(["hearts", "chase", "score", "distance", "meat", "primal"].all(func(k): return parts_seen.get(k, false)),
 			"it points out the hearts, hunter meter, points, distance, meat and PRIMAL energy %s" % [parts_seen])

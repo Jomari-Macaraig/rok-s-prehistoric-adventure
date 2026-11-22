@@ -760,8 +760,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		State.INTRO:
 			pass   # the roar plays out (about 1.7 s)
 		State.PLAYING:
-			if tutorial_run != null and tutorial_run.frozen and not _tutorial_allows(_key_action(event)):
-				return
+			if tutorial_run != null and tutorial_run.frozen:
+				# only a real key press counts (mouse motion, drags and key
+				# releases used to skip the training run's notes)
+				var pressed_key: bool = (event is InputEventKey or event is InputEventJoypadButton) and event.is_pressed() and not event.is_echo()
+				if not pressed_key or not _tutorial_allows(_key_action(event)):
+					return
 			if event.is_action_pressed("jump"):
 				player.press_jump()
 			elif event.is_action_released("jump"):
