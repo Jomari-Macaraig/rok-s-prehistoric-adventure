@@ -872,6 +872,8 @@ func _touch_pressed(a: String) -> void:
 			if a != "pause" and _menu_t <= 0.0:
 				_start_from_menu()
 		State.PLAYING:
+			if a == "" and tutorial_run != null and tutorial_run.tap_grace > 0.0:
+				return   # the tap right after closing a note isn't a jump
 			if a != "pause" and not _tutorial_allows("jump" if a == "" else a):
 				return
 			if a == "pause":
@@ -2175,6 +2177,8 @@ const FIRST_SIGHT := {
 
 
 func _first_sight_step() -> void:
+	if tutorial_run != null:
+		return   # the training run explains its own things
 	var view_w := get_viewport().get_visible_rect().size.x
 	for k in course.pickups:
 		if k.position.x > view_w - 30.0:
@@ -3272,6 +3276,8 @@ func replay_tutorial() -> void:
 func start_tutorial(step := 0) -> void:
 	start_run(step == 0)
 	tutorial_run = TutorialRun.new(self, step)
+	next_chest_m = INF      # no starter chest (it came mid-lesson with its own card)
+	preview_done = true     # nor the wild-dinosaur preview
 	course.holding = true
 	course.starter_egg = false
 	terrain.calm = true

@@ -3327,11 +3327,20 @@ func _training_run_checks() -> void:
 	var tried_back := false
 	var tried_still := false
 	var note_still := false
+	var hurt_in := {}
+	var meat_note_clear := true
+	check(main.next_chest_m == INF and main.preview_done, "no starter chest or wild-dinosaur preview in the training run")
 	for f in 6000:
 		var tr: TutorialRun = main.tutorial_run
 		if tr == null:
 			break
 		steps_seen[TutorialRun.STEPS[tr.i].id] = true
+		if main.player.invuln > 1.1:
+			hurt_in[TutorialRun.STEPS[tr.i].id] = true
+		if tr.phase == "note" and TutorialRun.STEPS[tr.i].id == "meat" and tr.note_list[tr.note_i][0] == "meat":
+			for k in main.course.pickups:
+				if k.kind in ["meat", "big_meat"] and k.position.x > Tuning.PLAYER_X - 60.0:
+					meat_note_clear = false
 		if hold > 0:
 			hold -= 1
 			if hold == 0:
@@ -3378,6 +3387,8 @@ func _training_run_checks() -> void:
 					hold = 20 if TutorialRun.STEPS[tr.i].get("hold", false) else 3
 		main._process(1.0 / 60.0)
 	check(froze, "the training run freezes on each hint until the right button")
+	check(not hurt_in.has("high_jump"), "holding JUMP at the hint clears the log (it used to land Rok on a long one) %s" % [hurt_in.keys()])
+	check(meat_note_clear, "the meat note waits until every piece is grabbed or passed")
 	check(main.tutorial_run == null and main.tutorial_run_done and SaveData.load_tutorial_run_done(), "the training run ends and is saved as done")
 	check(TutorialRun.STEPS.all(func(st): return steps_seen.has(st.id)), "it goes through every step (%s)" % ", ".join(steps_seen.keys()))
 	check(main.state == main.State.TITLE, "...and ends on the main menu")

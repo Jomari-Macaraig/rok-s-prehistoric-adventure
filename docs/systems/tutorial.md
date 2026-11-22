@@ -38,7 +38,8 @@ and the Raptor is only lent if it isn't unlocked yet.
    hold, and a coach ring sits on the button with a few words.
 3. Only that button (or pause / stop) works while frozen (`_tutorial_allows`).
    Pressing it un-freezes the world at exactly the moment it works.
-4. If Rok gets hit anyway, the step repeats ("TRY AGAIN!"). A fall restarts
+4. If Rok gets hit anyway, the step repeats ("TRY AGAIN!"), even when the
+   crash broke the obstacle (that used to count as passed). A fall restarts
    the run at that step (`start_tutorial(step)`).
 
 **The steps**
@@ -47,11 +48,11 @@ and the Raptor is only lent if it isn't unlocked yet.
 |---|---|---|---|
 | 0 | Your screen | – | HUD notes: hearts, hunter meter, points, distance |
 | 1 | Jump | a fixed rock (`Stones_02`) | 70 px away: JUMP "Tap to jump!" |
-| 2 | Hold to jump higher | a log | 150 px: JUMP "Hold to jump higher!" |
+| 2 | Hold to jump higher | the short log (`Logs_01`, 114 px hitbox) | 60 px: JUMP "Hold to jump higher!" (a held jump stays above it ~0.6 s; at 150 px, or on a ~162 px log, Rok came down on it) |
 | 3 | Double jump | a 2-high rock wall | 140 px: JUMP, then at the jump's peak JUMP again "Tap again in mid-air!" |
 | 4 | Slide | a low ledge | 110 px: SLIDE |
 | 5 | Attack | a rock | 60 px: ATTACK "Tap to smash it!" |
-| 5b | Meat | 3 meat | once one is grabbed: HUD note on the meat counter |
+| 5b | Meat | 3 meat | once every piece is grabbed or passed: HUD note on the meat counter (freezing on the first piece looked broken) |
 | 6 | Amber | an arc of 5 amber | once collected or passed: HUD note on the PRIMAL bar |
 | 7 | Power-up | a Dino Egg | once it's in slot 1: the slot "Use your power-up!" |
 | 8 | Shapeshift | the Raptor's crumbling bridge (`force_gate`) | 520 px before the gap: Raptor button; once the whole bridge is behind, Rok's button "Back to Rok to save energy" |
@@ -72,7 +73,9 @@ skip notes on desktop). Back stays within the group (e.g. from the hunter
 meter back to the hearts, or to the step's intro). Wide targets get a rounded
 box instead of a ring (`CoachMarker._draw`).
 
-**Forgiving by design**: hearts refill every frame, the hunter's gap is
+**Forgiving by design**: no starter chest, wild-dinosaur preview or
+first-sight cards during it (they came mid-lesson); a quick second tap right
+after closing a note isn't a jump (`tap_grace`, 0.35 s); hearts refill every frame, the hunter's gap is
 pinned, speed stays at `START_SPEED`, random hazards are held
 (`course.holding`), the ground stays flat (`terrain.calm`), the starter egg
 and hazard info cards are off, and the Raptor is **lent** for step 8 (energy

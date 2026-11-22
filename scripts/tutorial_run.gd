@@ -39,7 +39,9 @@ const STEPS := [
 			["distance", "How far you've run, and the zone.\nRun farther to unlock new dinosaurs."]]},
 	{"id": "jump", "spawn": "small", "button": "jump", "text": "Tap to jump!", "at": 70.0,
 		"title": "RUN, ROK!", "hint": "The T-rex is right behind you. Hop over what's in your way."},
-	{"id": "high_jump", "spawn": "log", "button": "jump", "text": "Hold to jump higher!", "at": 150.0, "hold": true,
+	# (a held jump stays above a log ~0.6 s, ~230 px at START_SPEED: 60 px out
+	# centres that window on this log; 150 px landed Rok on it)
+	{"id": "high_jump", "spawn": "log", "button": "jump", "text": "Hold to jump higher!", "at": 60.0, "hold": true,
 		"title": "BIGGER THINGS", "hint": "Hold JUMP longer to leap higher."},
 	{"id": "double_jump", "spawn": "wall", "button": "jump", "text": "Tap to jump!", "at": 140.0, "air": "Tap again in mid-air!",
 		"title": "TALL WALLS", "hint": "Jump, then jump again in mid-air."},
@@ -78,6 +80,8 @@ var note_list: Array = [] # the notes now: [HUD part or "", title, text]
 var note_after := ""      # when they're done: "spawn" (the step's thing) or "advance" (next step)
 var _note_t := 0.0
 var _intro_done := -1     # step whose intro note was shown (a retry skips it)
+var tap_grace := 0.0      # s after a note closes when a stray screen tap isn't a jump (main._touch_pressed)
+var _meat: Array = []     # the meat step's pieces
 
 
 func _init(main_node, start_step := 0) -> void:
@@ -110,6 +114,7 @@ func step(delta: float) -> void:
 		hit = true
 	var s := step_data()
 	_note_t += delta
+	tap_grace = maxf(tap_grace - delta, 0.0)
 	match phase:
 		"start":
 			_wait -= delta
@@ -139,10 +144,15 @@ func step(delta: float) -> void:
 					_start_notes(s.notes, "advance")   # collected (or passed): what the PRIMAL bar is
 				return
 			if s.id == "meat":
+				# wait until every piece is grabbed or behind Rok (freezing on the
+				# first one, with the rest right ahead, looked broken)
+				var left := _meat.filter(func(k): return is_instance_valid(k) and g.course.pickups.has(k) and k.position.x > Tuning.PLAYER_X - 60.0)
+				if not left.is_empty():
+					return
 				if g.run_meat > 0:
 					_start_notes(s.notes, "advance")   # the counter has something to point at
-				elif thing == null or not is_instance_valid(thing) or (g.course.pickups.has(thing) and thing.position.x < Tuning.PLAYER_X - 150.0):
-					_repeat()   # missed it
+				else:
+					_repeat()   # missed them all
 				return
 			if s.id == "booster":
 				if g.slots[0] != "":
@@ -181,8 +191,8 @@ func step(delta: float) -> void:
 					_freeze("form_0", s.back)
 				return
 			if not _alive(thing) or thing.hitbox().end.x < g.player.hitbox().position.x - 10.0:
-				if hit and _alive(thing):
-					_repeat()
+				if hit:
+					_repeat()   # hurt (even if the crash broke the thing): try again
 				else:
 					_next()
 		"done":
@@ -246,6 +256,7 @@ func note_tap() -> void:
 		_show_note()
 		return
 	_unfreeze()
+	tap_grace = 0.35   # a quick second tap shouldn't make Rok jump
 	if note_after == "spawn":
 		thing = _spawn(step_data())
 		phase = "approach"
@@ -331,7 +342,7 @@ func _spawn(s: Dictionary):
 		"small":
 			return c._obstacle("small", ["Stones_02"], 1.3, x)   # always the same rock (random ones vary in size)
 		"log":
-			return c.log_(x)
+			return c._obstacle("wood", ["Logs_01"], 1.0, x)   # always the short log (114 px of hitbox; Logs_03/04 are ~162 and a held jump lands on their far end)
 		"wall":
 			return c.rock_wall(x, 2)
 		"ledge":
@@ -345,8 +356,10 @@ func _spawn(s: Dictionary):
 			c._pickup("egg", Vector2(x, c._ground - 70.0))
 			return c.pickups[-1]
 		"meat":
+			_meat = []
 			for k in 3:
 				c._pickup("meat", Vector2(x + k * 70.0, c._ground - 60.0))
+				_meat.append(c.pickups[-1])
 			return c.pickups[-1]
 		"raptor_gate":
 			if not g.unlocked.has(Forms.RAPTOR):
