@@ -11,11 +11,13 @@ const SFX := ["jump", "double_jump", "land", "shift", "form_rok", "form_raptor",
 		"trex_growl", "step_rok", "step_raptor", "step_heavy", "step_grass", "step_sand", "step_rock",
 		"jump_raptor", "jump_heavy", "land_heavy", "death_jingle", "rok_alarm",
 		"weapon_break", "break_wood", "break_rock",
-		"mumble_1", "mumble_2", "mumble_3", "mumble_4", "mumble_5", "mumble_6"]
+		"mumble_1", "mumble_2", "mumble_3", "mumble_4", "mumble_5", "mumble_6",
+		"powerup_pickup", "powerup_activate", "powerup_expire"]
 const VOLUME := {"land": -8.0, "click": -6.0, "jump": -4.0, "amber": -5.0, "shift": -3.0, "slide": -4.0,
 		"flap": -7.0, "stomp": -6.0, "step_rok": -15.0, "step_raptor": -14.0, "step_heavy": -9.0,
 		"step_grass": -17.0, "step_sand": -15.0, "step_rock": -16.0, "jump_raptor": -5.0,
-		"jump_heavy": -4.0, "land_heavy": -4.0, "trex_growl": -3.0, "rok_alarm": -2.0}
+		"jump_heavy": -4.0, "land_heavy": -4.0, "trex_growl": -3.0, "rok_alarm": -2.0,
+		"powerup_pickup": -4.0, "powerup_activate": -3.0, "powerup_expire": -5.0}
 const MUSIC_DB := -9.0
 const POOL := 14
 ## Zone id -> music file (in Zones.ZONES order).

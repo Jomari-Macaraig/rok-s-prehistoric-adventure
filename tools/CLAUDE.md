@@ -34,6 +34,8 @@ Rerun it after the source art changes:
 - **Ugo's mumbles** (`mumble_sounds()`, its own rng, written last): `mumble_1..6`, 2–6 voiced caveman syllables each (a gravelly buzz through two vowel formants, a low wobbly pitch that sinks at the end, short gaps, a little breath). `make_sounds.py mumble` writes just these.
 - **Break effects** (`break_sounds()`, its own rng, written last): `weapon_break` (a crack, a splintering tear and bits clattering down; a weapon reaching 0 durability), `break_wood` (dry crack, creaking splinters, hollow thump; logs, fences, thorns, vines, crumbling bridges) and `break_rock` (crunch and tumbling rubble; rocks, boulders, walls, meteors). `uv run --no-project --with numpy python tools/make_sounds.py breaks` writes just these three (the full run is slow and leaves every other WAV unchanged).
 
+- **Power-up sounds** (`powerup_sounds()`, its own rng, written last): `powerup_pickup` (four rising bell notes and a glassy shimmer), `powerup_activate` (a rising filtered whoosh into a warm major chord and a sparkle) and `powerup_expire` (a falling three-note chime with a darkening fizzle). `make_sounds.py powerups` writes just these.
+
 Run `python3 tools/make_sounds.py`, then `godot --headless --path . --import`.
 
 ## Traps (`traps()`)

@@ -71,3 +71,7 @@ The user's power-up effects (`../Assets/Rok_Powerup_FX_Preview/Rok_Powerup_FX`, 
 | expire | when the last one ends | `pfx_once` |
 
 A new run clears them.
+
+### Sounds
+Each effect has a synthesised sound (`make_sounds.py` `powerup_sounds()`; `make_sounds.py powerups` writes just these):
+`powerup_pickup` (a rising pentatonic sparkle) in `collect_booster`; `powerup_activate` (a rising whoosh into a major chord) in `activate_booster`, pitched per power-up by `Tuning.POWERUP_SOUND_PITCH`; `powerup_expire` (a falling chime and fizzle) in `_power_step` when the aura turns off. The egg boost still adds its own `shift` whoosh.

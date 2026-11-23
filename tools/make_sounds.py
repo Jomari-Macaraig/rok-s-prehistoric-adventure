@@ -604,6 +604,54 @@ def mumble_sounds():
         write(f"mumble_{k}", x, 0.75)
 
 
+def powerup_sounds():
+    """Power-up sounds (the user's request, with the power-up effects):
+    powerup_pickup (a power-up goes into a slot: a quick bright pentatonic
+    sparkle rising up with a glassy shimmer), powerup_activate (a slot is used:
+    a rising whoosh swelling into a warm major chord with a shimmering top) and
+    powerup_expire (the last power-up runs out: a soft falling chime with a
+    fizzling, darkening tail). Their own rng, so no other sound's noise shifts."""
+    r = np.random.default_rng(123)
+
+    def nz(dur):
+        return r.uniform(-1, 1, int(SR * dur))
+
+    def bell(f, dur, decay, bright=0.35):
+        t = t_axis(dur)
+        x = np.sin(2 * np.pi * f * t) + bright * np.sin(2 * np.pi * f * 2.76 * t) * np.exp(-t * 18)
+        return x * env(len(t), 0.002, decay)
+
+    def at(x, sec):
+        return np.concatenate([np.zeros(int(SR * sec)), x])
+
+    # pickup: four rising notes (A pentatonic) + a high glassy shimmer
+    notes = [81, 84, 86, 88]   # A5 C6 D6 E6
+    parts = [at(bell(note_hz(m), 0.32, 0.28) * (0.7 + 0.1 * i), 0.045 * i) for i, m in enumerate(notes)]
+    shim = highpass(nz(0.35), 5000) * env(int(SR * 0.35), 0.03, 0.25) * 0.25
+    write("powerup_pickup", mix(*parts, at(shim, 0.05)), 0.75)
+
+    # activate: rising filtered whoosh into a major chord swell with a shimmer
+    d = 0.9
+    wn = int(SR * 0.45)
+    whoosh = lowpass(nz(0.45), np.linspace(400, 4500, wn)) * np.linspace(0, 1, wn) ** 1.5 * 0.9
+    rise = sweep(220, 660, 0.45, tri, 0.8) * np.linspace(0, 1, wn) ** 2 * 0.35
+    cn = int(SR * (d - 0.35))
+    t = t_axis(d - 0.35)
+    chord = sum(saw(2 * np.pi * note_hz(m) * t * (1 + 0.003 * k)) for k, m in enumerate((57, 61, 64, 69)))
+    chord = lowpass(chord, np.linspace(3500, 1200, cn)) * env(cn, 0.02, 0.6) * 0.35
+    sparkle = mix(*[at(bell(note_hz(m), 0.3, 0.22, 0.5) * 0.4, 0.38 + 0.05 * i) for i, m in enumerate((88, 93, 96))])
+    write("powerup_activate", mix(whoosh, rise, at(chord, 0.35), sparkle), 0.8)
+
+    # expire: falling three-note chime + a fizzle that darkens away
+    notes = [88, 84, 79]   # E6 C6 G5
+    parts = [at(bell(note_hz(m), 0.4, 0.35) * (0.8 - 0.15 * i), 0.09 * i) for i, m in enumerate(notes)]
+    fn_ = int(SR * 0.6)
+    fizz = lowpass(highpass(nz(0.6), 800), np.linspace(6000, 600, fn_)) * lowpass(r.uniform(0, 1, fn_), 30) \
+        * env(fn_, 0.01, 0.5) * 0.6
+    down = sweep(700, 250, 0.5, np.sin, 1.3) * env(int(SR * 0.5), 0.01, 0.45) * 0.2
+    write("powerup_expire", mix(*parts, at(fizz, 0.05), at(down, 0.1)), 0.7)
+
+
 if __name__ == "__main__":
     import sys
     if sys.argv[1:] == ["breaks"]:   # just the break effects (the rest is slow and unchanged)
@@ -614,6 +662,10 @@ if __name__ == "__main__":
         mumble_sounds()
         print("mumble sounds written to", OUT)
         raise SystemExit
+    if sys.argv[1:] == ["powerups"]:   # just the power-up sounds
+        powerup_sounds()
+        print("power-up sounds written to", OUT)
+        raise SystemExit
     sfx()
     music()
     zone_tracks()
@@ -621,4 +673,5 @@ if __name__ == "__main__":
     slide_sound()
     break_sounds()
     mumble_sounds()
+    powerup_sounds()
     print("sounds written to", OUT)

@@ -2393,15 +2393,21 @@ func _fun_checks() -> void:
 	main.start_run(false)
 	var pwp: Player = main.player
 	main.slots = ["", "", ""]
+	main.audio.played.clear()
 	main.collect_booster("egg", pwp.position)
 	check(pwp.pfx_once.visible and String(pwp.pfx_once.animation) == "pickup", "collecting a power-up plays the pickup effect")
+	check(main.audio.played.has("powerup_pickup"), "...and the pickup sound")
 	main.use_slot(0)
 	check(String(pwp.pfx_once.animation) == "activation", "using it plays the activation effect")
+	check(main.audio.played.has("powerup_activate"), "...and the activation sound")
 	main._power_step(0.016)
 	check(pwp.pfx_aura.visible and String(pwp.pfx_aura.animation) == "aura" and pwp.pfx_aura.get_index() == 0, "while it runs the aura loops behind the character")
 	main.boost_t = 0.0
 	main._power_step(0.016)
 	check(not pwp.pfx_aura.visible and String(pwp.pfx_once.animation) == "expire" and pwp.pfx_once.visible, "when it ends the expire effect plays")
+	check(main.audio.played.has("powerup_expire"), "...and the expire sound")
+	for n in ["powerup_pickup", "powerup_activate", "powerup_expire"]:
+		check(main.audio.streams.has(n), "the %s sound exists" % n)
 	main.start_run(false)
 	check(not main.player.pfx_aura.visible and not main.player.pfx_once.visible, "a new run starts without power-up effects")
 	# --- the Encyclopedia's Cards tab (the user's card art)

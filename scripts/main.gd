@@ -1991,7 +1991,7 @@ func collect_booster(kind: String, at: Vector2) -> bool:
 	var pts: int = int(Boosters.DATA[kind].score * points_mult())
 	score += pts
 	fx.sparkle(at, Color(1.0, 0.95, 0.8))
-	audio.play("egg", 0.0)
+	audio.play("powerup_pickup", 0.0)
 	fx.float_text(at + Vector2(-20, -30), "+%d" % pts)
 	var i := slots.find("")
 	if i == -1 or i >= slot_count:
@@ -2033,6 +2033,7 @@ func booster_ready(kind: String) -> bool:
 func activate_booster(kind: String) -> void:
 	var at := player.position + Vector2(-90, -240)
 	player.powerup_fx("activation")
+	audio.play("powerup_activate", 0.0, Tuning.POWERUP_SOUND_PITCH.get(kind, 1.0))
 	match kind:
 		"egg":
 			_egg_boost()
@@ -2040,24 +2041,19 @@ func activate_booster(kind: String) -> void:
 			energy = Tuning.ENERGY_MAX
 			fx.float_text(at, "PRIMAL AMBER!", Color(1.0, 0.75, 0.3), 36)
 			fx.sparkle(player.position + Vector2(0, -80), Color(1.0, 0.75, 0.3))
-			audio.play("amber", 0.0, 0.8)
 		"fossil_magnet":
 			power_t[kind] = Tuning.MAGNET_TIME
 			fx.float_text(at, "MAGNET!", Color(0.6, 0.85, 1.0), 36)
-			audio.play("shift", 0.0, 1.2)
 		"time_crystal":
 			power_t[kind] = Tuning.SLOW_TIME
 			fx.float_text(at, "TIME SLOWS!", Color(0.75, 0.6, 1.0), 36)
-			audio.play("shift", 0.0, 0.7)
 		"primal_berry":
 			power_t[kind] = Tuning.BERRY_TIME
 			energy = maxf(energy, Tuning.SHIFT_MIN_ENERGY)
 			fx.float_text(at, "FREE SHIFTING!", Color(0.95, 0.4, 0.6), 36)
-			audio.play("shift", 0.0, 1.1)
 		"golden_fossil":
 			power_t[kind] = Tuning.GOLD_TIME
 			fx.float_text(at, "DOUBLE POINTS!", Color(1.0, 0.85, 0.2), 36)
-			audio.play("amber", 0.0, 0.8)
 
 
 func power_on(kind: String) -> bool:
@@ -2082,7 +2078,10 @@ func _power_step(delta: float) -> void:
 		power_t[k] = maxf(power_t[k] - delta, 0.0)
 		if power_t[k] <= 0.0:
 			power_t.erase(k)
+	var had_aura := player.pfx_aura.visible
 	player.set_power_aura(boost_t > 0.0 or not power_t.is_empty())   # the aura while one runs, expire when the last ends
+	if had_aura and not player.pfx_aura.visible:
+		audio.play("powerup_expire", 0.0)
 	if power_on("fossil_magnet"):
 		var target := player.position + Vector2(10.0, -70.0)
 		for p in course.pickups:

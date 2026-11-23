@@ -158,6 +158,10 @@ const SLOW_PACE := 0.65          # world speed while slowed
 const SLOW_CHASE_GAIN := 35.0    # gap/s won from the slowed T-rex
 const BERRY_TIME := 8.0          # Primal Berry: free, instant shapeshifting
 const GOLD_TIME := 10.0          # Golden Fossil
+## Pitch of the shared activation sound (powerup_activate) per power-up, so
+## each one sounds a little different (missing = 1.0).
+const POWERUP_SOUND_PITCH := {"egg": 1.0, "amber_shield": 0.9, "fossil_magnet": 1.15,
+		"time_crystal": 0.75, "primal_berry": 1.25, "golden_fossil": 1.05}
 const GOLD_MULT := 2.0           # points multiplier
 
 # Combo streak and Primal Frenzy (combo.gd)
