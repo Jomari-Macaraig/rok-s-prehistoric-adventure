@@ -33,6 +33,8 @@ static var _art := {}
 static var _sockets := {}
 
 
+var baked_run := false   # the hero's run sheet carries the weapon (Player.set_carry): hide ours during "run"
+
 func _ready() -> void:
 	show_behind_parent = true
 	add_child(_back)
@@ -133,7 +135,8 @@ func _place() -> void:
 		return
 	var frames: Array = _sock.get(String(spr.animation), [])
 	var ok := hero != "" and not frames.is_empty() and spr.frame < frames.size()
-	_weapon.visible = ok and _weapon.texture != null
+	# the run sheet has the weapon drawn in (Player.set_carry): no second copy
+	_weapon.visible = ok and _weapon.texture != null and not (baked_run and spr.animation == "run")
 	_back.visible = ok and _back.texture != null
 	if not ok:
 		return

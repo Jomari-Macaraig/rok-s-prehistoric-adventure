@@ -54,6 +54,13 @@ var react: AnimatedSprite2D
 var react_kind := ""           # "", "trip", "dizzy" or "snag"
 var atk: AnimatedSprite2D       # the attack clip (its own canvas), shown instead of sprite while it plays
 var attack_clip := ""          # the clip playing, or ""
+## The seamless running attack (SpriteLib.running_attack): the run phase it
+## started at (-1 when none) and how many run frames have gone by since. Its
+## frame follows the body's run frame by frame (the body keeps running
+## hidden underneath), so after 8 frames the run carries on at that phase.
+var run_attack_phase := -1
+var _run_attack_n := 0
+var carry := ""                # the weapon drawn into the run sheet (SpriteLib.carry_frames), or ""
 var _react_hold := 0.0         # seconds left in the held loop before recovering
 var shadow: Polygon2D
 
@@ -74,6 +81,7 @@ func _ready() -> void:
 	body.add_child(sprite)
 	gear = GearLayer.new()   # the hero's weapon (and shell) drawn on him
 	sprite.add_child(gear)
+	sprite.frame_changed.connect(_run_attack_tick)
 	sprite.frame_changed.connect(func():
 		if sprite.animation == "fly" and sprite.frame == 3:
 			flapped.emit()
@@ -135,10 +143,77 @@ func attack_play(clip: String) -> bool:
 	return true
 
 
+## The seamless running attack for the hero's `weapon`, if he's running on
+## the ground and it exists: the swing for the current run phase, stepped by
+## the run's own frames (_run_attack_tick). Returns false otherwise (the
+## standing clip is used instead).
+func run_attack_play(weapon: String) -> bool:
+	if dead or swimming or low != Low.NONE or not on_ground or sprite.animation != "run" or form != Forms.ROK:
+		return false
+	var hero := String(data().id)
+	var sf := SpriteLib.running_attack(hero, weapon)
+	if sf == null:
+		return false
+	react_stop()
+	var m: Dictionary = SpriteLib.running_meta(hero)[weapon]
+	atk.stop()
+	atk.sprite_frames = sf
+	atk.offset = -Vector2(m.pivot[0], m.pivot[1])
+	run_attack_phase = sprite.frame
+	_run_attack_n = 0
+	atk.animation = "p%d" % run_attack_phase
+	atk.frame = 0
+	attack_clip = "run_attack_" + weapon
+	atk.visible = true
+	sprite.visible = false
+	return true
+
+
+## Seconds until the running attack's frame `i` (from now), at the run's clock.
+func run_attack_wait(i: int) -> float:
+	if run_attack_phase < 0:
+		return 0.0
+	var t := 0.0
+	for k in range(_run_attack_n, i):
+		t += sprite.sprite_frames.get_frame_duration("run", (run_attack_phase + k) % 8) / 1000.0
+	return t / maxf(sprite.speed_scale, 0.01)
+
+
+func _run_attack_tick() -> void:
+	if run_attack_phase < 0:
+		return
+	if sprite.animation != "run":
+		attack_stop()   # jumped, slid, fell...
+		return
+	_run_attack_n += 1
+	if _run_attack_n >= 8:
+		attack_stop()   # the run is back at the phase it started from
+	else:
+		atk.frame = _run_attack_n
+
+
+## The hero's run carries `weapon` drawn in (SpriteLib.carry_frames), or the
+## plain run with "" (GearLayer draws the weapon then). Keeps the animation.
+func set_carry(weapon: String) -> void:
+	if form != Forms.ROK or not SpriteLib.running_meta(String(data().id)).has(weapon):
+		weapon = ""
+	if weapon == carry:
+		return
+	carry = weapon
+	var anim := sprite.animation
+	var fr := sprite.frame
+	var prog := sprite.frame_progress
+	sprite.sprite_frames = SpriteLib.carry_frames(form, weapon)
+	sprite.play(anim)
+	sprite.set_frame_and_progress(fr, prog)
+	gear.baked_run = weapon != ""
+
+
 func attack_stop() -> void:
 	if attack_clip == "":
 		return
 	attack_clip = ""
+	run_attack_phase = -1
 	atk.stop()
 	atk.visible = false
 	sprite.visible = true
@@ -149,7 +224,7 @@ func attack_stop() -> void:
 func _attack_step() -> void:
 	if attack_clip == "":
 		return
-	if dead or swimming or low != Low.NONE:
+	if dead or swimming or low != Low.NONE or (run_attack_phase >= 0 and not on_ground):
 		attack_stop()
 		return
 	atk.scale = sprite.scale
@@ -207,6 +282,7 @@ func _apply_form(f: int) -> void:
 	form = f
 	var d := data()
 	sprite.sprite_frames = SpriteLib.character(f)
+	carry = ""   # (set_carry puts a carry run back for this form)
 	sprite.offset = -d.pivot
 	sprite.scale = Vector2.ONE * d.scale
 	gear.hero = String(d.id) if f == Forms.ROK else ""   # gear shows in human form only

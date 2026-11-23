@@ -74,6 +74,53 @@ static func character(form: int) -> SpriteFrames:
 
 
 static var _celebrate_meta := {}
+static var _running_meta := {}
+
+
+## The user's seamless running attacks (tools/prepare_running_attacks.py):
+## per hero, the weapons that have one: {weapon: {frame, pivot, hit, phases,
+## carry_frame}}. Empty if none.
+static func running_meta(hero: String) -> Dictionary:
+	if _running_meta.is_empty() and FileAccess.file_exists("res://assets/attacks/running.json"):
+		_running_meta = JSON.parse_string(FileAccess.get_file_as_string("res://assets/attacks/running.json"))
+	return _running_meta.get(hero, {})
+
+
+## A hero's character frames with "run" swapped for the run carrying `weapon`
+## (the weapon drawn in; GearLayer hides its own copy during the run).
+## The plain frames if there's no such sheet.
+static func carry_frames(form: int, weapon: String) -> SpriteFrames:
+	var d := Forms.get_data(form)
+	if weapon == "" or not running_meta(String(d.id)).has(weapon):
+		return character(form)
+	var key := "carry_%d_%s_%s" % [form, d.id, weapon]
+	if _cache.has(key):
+		return _cache[key]
+	var frames: SpriteFrames = character(form).duplicate()
+	frames.remove_animation("run")
+	_sheet_frames(frames, "run", tex("res://assets/attacks/%s/run_%s.png" % [d.id, weapon]), d.frame, CHAR_ANIMS["run"], true)
+	_cache[key] = frames
+	return frames
+
+
+## The running attack for a hero's weapon: animations "p0".."p7" (the swing
+## started at run phase p), 8 frames each, on the attack canvas
+## (running_meta pivot). Its frames are stepped by Player with the run's
+## clock, not played. null if there's none.
+static func running_attack(hero: String, weapon: String) -> SpriteFrames:
+	var m: Dictionary = running_meta(hero).get(weapon, {})
+	if m.is_empty():
+		return null
+	var key := "runatk_%s_%s" % [hero, weapon]
+	if _cache.has(key):
+		return _cache[key]
+	var frames := SpriteFrames.new()
+	frames.remove_animation("default")
+	for p in int(m.phases):
+		_sheet_frames(frames, "p%d" % p, tex("res://assets/attacks/%s/run_attack_%s_%d.png" % [hero, weapon, p]),
+				Vector2(m.frame[0], m.frame[1]), CHAR_ANIMS["run"], false)
+	_cache[key] = frames
+	return frames
 
 
 ## The new-best celebration jump (Rok, Nira, Boro; the user's art, imported by

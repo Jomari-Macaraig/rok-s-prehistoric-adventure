@@ -45,7 +45,7 @@ Each system is documented on its own in [docs/systems/](../docs/systems/README.m
 | `forms.gd` | [movement-and-forms](../docs/systems/movement-and-forms.md), [attributes](../docs/systems/attributes.md) |
 | `fx.gd` | [rendering-and-fx](../docs/systems/rendering-and-fx.md) |
 | `gear.gd` | [weapons-and-armor](../docs/systems/weapons-and-armor.md) |
-| `gear_layer.gd` | [weapons-and-armor](../docs/systems/weapons-and-armor.md) |
+| `gear_layer.gd` | [weapons-and-armor](../docs/systems/weapons-and-armor.md), [combat](../docs/systems/combat.md) (hidden during a carry run) |
 | `hearts.gd` | [health-and-damage](../docs/systems/health-and-damage.md) |
 | `herd.gd` | [camp](../docs/systems/camp.md) |
 | `hazard_icons.gd` | [field-guide](../docs/systems/field-guide.md#hazard-pictures), [progression](../docs/systems/progression.md) |

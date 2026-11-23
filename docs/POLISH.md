@@ -20,7 +20,8 @@ as you go. Each system's details are in [docs/systems/](systems/README.md).
   - [ ] Square art for the Tutorial button (`assets/ui/square_tutorial.png`, like the Encyclopedia/Marketplace/Dinosaurs buttons)
   - [ ] Playtest the timing (gap, show time, look-ahead) on a phone
 - [ ] [Combat](systems/combat.md)
-  - [ ] Running-attack art so attacks blend with the run (standing clips pop in and slide)
+  - [x] Seamless running attack + club-carry run for Rok with the club (`Rok_Running_Club`)
+  - [ ] Running attacks for Rok's other six weapons, and for Nira and Boro
   - [ ] Attack clips for bare hands and the 12 balanced-pack species
 
 ## World and course

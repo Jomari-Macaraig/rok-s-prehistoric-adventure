@@ -69,7 +69,17 @@ The user's attack pack. `main.attack_clip()` picks:
 - A weapon breaking on the hit stops the clip so its shatter shows in the hand.
 - Ankylosaurus, Diplodocus, Kentrosaurus and Stegosaurus strike rearward with their tails (as drawn); Brachiosaurus stomps.
 
+## Seamless running attacks
+
+The user's running-attack packs (`../Assets/Rok_Running_<weapon>`, imported by `tools/prepare_running_attacks.py` into `assets/attacks/<hero>/` + `running.json`). So far: **Rok with the club**.
+
+- **Carry run**: while Rok holds a whole weapon that has a pack, his `run` animation is that pack's carry run with the weapon drawn in (`SpriteLib.carry_frames`, `Player.set_carry`, set every frame from `main.carry_weapon()`). `GearLayer.baked_run` hides its own weapon during `run` so there's one club. Jump, slide and the rest still use the plain sheets plus `GearLayer`.
+- **The swing**: ATTACK while running on the ground (`Player.run_attack_play`, tried before the standing clip in `main._attack`) shows the version made for the current run phase p (`p0`…`p7`, `SpriteLib.running_attack`). It isn't played on its own clock: each time the hidden body sprite's run frame advances (`_run_attack_tick`), the swing advances one frame, so it keeps the run's frame duration, speed and fractional progress. After 8 frames it hands back and the run is at phase p again. The hit pose is frame 4.
+- Leaving the ground, a slide, a shapeshift, a hit reaction or a non-`run` animation ends it. In the air the standing clip plays as before.
+- The hit itself still lands on the press (as with every clip). The bow and sling would release on frame 4 at the run's clock (`Player.run_attack_wait`).
+- Placement: the packs' legs are pixel copies of Rok's run sheet, so attack frame i of phase p gets the exact offset `prepare_form_art.py` gives run frame (p+i)%8. Legs match the in-game run to the pixel. The swing canvas is the run's grown by 64 source px on each side (pivot 112, 241.5 at 1x) so the club isn't cropped.
+
 ## Open items
 
-- The clips are standing attacks played while running, so they don't blend with the run. Seamless needs running-attack sheets (legs keep the run cycle, frames 0 and 7 match run poses).
+- Running attacks exist only for Rok with the club. The other six weapons, and Nira and Boro, still use the standing clips while running (a new pack in the same format is picked up by `prepare_running_attacks.py`; Nira and Boro would also need their run placement added there).
 - No clip yet for bare hands or the 12 balanced-pack species.

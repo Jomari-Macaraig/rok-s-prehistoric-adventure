@@ -1263,6 +1263,41 @@ func _feedback_checks() -> void:
 	main._attack()
 	check(main.player.attack_clip == "attack_stone_axe" and main.player.atk.visible, "Rok swings his Stone Axe with its own attack clip")
 	main.player.attack_stop()
+	# --- the seamless running attack (the user's Rok_Running_Club)
+	check(main.buy("club") and main.equip_gear("rok", "weapon", "club"), "(the club, bought and equipped)")
+	p.on_ground = true
+	p.sprite.play("run")
+	p.set_carry(main.carry_weapon())
+	check(p.carry == "club" and p.sprite.sprite_frames == SpriteLib.carry_frames(Forms.ROK, "club") and p.sprite.sprite_frames != SpriteLib.character(Forms.ROK),
+			"carrying the club, Rok's run has it drawn in")
+	p.sprite.frame = 5
+	p.gear._place()
+	check(not p.gear._weapon.visible, "...and the separate club isn't drawn on top while he runs")
+	main.attack_cd = 0.0
+	main._attack()
+	check(p.run_attack_phase == 5 and p.attack_clip == "run_attack_club" and String(p.atk.animation) == "p5" and p.atk.frame == 0 and p.atk.visible,
+			"ATTACK while running plays the running swing made for the current run phase")
+	for k in 4:
+		p.sprite.frame = (p.sprite.frame + 1) % 8
+	check(p.atk.frame == 4 and p.attack_clip == "run_attack_club", "...stepped by the run's own frames (the hit on frame 4)")
+	for k in 4:
+		p.sprite.frame = (p.sprite.frame + 1) % 8
+	check(p.attack_clip == "" and p.sprite.frame == 5 and String(p.sprite.animation) == "run", "...and after 8 frames the run carries on at the phase it started from")
+	main.attack_cd = 0.0
+	main._attack()
+	p.on_ground = false
+	p._attack_step()
+	check(p.attack_clip == "" and p.run_attack_phase == -1, "leaving the ground ends the running swing")
+	p.sprite.play("jump")
+	main.attack_cd = 0.0
+	main._attack()
+	check(p.attack_clip == "attack_club", "in the air the standing swing plays instead")
+	p.attack_stop()
+	p.on_ground = true
+	main.equip_gear("rok", "weapon", "stone_axe")
+	p.set_carry(main.carry_weapon())
+	check(p.carry == "" and p.sprite.sprite_frames == SpriteLib.character(Forms.ROK),
+			"a weapon without a running sheet keeps the plain run (the held weapon drawn on)")
 	main.buy("shell_plate")
 	main.equip_gear("rok", "armor", "shell_plate")
 	check(Forms.get_data(Forms.ROK).has("stumble_mult") and float(Forms.get_data(Forms.ROK).stumble_mult) < 1.0, "armor makes Rok tougher in play")

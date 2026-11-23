@@ -1164,6 +1164,8 @@ func _process(delta: float) -> void:
 	delta = minf(delta, 1.0 / 30.0)
 	stop_armed = maxf(stop_armed - delta, 0.0)
 	_menu_t = maxf(_menu_t - delta, 0.0)
+	if player:
+		player.set_carry(carry_weapon())   # a run sheet with the weapon drawn in, when there is one
 	if menu_tour != null:
 		menu_tour.step(delta)
 	else:
@@ -2587,7 +2589,10 @@ func _attack() -> Obstacle:
 	attack_cd_max = attack_cd
 	var target := attack_target()
 	var clip := attack_clip()
-	if not player.attack_play(clip):
+	# running on the ground with a seamless running attack for this weapon:
+	# that (it joins the run cycle); otherwise the standing clip
+	var w := clip.trim_prefix("attack_") if player.form == Forms.ROK and clip.begins_with("attack_") else ""
+	if not (w != "" and player.run_attack_play(w)) and not player.attack_play(clip):
 		var lunge := player.create_tween()
 		lunge.tween_property(player.body, "position:x", 34.0, 0.08)
 		lunge.tween_property(player.body, "position:x", 0.0, 0.16)
@@ -2603,8 +2608,20 @@ func _attack() -> Obstacle:
 		if player.attack_clip == clip:
 			for i in int(m.get("release", 4)):
 				wait += float(m.times[i]) / 1000.0
+		elif player.run_attack_phase >= 0:
+			wait = player.run_attack_wait(4)   # the running attack releases on frame 4
 		get_tree().create_timer(wait, false).timeout.connect(_shoot_arrow.bind(to, clip == "attack_sling"))
 	return _attack_hit(target)
+
+
+## The whole weapon the hero holds (for the run that carries it), or "".
+func carry_weapon() -> String:
+	if player.form != Forms.ROK:
+		return ""
+	var w := Gear.slot_item(String(player.data().id), "weapon")
+	if w == "" or not Gear.ITEMS.has(w) or Gear.ITEMS[w].slot != "weapon" or Gear.broken(w):
+		return ""
+	return w
 
 
 ## The attack clip for the current form: a hero's "attack_<weapon>" while the
