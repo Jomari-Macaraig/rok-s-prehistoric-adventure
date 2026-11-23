@@ -689,13 +689,19 @@ func _hill_chase_checks() -> void:
 	main.slots = ["", "", ""]
 	main._info_queue.clear()
 	main.hud.hide_info()
-	# every run offers an egg early on
+	# every run offers an egg early on (it now comes after the Raptor: keep
+	# the dinosaurs unlocked here so no unlock or gate interrupts, then put
+	# the fresh save back)
+	var egg_unlocked: Array = main.unlocked.duplicate()
+	main.unlocked = Forms.ORDER.duplicate()
 	main.start_run(false)
 	main.distance = (Progression.intro_m("egg") + 1.0) * Tuning.PX_PER_M
 	for i in 10:
 		main.player.invuln = 99.0
 		main._play_step(1.0 / 60.0)
 	check(main.course.pickups.any(func(k): return k.kind == "egg"), "an egg appears early in every run")
+	main.unlocked = egg_unlocked
+	SaveData.save_unlocked(egg_unlocked)
 	main.start_run(false)
 
 

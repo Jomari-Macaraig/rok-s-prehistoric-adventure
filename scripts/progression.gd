@@ -48,26 +48,26 @@ const INTRO_TEXT := {
 const DEFAULT_INTRO_M := {
 	"small": 0,
 	"hill": 240,
-	"egg": 280,
-	"log": 430,
-	"ledge": 590,
+	"egg": 600,
+	"log": 160,
+	"ledge": 300,
 	"pit": 1150,
 	"quicksand": 1750,
 	"slope": 1400,
-	"gate_raptor": 800,
+	"gate_raptor": 450,
 	"steam": 3150,
-	"combo": 2450,
-	"gate_tri": 2600,
-	"boulder": 2050,
+	"combo": 2480,
+	"gate_tri": 1000,
+	"boulder": 1900,
 	"drop": 4450,
-	"gate_spino": 3600,
+	"gate_spino": 1600,
 	"rolling_boulder": 3900,
 	"sky_trail": 5300,
 	"large_hill": 5680,
 	"gate_water": 5000,
-	"gate_ptera": 4600,
+	"gate_ptera": 2200,
 	"thorn_bush": 6680,
-	"stampede": 2250,
+	"stampede": 2340,
 	"swooper": 2740,
 	"diver": 4100,
 	"fence": 7800,
@@ -77,7 +77,7 @@ const DEFAULT_INTRO_M := {
 	"bridge": 9000,
 	"hard_combo": 9400,
 }
-const DEFAULT_UNLOCK_M := {"raptor": 800, "triceratops": 2600, "spinosaurus": 3600, "pteranodon": 4600}
+const DEFAULT_UNLOCK_M := {"raptor": 450, "triceratops": 1000, "spinosaurus": 1600, "pteranodon": 2200}
 const CONFIG_PATH := "res://config/progression.cfg"
 
 ## Loaded from the config (see _load). [metres, key, title, hint, tip form, tip],
@@ -99,7 +99,7 @@ static var BIG_CLEARANCE_M := 100.0
 static var GATE_SPACING_M := Vector2(200.0, 340.0)
 static var ZONE_SHOWCASE_M := 120.0
 ## [early]: the first stretch before the Raptor (see config/progression.cfg).
-static var STARTER_CHEST_M := 450.0
+static var STARTER_CHEST_M := 870.0
 static var STAMPEDE_PREVIEW_M := 720.0
 static var STAMPEDE_PREVIEW_SPEED := 0.5
 ## T-rex charges: where they happen, then every TREX_CHARGE_EVERY_M after the last.
@@ -151,7 +151,7 @@ static var PRICES: Dictionary = DEFAULT_PRICES.duplicate()
 const DEFAULT_MARKET_UNLOCK_M := {"amber_shield": 0, "fossil_magnet": 1800, "time_crystal": 3000,
 		"primal_berry": 5000, "golden_fossil": 6600, "booster_slot_3": 6000,
 		# dinosaurs: Starters just after their button unlocks, by category
-		"gallimimus": 900,
+		"gallimimus": 600,
 		"oviraptor": 2000,
 		"coelophysis": 2400,
 		"dilophosaurus": 2800,

@@ -38,7 +38,7 @@ as you go. Each system's details are in [docs/systems/](systems/README.md).
   - [x] Diving flyers: some swoopers come in high and dive at Rok (own lesson at 4100 m; `DIVE_*` in tuning)
   - [ ] Playtest dive feel (`DIVE_FROM_X`/`DIVE_TO_X`, `DIVE_CHANCE`); a dedicated dive pose would need art
 - [ ] [Progression and teaching](systems/progression.md)
-  - [x] Dinosaur buttons: Raptor 800, then 2600 / 3600 / 4600 (no amber before the first dinosaur)
+  - [x] Dinosaur buttons: 450 / 1000 / 1600 / 2200 m (respaced 2026-11-23, the user's call; was 800 / 2600 / 3600 / 4600; no amber before the first dinosaur)
   - [x] Lesson slip between the Triceratops and the Pteranodon fixed (spawner starvation, Forest revisit, schedule windows)
   - [x] First 800 m: logs 430, starter chest 450, Low Ledges 590, wild-dinosaur preview 720 (`[early]` in progression.cfg)
   - [ ] Playtest the first 800 m on a phone

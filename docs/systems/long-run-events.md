@@ -18,7 +18,7 @@ Part of the [system docs](README.md).
 ## Milestone chests
 
 **When and where**
-- A **starter chest** comes first in every run at `[early] starter_chest_m` (450 m, `Progression.STARTER_CHEST_M`; 0 turns it off), counted as milestone 1. It was added so the first 800 m before the Raptor isn't boring. If a run starts past a chest (tests, bots), `_chest_step` moves on to the next milestone.
+- A **starter chest** comes first in every run at `[early] starter_chest_m` (870 m, between the wild-dinosaur preview and the Triceratops; `Progression.STARTER_CHEST_M`; 0 turns it off), counted as milestone 1, so the first 1000 m has a reward. If a run starts past a chest (tests, bots), `_chest_step` moves on to the next milestone.
 - Every `CHEST_EVERY_M` (1000 m) of a run, `main._chest_step` puts a chest (`Pickup` kind `chest`, meta `milestone` = n) on flat ground as the milestone comes into view (later if the ground isn't flat; never over a pit or liquid).
 - Touching it at any height opens it (`main._open_chest`). It stays, open, as scrolling debris.
 
