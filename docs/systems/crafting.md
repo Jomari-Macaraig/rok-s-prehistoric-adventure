@@ -82,6 +82,7 @@ Both screens are the user's **Crafting and Items kit** (`../Assets/Rok_Crafting_
   - Parchment for a material: name, picture, rarity pill, "You have N", "Found by" and "Used for" (which recipes use it, or that it's a catalyst).
   - For gear: full name and rarity, picture, bonus, reach and durability with a bar, the description, who has it equipped, and for unequipped copies **SALVAGE** (two taps) with what it RETURNS.
   - For a card: the card art, its bonus, reach and count, and where it drops.
+- **Kora talks** (the user's request, like Ugo and Elder Numa): a cream speech bubble in the free space beside her head, its tail at her face (`kora_say`, `KORA_LINES`: a pool per situation, at least five lines each, never the same line twice in a row, with the shared mumble at `Tuning.KORA_PITCH`). She greets you (bench, items, or an empty chest), comments on what you pick (ready to craft, short of materials, not learned yet with the distance, a material, gear, a card), cheers a craft (louder for Rare and up, astonished for a Legendary) and a salvage. Her name is on the scene kit's wooden plank (`kora_plate`, the same wood as Numa's and Ugo's); the bench's and chest's plaque just says "Craftkeeper".
 - Text on the parchment wraps inside its inner area (`Workshop._para` turns wrapping on before it sets the size, so a label can't grow into one long line); the test "a material's details stay inside the parchment" checks it.
 
 The Camp still equips gear. Its Change list shows each copy by full name in its rarity colour, sorted by item and then rarest first.

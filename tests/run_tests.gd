@@ -1429,12 +1429,14 @@ func _feedback_checks() -> void:
 	check(float(rw.wood) > float(rw.resin) * 3.0 and float(rw.resin) > float(rw.primal_crystal) * 3.0, "drop rarity: rarer materials drop far less often (config [drop_rarity])")
 	check(float(Crafting.num("break_drops", "chance")) <= 0.25 and float(Crafting.num("spots", "chance")) <= 0.1, "materials are rare in runs")
 	check(Chest.rewards("common").has("materials") and Chest.rewards("legendary").has("materials") and Crafting.num("chests", "legendary_count") > 0, "chests can hold materials")
-	var c_cm := Crafting.have("shell") + Crafting.have("fossil_shard") + Crafting.have("dino_scale") + Crafting.have("primal_crystal")
+	var c_rare: Array = (Crafting.num("chests", "legendary") as Dictionary).keys()
+	var c_cm: int = c_rare.reduce(func(acc, m): return acc + Crafting.have(m), 0)
 	var c_chest := Pickup.new().setup("chest")
 	main.course.add_child(c_chest)
 	main.course.pickups.append(c_chest)
-	main._open_chest(c_chest, 0.0, "materials")
-	check(Crafting.have("shell") + Crafting.have("fossil_shard") + Crafting.have("dino_scale") + Crafting.have("primal_crystal") > c_cm, "an epic c_chest's materials are rare ones")
+	main._open_chest(c_chest, 0.0, "materials")   # a roll of 0 is a legendary chest
+	check(c_rare.reduce(func(acc, m): return acc + Crafting.have(m), 0) > c_cm and c_rare.all(func(m): return Crafting.mat_rarity(m) >= 3),
+			"a legendary chest's materials come from its own table of rare ones")
 	check(main.course._fill("material", false).begins_with(Crafting.PICKUP_PREFIX), "a material reward spot holds material pickups")
 	var c_mp := Pickup.new().setup("m_flint")
 	check(c_mp.sprite is Sprite2D and (c_mp.sprite as Sprite2D).texture != null, "a material pickup shows its icon")
@@ -1450,6 +1452,15 @@ func _feedback_checks() -> void:
 	check(main.herd.find_child("BenchButton", true, false) != null and main.herd.find_child("ItemsButton", true, false) != null, "the Camp's header has Crafting and Items")
 	main.open_bench("weapon")
 	var c_bn: Workshop = main.bench
+	check(c_bn.kora_plate != null and c_bn.kora_plate.text == "Kora" and (c_bn.canvas.find_child("Plaque", true, false) as Label).text == "Craftkeeper",
+			"Kora has her name on a wooden plank and the bench's plaque says Craftkeeper")
+	check(c_bn.kora_bubble.visible and c_bn.kora_label.text != "", "Kora greets you in her speech bubble")
+	check(Workshop.KORA_LINES.keys().all(func(k): return k == "crafted_legendary" or (Workshop.KORA_LINES[k] as Array).size() >= 5),
+			"Kora has at least five lines for every situation")
+	c_bn._drag_dist = 0.0
+	c_bn.select("bow")
+	check(main.best_m >= Crafting.learn_m("bow") or c_bn.kora_label.text.contains(str(Crafting.learn_m("bow"))), "picking a recipe not learned yet, she says how far to run")
+	check((main.herd.find_child("MeatPouch", true, false) as Control).visible == false, "the Camp doesn't show your meat")
 	check(c_bn.visible and c_bn.list.get_child_count() == Crafting.recipes().filter(func(k): return Gear.ITEMS[k].slot == "weapon").size(), "the bench lists every weapon recipe")
 	c_bn.select("flint_spear")
 	check(c_bn.detail.find_child("Materials", true, false) != null and c_bn.detail.find_child("Odds", true, false) != null and c_bn.detail.find_child("Craft", true, false) != null,
@@ -3328,6 +3339,7 @@ func _market_checks() -> void:
 	check(mk.on_counter.texture == Boosters.icon("golden_fossil") and mk.foot_icon.texture == Boosters.icon("golden_fossil") and mk.say_label.text != "",
 			"picking an item: the merchant holds it up and talks about it, and the details strip shows it")
 	check(Market.LINES.values().all(func(pool): return (pool as Array).size() >= 5), "the merchant has at least five lines for every situation")
+	check(mk.ugo_plate != null and mk.ugo_plate.text == "Ugo" and (not mk.scene.room() or mk.ugo_plate.visible), "Ugo has his name on a wooden plank, like Elder Numa")
 	check(main.audio.played.any(func(n): return String(n).begins_with("mumble_")), "the merchant mumbles when he speaks")
 	var said := {}
 	for i in 12:

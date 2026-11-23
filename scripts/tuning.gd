@@ -184,6 +184,8 @@ const TUTORIAL_BUTTON_SIZE := 92.0  # the main menu's Tutorial button (right edg
 ## Elder Numa's murmur when she speaks: Ugo's mumbles, pitched up and softer.
 const NUMA_PITCH := 1.35
 const NUMA_DB := -4.0
+const KORA_PITCH := 1.2    # Kora the Craftkeeper's murmur (Workshop.kora_say): brighter than Ugo, lower than Numa
+const KORA_DB := -3.0
 ## The Camp's staged dinosaur or hero idles and now and then attacks, jumps or slides:
 ## seconds before the first attack and between attacks (random in the range).
 const CAMP_ATTACK_FIRST := Vector2(1.2, 2.5)

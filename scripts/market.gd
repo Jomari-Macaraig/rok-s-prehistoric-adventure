@@ -40,6 +40,7 @@ var scene: MarketScene           # the cave, counter, sign and torches
 var hero: AnimatedSprite2D       # the hero you play, outside the cave (inside it with the user's cave room)
 var merchant: AnimatedSprite2D   # the user's merchant (idle / buy / goodbye), in the cave room
 var counter: TextureRect         # the user's trading counter, in front of the merchant
+var ugo_plate: Label             # his name on the scene kit's wooden plank (as Elder Numa's)
 var on_counter: TextureRect      # the chosen item, on the counter
 var bubble: PanelContainer       # the merchant's speech bubble
 var tail: Polygon2D              # its tail, pointing at the merchant
@@ -243,6 +244,11 @@ func _ready() -> void:
 		merchant.play("idle")
 		counter.texture = load("res://assets/market/merchant_counter.png")
 		counter.visible = true
+	ugo_plate = SceneKit.badge("Ugo", "button_secondary", 20)
+	if ugo_plate:
+		ugo_plate.name = "UgoPlate"
+		ugo_plate.visible = scene.room()
+		root.add_child(ugo_plate)
 	# the chosen item, offered in the merchant's hand
 	on_counter = TextureRect.new()
 	on_counter.name = "OnCounter"
@@ -531,6 +537,9 @@ func _layout() -> void:
 		var cr: Rect2 = scene.counter_rect()
 		counter.position = cr.position
 		counter.size = cr.size
+		if ugo_plate:   # on the floor in front of his counter, under him
+			ugo_plate.size = Vector2(150, 0)
+			ugo_plate.position = Vector2(merchant.position.x - 75.0, maxf(cr.end.y, scene.ground_y) + 6.0)
 	else:
 		scene.room_s = 0.0
 		hero.scale = Vector2.ONE * 1.4

@@ -89,7 +89,7 @@ area above the cave and the gap beside it on wide phones read as the outdoors.
 - The user's cave room (`MarketScene.room()`, laid out from `market.json`),
   drawn at 0.54 × screen height / 720 (the size the user picked).
 - The hero you play stands on the left, idle, wearing their gear.
-- Ugo stands behind the counter; the chosen item floats over his hand
+- Ugo stands behind the counter, his name on the scene kit's wooden plank (`button_secondary`, as Elder Numa's) on the floor in front of it (`Market.ugo_plate`); the chosen item floats over his hand
   (`on_counter`, `counter_top()`).
 - After a sale: Ugo plays his buy clip, the item flies to the hero, and the
   hero does the celebration jump (`_sold`).

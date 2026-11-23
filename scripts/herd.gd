@@ -204,6 +204,8 @@ func _ready() -> void:
 		plate.content_margin_left = 26
 		plate.content_margin_right = 30
 	pouch.add_theme_stylebox_override("panel", plate if plate else pst)
+	pouch.name = "MeatPouch"
+	pouch.visible = false   # hidden for now (the user's call: the Camp doesn't need your meat); level-up notes still name the cost
 	header.add_child(pouch)
 	var prow := HBoxContainer.new()
 	pouch.add_child(prow)

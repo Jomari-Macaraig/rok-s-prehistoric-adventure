@@ -47,6 +47,11 @@ var detail: Control           # the panel's contents, rebuilt on every change
 var kora: AnimatedSprite2D
 var sparkle: AnimatedSprite2D
 var result_label: Label
+var kora_bubble: Panel   # her speech bubble beside her head (KORA_LINES)
+var kora_label: Label
+var kora_tail: Polygon2D
+var kora_plate: Label             # her name on the scene kit's wooden plank (as Elder Numa's and Ugo's)
+var _kora_said := {}              # pool -> its last line (no repeats)
 var last_crafted := ""        # (tests) the copy the last Craft made
 var _confirm := ""            # an action waiting for its confirming tap
 var _meta := {}
@@ -306,12 +311,18 @@ func _build_scene() -> void:
 	kora.add_child(sparkle)
 	if mode == "bench":
 		_img(_tex("workbench_front"), Rect2(20, 390, 610, 280), canvas)
-		_label("Kora", Rect2(220, 524, 200, 33), 24, INK, canvas)
-		_label("Craftkeeper", Rect2(220, 555, 200, 24), 15, INK, canvas)
+		_label("Craftkeeper", Rect2(220, 524, 200, 55), 22, INK, canvas).name = "Plaque"
 	else:
 		_img(_tex("storage_chest_open"), Rect2(30, 444, 500, 375), canvas)
-		_label("Kora", Rect2(175, 682, 210, 35), 27, INK, canvas)
-		_label("Craftkeeper", Rect2(175, 721, 210, 25), 17, INK, canvas)
+		_label("Craftkeeper", Rect2(175, 682, 210, 64), 25, INK, canvas).name = "Plaque"
+	# her name on a wooden plank (the user's call: the same wood as Numa's and Ugo's)
+	kora_plate = SceneKit.badge("Kora", "button_secondary", 24)
+	if kora_plate:
+		kora_plate.name = "KoraPlate"
+		kora_plate.size = Vector2(170, 0)
+		kora_plate.position = Vector2(235, 472) if mode == "bench" else Vector2(195, 822)
+		canvas.add_child(kora_plate)
+	_build_bubble()
 
 
 func _build_header() -> void:
@@ -357,6 +368,7 @@ func open_screen(t := "") -> void:
 	_layout()
 	show_tab(t if t != "" else (tab if tab != "" else tabs_of(mode)[0]))
 	kora_play("wave")
+	kora_say("greet_bench" if mode == "bench" else ("greet_items" if not entries().is_empty() else "empty"))
 
 
 func close_screen() -> void:
@@ -393,12 +405,15 @@ func show_tab(t: String) -> void:
 func select(id: String) -> void:
 	if _drag_dist > 24.0:
 		return   # it was a drag, not a tap
-	if id != selected:
+	var changed := id != selected
+	if changed:
 		kora_play("present")
 	selected = id
 	_confirm = ""
 	catalyst = ""
 	refresh()
+	if changed:
+		_kora_about(id)
 
 
 ## What the shelf or grid lists on the current tab.
@@ -646,6 +661,7 @@ func press_craft() -> String:
 		catalyst = ""
 	kora_play("craft")
 	var r := Gear.rarity_of(copy)
+	kora_say("crafted_legendary" if r >= 4 else ("crafted_rare" if r >= 2 else "crafted"), Gear.full_name(copy))
 	game.audio.play("stomp", 0.05, 1.4, -2.0)
 	game.audio.play("unlock", 0.0, 1.0 + 0.08 * r)
 	if r >= 2:
@@ -758,6 +774,7 @@ func press_salvage() -> bool:
 	var ok: bool = game.salvage(selected)
 	if ok:
 		kora_play("present")
+		kora_say("salvaged")
 		var ids := entries()
 		selected = ids[0] if not ids.is_empty() else ""
 	refresh()
@@ -798,3 +815,213 @@ func _process(delta: float) -> void:
 	else:
 		scroll.scroll_vertical += int(_fling * delta)
 	_fling = move_toward(_fling, 0.0, 2400.0 * delta)
+
+
+# ------------------------------------------------------------ Kora's lines
+
+## What Kora the Craftkeeper says (the user's request: lines like Ugo's and
+## Elder Numa's). A pool per situation, picked at random without repeating
+## the last line; "%s" is filled with a name, "%d" with a distance. She's the
+## camp's young toolmaker: cheerful, proud of good work, a little bossy about
+## taking care of tools, fond of naming her favourite stones, and she treats
+## every material like treasure.
+const KORA_LINES := {
+	"greet_bench": [
+		"Hey, runner! The bench is warm. What are we making?",
+		"Welcome to my workshop! Mind the sparks.",
+		"You brought materials? I can smell the wood from here!",
+		"A good tool is half the run. Let's make you a good one.",
+		"My mallet's been waiting all day. Pick something!",
+		"Back already? I knew you'd want something sharper.",
+	],
+	"greet_items": [
+		"Everything you've found, all in one chest. Let's look!",
+		"Your treasure! Well, mostly rocks. Good rocks, though.",
+		"Kept it all safe and dry for you. Have a look.",
+		"I sorted it by rarity. Don't mess it up!",
+		"So many bits and pieces! Each one has a use.",
+	],
+	"empty": [
+		"Empty chest! Break things out there and bring me pieces.",
+		"Nothing yet? Smash some rocks and bonk a dinosaur or two!",
+		"The chest is hungry. Feed it materials!",
+		"Open chests and break logs, and this fills right up.",
+		"No materials, no tools. Go on, I'll wait here.",
+	],
+	"ready": [
+		"The %s? You've got everything. Tap CRAFT!",
+		"Oh, a %s! I love making those.",
+		"All the pieces are here. One %s, coming right up!",
+		"Add a catalyst and the %s might come out special...",
+		"I've got a good feeling about this %s.",
+	],
+	"short": [
+		"The %s needs more pieces. The red ones are missing.",
+		"Not enough for a %s yet. Keep running, keep smashing!",
+		"Almost! Find what's red and the %s is yours.",
+		"I can't make a %s from wishes. Bring me the rest!",
+		"A %s needs proper materials. No shortcuts in my workshop.",
+	],
+	"locked": [
+		"I haven't worked out that one yet. Run %d m and I will!",
+		"That design's too tricky for now. Reach %d m first.",
+		"Ooh, that one's secret. Show me %d m in one run.",
+		"Run %d m and I'll teach myself how to make it.",
+		"Not yet! %d m in one run, then we talk.",
+	],
+	"crafted": [
+		"Done! One %s. Treat it kindly.",
+		"There! A fine %s, if I do say so.",
+		"Fresh off the bench: %s!",
+		"%s! Solid work. Mine, I mean.",
+		"Here's your %s. Don't leave it out in the rain.",
+	],
+	"crafted_rare": [
+		"Whoa! A %s! The stones liked you today.",
+		"Look at that shine! %s!",
+		"I've only made a few like this. %s!",
+		"%s! Even my mallet is impressed.",
+		"Now that's special: %s!",
+	],
+	"crafted_legendary": [
+		"I... I made a %s?! I need to sit down.",
+		"A %s! The old crafters sing about these!",
+		"%s! I'm telling everyone at the camp!",
+	],
+	"material": [
+		"%s! Hold it up to the light. Pretty, right?",
+		"Good %s. I could use that for so many things.",
+		"%s. Keep it, don't trade it to Ugo for meat!",
+		"Ah, %s. Every bit of it counts.",
+		"That %s will make something nice one day.",
+	],
+	"gear": [
+		"Your %s. Look after it and it'll look after you.",
+		"%s. Worn edges? I can patch it at the Camp.",
+		"A good %s. Equip it at the Dinosaur Camp.",
+		"Don't need the %s? I can break it back into pieces.",
+		"%s. I remember making that one!",
+	],
+	"card": [
+		"A %s! Pop it in a hero's weapon slot.",
+		"%s. I didn't make that one, the dinosaurs did!",
+		"Ooh, %s. That's a rare find.",
+		"The %s gives a real boost. Try it at the Camp.",
+		"%s! Collect them all, I say.",
+	],
+	"salvaged": [
+		"Broken back into pieces. Nothing wasted!",
+		"Back to the chest it goes. Good as new materials.",
+		"Salvaged! Now let's make something better.",
+		"Pieces saved. My mallet thanks you.",
+		"There, all sorted. Every bit has another life.",
+	],
+}
+
+
+## A line from one of Kora's pools (not the same as `last`).
+static func kora_pick(key: String, last := "") -> String:
+	var pool: Array = KORA_LINES.get(key, [""])
+	var pick: String = pool[randi() % pool.size()]
+	while pool.size() > 1 and pick == last:
+		pick = pool[randi() % pool.size()]
+	return pick
+
+
+## Kora says a line in her bubble, with a murmur (the shared mumble sounds,
+## Tuning.KORA_PITCH / KORA_DB). Returns what she said.
+func kora_say(key: String, arg: Variant = null) -> String:
+	if kora_label == null:
+		return ""
+	var line := kora_pick(key, String(_kora_said.get(key, "")))
+	_kora_said[key] = line
+	var text := line
+	if arg != null and (line.contains("%s") or line.contains("%d")):
+		text = line % arg
+	kora_label.text = text
+	_place_bubble()
+	if visible and game and game.get("audio"):
+		var n := clampi(text.length() / 18 + randi_range(0, 1), 1, 6)
+		game.audio.play("mumble_%d" % n, 0.05, Tuning.KORA_PITCH, Tuning.KORA_DB)
+	return text
+
+
+## What she says about the thing just picked.
+func _kora_about(id: String) -> void:
+	if id == "":
+		return
+	if mode == "bench":
+		if game.best_m < Crafting.learn_m(id):
+			kora_say("locked", Crafting.learn_m(id))
+		else:
+			kora_say("ready" if game.can_craft(id) else "short", Gear.name_of(id))
+		return
+	match tab:
+		"materials":
+			kora_say("material", Crafting.mat_name(id))
+		"cards":
+			kora_say("card", Gear.name_of(id))
+		_:
+			kora_say("gear", Gear.full_name(id))
+
+
+## Her bubble: the cream bubble Numa and Ugo speak in, in the free space to
+## the right of her head (between her and the panels), its tail at her face.
+func _build_bubble() -> void:
+	kora_tail = Polygon2D.new()
+	kora_tail.name = "KoraTail"
+	kora_tail.color = Color(1.0, 0.96, 0.86)
+	canvas.add_child(kora_tail)
+	kora_bubble = Panel.new()
+	kora_bubble.name = "KoraBubble"
+	kora_bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var nb := StyleBoxFlat.new()
+	nb.bg_color = Color(1.0, 0.96, 0.86)
+	nb.border_color = Color(0.45, 0.27, 0.12)
+	nb.set_border_width_all(3)
+	nb.set_corner_radius_all(16)
+	nb.content_margin_left = 14
+	nb.content_margin_right = 14
+	nb.content_margin_top = 8
+	nb.content_margin_bottom = 10
+	nb.shadow_color = Color(0, 0, 0, 0.25)
+	nb.shadow_size = 4
+	kora_bubble.add_theme_stylebox_override("panel", nb)
+	kora_label = Label.new()
+	kora_label.name = "KoraSays"
+	kora_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	kora_label.add_theme_font_override("font", SpriteLib.ui_font("body"))
+	kora_label.add_theme_font_size_override("font_size", 19)
+	kora_label.add_theme_color_override("font_color", Color(0.42, 0.22, 0.08))
+	kora_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	kora_label.position = Vector2(14, 8)
+	kora_bubble.add_child(kora_label)
+	canvas.add_child(kora_bubble)
+	kora_bubble.visible = false
+	kora_tail.visible = false
+
+
+## Where the bubble goes (design canvas): its box and Kora's mouth.
+func _bubble_spot() -> Array:
+	if mode == "bench":
+		return [Rect2(392, 112, 250, 0), Vector2(318, 238)]
+	return [Rect2(330, 120, 222, 0), Vector2(262, 318)]
+
+
+func _place_bubble() -> void:
+	if kora_bubble == null:
+		return
+	var spot: Array = _bubble_spot()
+	var r: Rect2 = spot[0]
+	var mouth: Vector2 = spot[1]
+	var inner := r.size.x - 28.0
+	var font := kora_label.get_theme_font("font")
+	var fs := kora_label.get_theme_font_size("font_size")
+	var text_h := font.get_multiline_string_size(kora_label.text, HORIZONTAL_ALIGNMENT_LEFT, inner, fs).y
+	kora_label.size = Vector2(inner, text_h)
+	kora_bubble.position = r.position
+	kora_bubble.size = Vector2(r.size.x, text_h + 20.0)
+	var by := clampf(mouth.y - 40.0, r.position.y + 14.0, r.position.y + kora_bubble.size.y - 34.0)
+	kora_tail.polygon = PackedVector2Array([Vector2(r.position.x + 3.0, by), Vector2(r.position.x + 3.0, by + 26.0), mouth])
+	kora_bubble.visible = kora_label.text != ""
+	kora_tail.visible = kora_bubble.visible

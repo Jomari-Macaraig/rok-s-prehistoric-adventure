@@ -50,7 +50,7 @@ Ones you don't own are silhouettes but can still be compared, with how to get th
 - A button beside each attribute shows what a level-up adds ("+0.4", "max" at the cap).
 - `press_level`: the first tap asks "Confirm?", the second calls `main.level_up`.
 - Disabled at the cap, without the meat, or without the XP (the note says how many metres to run as it).
-- An XP bar under the level shows progress; a note shows the next level's price; the header shows the meat bank.
+- An XP bar under the level shows progress; a note shows the next level's price (and how much meat you have when short). The header's meat counter is hidden for now (the user's call: the Camp doesn't need it; `MeatPouch`, `visible = false`).
 
 ## Gear (Heroes tab)
 

@@ -60,6 +60,8 @@ Part of the [system docs](README.md).
 | Thorn bushes | yes | dry tumble-thorns | none (a rock instead) |
 | Low ledge | vine branch (snags) | fossil arch | floating rock |
 
+Desert and Volcanic logs, fences, small rocks and thorn bushes are the Forest props tinted until the user's zone art arrives; the art list is in [tools/CLAUDE.md](../../tools/CLAUDE.md) ("Zone obstacles that don't fit their zone").
+
 Desert and Volcanic walls use `ZONE_WALL_PIECE_H` pieces so a wall of height h matches the Forest's.
 
 ## Traps
