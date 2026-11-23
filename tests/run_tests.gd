@@ -1520,6 +1520,16 @@ func _feedback_checks() -> void:
 			cx.select(lk)
 			check(Codex.NUMA_LINES.locked.has(cx.numa_label.text), "...and an undiscovered entry gets a 'not yet'")
 		check(cx.numa_bubble.position.y + cx.numa_bubble.size.y <= cx.elder.position.y + 1.0, "her bubble sits above her, not over her")
+		if cx.numa_anim:
+			check(cx.elder.texture == null and cx.numa_anim.visible, "Elder Numa is animated (the still cut-out is replaced)")
+			cx.numa_say("greet")
+			check(String(cx.numa_anim.animation) == "wave", "...she waves when she greets you")
+			cx.numa_say("known", "Raptor")
+			check(String(cx.numa_anim.animation) == "explain", "...and nods along when she explains")
+			cx.numa_anim.animation_finished.emit()
+			check(String(cx.numa_anim.animation) == "idle" and cx.numa_anim.is_playing(), "...then goes back to her idle")
+			var feet: float = cx.numa_anim.position.y
+			check(absf(feet - (cx.elder.position.y + cx.elder.size.y)) < 30.0, "...standing at the bottom of her spot (on her name plate)")
 	cx.close_guide()
 	main.gear_owned.clear()
 	main.gear_equipped.clear()

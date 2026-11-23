@@ -38,6 +38,9 @@ Rerun it after the source art changes:
 
 Run `python3 tools/make_sounds.py`, then `godot --headless --path . --import`.
 
+## Elder Numa's animations (`prepare_elder.py`)
+`uv run --no-project --with pillow python tools/prepare_elder.py` imports `../Assets/Rok_Elder_Nuna_Animations` (the pack calls her Nuna). Its `animation.json` picks 8 frames per clip (idle loop 2 s, explain and wave one-shots 1 s each) from three 4×2 sheets of 384×512 cells, each frame with its own duration and a baseline fix (crop N transparent rows off the top, which moves the drawing up so the feet line up). The script writes one aligned 4×2 sheet per clip, `assets/scenes/elder/<clip>@2x.png` plus a half-size `<clip>.png`, and `elder.json` (1x frame 192×256, feet pivot 96×243, per-clip times in ms and loop flag, the drawing's visible box). Then `--import`.
+
 ## Polished course art (`prepare_polished.py`)
 `uv run --no-project --with pillow python tools/prepare_polished.py` copies the user's `../Assets/Rok_Polished_Assets/standard/` over the game's own `assets/props/` and `assets/traps/` files of the same names. That's 69 images: props, every break and collapse sheet, the liquid left/mid/right pieces, steam, rolling boulder, Spinosaurus swim, the forest overhead and the fossil arch. They're redrawn at exactly the same sizes, grids and baselines, and the script checks each size, so hitboxes and `traps.json` are unchanged. **Run it after `prepare_assets.py`**, whose `props()` and `traps()` write the old art. The pack's HD versions and its three tutorial vine pieces (`tutorial_vine_arch/branch/support`) aren't used yet. Then `--import`.
 

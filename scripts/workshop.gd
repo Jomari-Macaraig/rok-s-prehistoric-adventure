@@ -514,8 +514,10 @@ func _item_detail() -> void:
 	if tab == "cards":
 		var d := id.substr(Gear.CARD_PREFIX.length())
 		detail.add_child(_head(Gear.name_of(id), 0))
-		detail.add_child(_text("Gives the weapon slot %s  ·  reach %d  ·  you have %d" % [Gear.bonus_text(id), int(Gear.CARD_REACH), int(Gear.cards.get(d, 0))], 16, INK))
-		detail.add_child(_text("Dropped by wild %s and found in chests. Equip it at the Dinosaur Camp." % Herd.name_of(d), 15, Color(0.45, 0.28, 0.12)))
+		for l in [_text("Gives the weapon slot %s  ·  reach %d  ·  you have %d" % [Gear.bonus_text(id), int(Gear.CARD_REACH), int(Gear.cards.get(d, 0))], 16, INK),
+				_text("Dropped by wild %s and found in chests. Equip it at the Dinosaur Camp." % Herd.name_of(d), 15, Color(0.45, 0.28, 0.12))]:
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			detail.add_child(l)
 		return
 	var r := Gear.rarity_of(id)
 	detail.add_child(_head(Gear.full_name(id), r))

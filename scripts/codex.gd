@@ -147,6 +147,7 @@ var _kit := false
 var elder: TextureRect
 var elder_plate: Label
 var numa_bubble: PanelContainer   # Elder Numa's speech bubble over her head (her lines: NUMA_LINES)
+var numa_anim: AnimatedSprite2D   # her animations (idle, explain, wave; tools/prepare_elder.py), fitted into `elder`'s box
 var numa_label: Label
 var numa_tail: Polygon2D
 var roster: Panel
@@ -181,6 +182,17 @@ func _ready() -> void:
 		hero.visible = false
 		elder = SceneKit.picture("elder_numa", 300.0, "Elder")
 		root.add_child(elder)
+		var nf := numa_frames()
+		if nf:   # the user's animations replace the still cut-out (`elder` stays as her box)
+			elder.texture = null
+			numa_anim = AnimatedSprite2D.new()
+			numa_anim.name = "NumaAnim"
+			numa_anim.centered = false
+			numa_anim.sprite_frames = nf
+			numa_anim.offset = -Vector2(numa_meta().pivot[0], numa_meta().pivot[1])
+			numa_anim.animation_finished.connect(func(): numa_anim.play("idle"))
+			root.add_child(numa_anim)
+			numa_anim.play("idle")
 		elder_plate = SceneKit.badge("Elder Numa", "button_secondary", 20)
 		root.add_child(elder_plate)
 		numa_tail = Polygon2D.new()
@@ -639,6 +651,42 @@ const NUMA_LINES := {
 var _numa_said := {}   # pool -> its last line (no repeats)
 
 
+const NUMA_DIR := "res://assets/scenes/elder/"
+static var _numa_meta := {}
+static var _numa_frames: SpriteFrames
+
+
+## Her clips' data (elder.json): frame, pivot, visible box, per clip times and loop.
+static func numa_meta() -> Dictionary:
+	if _numa_meta.is_empty() and FileAccess.file_exists(NUMA_DIR + "elder.json"):
+		_numa_meta = JSON.parse_string(FileAccess.get_file_as_string(NUMA_DIR + "elder.json"))
+	return _numa_meta
+
+
+## Her idle (loop), explain and wave (once) clips, or null without the art.
+static func numa_frames() -> SpriteFrames:
+	if _numa_frames:
+		return _numa_frames
+	var m := numa_meta()
+	if m.is_empty():
+		return null
+	var sf := SpriteFrames.new()
+	sf.remove_animation("default")
+	for clip in m.clips:
+		SpriteLib._sheet_frames(sf, clip, SpriteLib.tex(NUMA_DIR + clip + ".png"), Vector2(m.frame[0], m.frame[1]),
+				m.clips[clip].times, bool(m.clips[clip].loop))
+	_numa_frames = sf
+	return sf
+
+
+## Numa acts out what she says: a wave when greeting, an explaining nod
+## otherwise; then back to her idle.
+func numa_act(key: String) -> void:
+	if numa_anim == null:
+		return
+	numa_anim.play("wave" if key == "greet" else "explain")
+
+
 ## A line from one of Numa's pools (not the same as `last`).
 static func numa_pick(key: String, last := "") -> String:
 	var pool: Array = NUMA_LINES.get(key, [""])
@@ -657,6 +705,7 @@ func numa_say(key: String, arg := "") -> String:
 	_numa_said[key] = line
 	var text := (line % arg) if line.contains("%s") else line
 	numa_label.text = text
+	numa_act(key)
 	_place_numa()
 	var g = get_parent()
 	if visible and g and g.get("audio"):
@@ -668,6 +717,22 @@ func numa_say(key: String, arg := "") -> String:
 ## Her bubble sits above her head, between the title and her; she stands a
 ## little shorter when it's tall (her feet stay at her plate), and its tail
 ## points down at her.
+## Fit her animation in her box: the drawing's visible height fills the box,
+## feet on its bottom, centred.
+func _place_numa_anim() -> void:
+	if numa_anim == null or elder == null:
+		return
+	var m := numa_meta()
+	var vis: Array = m.visible
+	var vw := float(vis[2]) - float(vis[0])
+	var vh := float(vis[3]) - float(vis[1])
+	var k := minf(elder.size.y / vh, elder.size.x / vw)
+	var pv := Vector2(m.pivot[0], m.pivot[1])
+	var cx := (float(vis[0]) + float(vis[2])) * 0.5 - pv.x   # the drawing's centre, relative to the feet
+	numa_anim.scale = Vector2(k, k)
+	numa_anim.position = Vector2(elder.position.x + elder.size.x * 0.5 - cx * k, elder.position.y + elder.size.y - (pv.y - float(vis[3])) * k)
+
+
 func _place_numa() -> void:
 	if numa_bubble == null or elder == null:
 		return
@@ -688,6 +753,7 @@ func _place_numa() -> void:
 	var top := maxf(150.0 * k, bottom + 6.0)
 	elder.position.y = top
 	elder.size.y = 670.0 * k - top
+	_place_numa_anim()
 	var cx := ex + ew * 0.5
 	numa_tail.polygon = PackedVector2Array([Vector2(cx - 16.0, bottom - 3.0), Vector2(cx + 16.0, bottom - 3.0), Vector2(cx + 4.0, top + 12.0)])
 	numa_bubble.visible = numa_label.text != ""

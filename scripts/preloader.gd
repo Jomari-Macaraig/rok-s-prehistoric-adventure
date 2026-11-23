@@ -234,6 +234,7 @@ static func frame_jobs() -> Array:
 	jobs.append(SpriteLib.trex)
 	jobs.append(SpriteLib.transform_fx)
 	jobs.append(SpriteLib.powerup_fx)
+	jobs.append(Codex.numa_frames)   # Elder Numa's clips (the Encyclopedia)
 	for h in Hunters.DATA:
 		if h != "trex":
 			jobs.append(Hunters.frames.bind(h))
