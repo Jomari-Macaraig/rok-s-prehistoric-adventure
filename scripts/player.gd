@@ -61,6 +61,7 @@ var attack_clip := ""          # the clip playing, or ""
 var run_attack_phase := -1
 var _run_attack_n := 0
 var carry := ""                # the weapon drawn into the run sheet (SpriteLib.carry_frames), or ""
+var tfx: AnimatedSprite2D       # the shapeshift burst (play_transform), drawn over the body
 var _react_hold := 0.0         # seconds left in the held loop before recovering
 var shadow: Polygon2D
 
@@ -97,6 +98,11 @@ func _ready() -> void:
 	atk.visible = false
 	body.add_child(atk)
 	atk.animation_finished.connect(attack_stop)
+	tfx = AnimatedSprite2D.new()   # (a child of the player, not the body: a slide's squash mustn't bend it)
+	tfx.centered = false
+	tfx.visible = false
+	add_child(tfx)
+	tfx.animation_finished.connect(func(): tfx.visible = false)
 	_apply_form(Forms.ROK)
 	sprite.play("idle")
 
@@ -141,6 +147,36 @@ func attack_play(clip: String) -> bool:
 	atk.visible = true
 	sprite.visible = false
 	return true
+
+
+## The user's shapeshift burst over the change from form data `from` to the
+## current form: scaled so its solid cloud (meta `cover`) hides the bigger of
+## the two (TRANSFORM_FX_COVER of its frame), centred on it, following the
+## player. It starts on TRANSFORM_FX_START (the swap has already happened,
+## under the cloud) and hides itself when done. False without the art.
+func play_transform(from: Dictionary) -> bool:
+	var sf := SpriteLib.transform_fx()
+	if sf == null:
+		return false
+	var m := SpriteLib.transform_meta()
+	var a := _art_size(from)
+	var b := _art_size(data())
+	var w := maxf(a.x, b.x)
+	var h := maxf(a.y, b.y)
+	var k := maxf(w / float(m.cover[0]), h / float(m.cover[1]))
+	tfx.sprite_frames = sf
+	tfx.offset = -Vector2(m.pivot[0], m.pivot[1])
+	tfx.scale = Vector2.ONE * k
+	tfx.position = Vector2(0, -h * 0.5)
+	tfx.play("a")
+	tfx.frame = mini(Tuning.TRANSFORM_FX_START, int(m.frames) - 1)
+	tfx.visible = true
+	return true
+
+
+## How big a form's art is drawn (its frame at its scale, the part the burst covers).
+static func _art_size(d: Dictionary) -> Vector2:
+	return Vector2(d.frame) * float(d.scale) * Tuning.TRANSFORM_FX_COVER
 
 
 ## The seamless running attack for the hero's `weapon`, if he's running on

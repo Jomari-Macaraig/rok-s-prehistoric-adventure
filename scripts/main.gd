@@ -1149,10 +1149,14 @@ func _shift(f: int) -> void:
 		_coach_done("energy")
 	elif f != Forms.ROK:
 		_coach_done("shift")
+	var from: Dictionary = player.data()
 	player.shift_to(f)
 	shift_cd = 0.0 if power_on("primal_berry") else Tuning.SHIFT_COOLDOWN
 	var c: Color = Forms.get_data(f).color
-	fx.transform_puff(player.position + Vector2(0, -70), c)
+	if player.play_transform(from):   # the user's burst hides the change
+		fx.add_shake(4.0)
+	else:
+		fx.transform_puff(player.position + Vector2(0, -70), c)
 	audio.play("shift", 0.05)
 	audio.play("form_" + Forms.get_data(f).get("sound_id", Forms.get_data(f).id), 0.05)
 	fx.float_text(player.position + Vector2(-50, -215), Forms.get_data(f).name.to_upper(), c, 38)

@@ -2368,6 +2368,26 @@ func _fun_checks() -> void:
 	main.start_run(false)
 	main._refresh_hud()
 	check(not main.hud.tutorial_button.visible, "no Tutorial button in a normal run")
+	# --- the user's shapeshift burst (assets/fx/transform_burst)
+	main.start_run(false)
+	var unl_keep: Array = main.unlocked.duplicate()
+	main.unlocked = Forms.ORDER.duplicate()
+	main.energy = 100.0
+	main.shift_cd = 0.0
+	var rok_d: Dictionary = main.player.data()
+	main._request_form(Forms.SPINOSAURUS)
+	var tf: AnimatedSprite2D = main.player.tfx
+	var cov: Array = SpriteLib.transform_meta().cover
+	var need := Player._art_size(rok_d).max(Player._art_size(main.player.data()))
+	check(main.player.form == Forms.SPINOSAURUS and tf.visible and tf.frame == Tuning.TRANSFORM_FX_START,
+			"shapeshifting is instant and plays the burst from its covering frame")
+	check(tf.scale.x * float(cov[0]) >= need.x - 0.5 and tf.scale.y * float(cov[1]) >= need.y - 0.5,
+			"...its solid cloud big enough to hide both forms")
+	tf.frame = tf.sprite_frames.get_frame_count("a") - 1
+	tf.animation_finished.emit()
+	check(not tf.visible, "...and it's gone when it ends")
+	main.unlocked = unl_keep
+	main.start_run(false)
 	# --- hazard icons (info cards and Field Guide), in each zone's look
 	var missing := []
 	for e in Progression.INTROS:

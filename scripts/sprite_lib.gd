@@ -75,6 +75,32 @@ static func character(form: int) -> SpriteFrames:
 
 static var _celebrate_meta := {}
 static var _running_meta := {}
+static var _fx_meta := {}
+
+
+## The shapeshift burst's meta (tools/prepare_transform_fx.py): cell, pivot,
+## fps, swap and cover frames, `cover` (the solid cloud's size at 1x).
+static func transform_meta() -> Dictionary:
+	if _fx_meta.is_empty() and FileAccess.file_exists("res://assets/fx/transform_burst.json"):
+		_fx_meta = JSON.parse_string(FileAccess.get_file_as_string("res://assets/fx/transform_burst.json"))
+	return _fx_meta
+
+
+## The shapeshift burst as frames ("a", plays once), or null without the art.
+static func transform_fx() -> SpriteFrames:
+	if _cache.has("transform_fx"):
+		return _cache["transform_fx"]
+	var m := transform_meta()
+	if m.is_empty():
+		return null
+	var frames := SpriteFrames.new()
+	frames.remove_animation("default")
+	var ms := []
+	for i in int(m.frames):
+		ms.append(1000.0 / float(m.fps))
+	_sheet_frames(frames, "a", tex("res://assets/fx/transform_burst.png"), Vector2(m.cell[0], m.cell[1]), ms, false)
+	_cache["transform_fx"] = frames
+	return frames
 
 
 ## The user's seamless running attacks (tools/prepare_running_attacks.py):

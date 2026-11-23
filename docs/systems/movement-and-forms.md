@@ -73,3 +73,11 @@ be swapped for another of its category (see [dinosaurs](dinosaurs.md)).
 - Amber gives `AMBER_ENERGY` (15) as Rok, only `AMBER_ENERGY_DINO` (7) as a dino: Rok is the form for recharging.
 - With no amber a full bar lasts about 11 s as the Raptor, 7.5 s as the Triceratops, 6 s as the Pteranodon.
 - The first dino's unlock card explains this.
+
+## Shapeshift burst
+
+The user's generic transformation effect (`../Assets/Rok_Generic_Transformation_FX`, imported by `tools/prepare_transform_fx.py` into `assets/fx/transform_burst` + `.json`) plays on every gameplay shapeshift (`main._shift` → `Player.play_transform(from)`), in both directions, in place of the old particle puff (kept as the fallback without the art).
+
+- Shapeshifting stays instant (bridges, pits and the tutorial depend on it), so the burst starts on `TRANSFORM_FX_START` (3, its first covering frame): the swap has already happened under the solid cream cloud, which then opens (frame 5) to show the new form and fades. 0 would show the whole build-up after the change.
+- It's scaled so its solid cloud (`cover` in the JSON: the alpha > 200 box on the cover frames, ~130×128 at 1x) hides the bigger of the two forms (`TRANSFORM_FX_COVER` × its frame × scale), centred on it, and is a child of the player so it follows jumps and flight (not of the body, so a slide's squash doesn't bend it). It hides itself when it ends.
+
