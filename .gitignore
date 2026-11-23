@@ -8,3 +8,4 @@
 *.aab
 *.ipa
 __pycache__/
+/screenshots/
