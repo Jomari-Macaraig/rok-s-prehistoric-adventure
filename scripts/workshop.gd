@@ -1,48 +1,58 @@
 class_name Workshop
 extends CanvasLayer
-## Two full screens in the Camp's style (the user's request), one script:
-## - mode "bench": the CRAFTING BENCH. Tabs Weapons / Armor, a shelf of
-##   recipes (locked ones show the distance that teaches them), and a board
-##   with the chosen recipe's materials (have / need), a catalyst choice, the
-##   rarity odds and Craft (a second tap confirms). Crafting reveals the
-##   rolled rarity.
-## - mode "items": the ITEMS screen. Tabs Materials / Weapons / Armor /
-##   Cards, a shelf of everything owned, and a board with what the chosen one
-##   is (rarity, stats, where it comes from) and Salvage for unequipped gear.
-## Opened from the Camp's header (main.open_bench / open_items). Rules live in
-## Crafting and main (craft, salvage); this only shows them.
+## Kora the Craftkeeper's workshop: two full screens built from the user's
+## Crafting and Items kit (tools/prepare_workshop.py, assets/workshop/) to
+## match the approved references, one script:
+## - mode "bench": the CRAFTING BENCH. Kora works at her bench by the tool
+##   rack and campfire. The parchment panel shows the chosen recipe (picture,
+##   rarity, stats with icons, what it does), its MATERIALS as cards (have /
+##   need, a check when there's enough), the CATALYST choices, the rarity
+##   odds and the big CRAFT button (a second tap confirms; Kora swings her
+##   mallet and a sparkle bursts on the strike). Below, the Weapons / Armor
+##   shelf of recipe cards ("Ready" or the distance that teaches it).
+## - mode "items": the ITEMS screen. Kora at her open storage chest; a panel
+##   with Materials / Weapons / Armor / Cards tabs, a grid of item cards in
+##   their rarity frames (EQUIPPED tag), and the chosen one's page: stats,
+##   durability bar, description, where it's equipped, SALVAGE (two taps)
+##   and what salvaging RETURNS.
+## Everything is laid out on the kit's 1536x864 design canvas (its demo
+## layouts, workshop.json), scaled to fit the screen and centred; the
+## workshop background covers the rest. Opened from the Dinosaur Camp's
+## header (main.open_bench / open_items); the top-right button switches
+## between the two. Rules live in Crafting and main (craft, salvage).
 
 signal closed
 
-const INK := Codex.INK
-const SHORT := Color(0.8, 0.2, 0.1)      # a material you don't have enough of
-const ENOUGH := Color(0.25, 0.55, 0.2)
+const DIR := "res://assets/workshop/"
+const INK := Color("#4e2b1b")
+const LIGHT := Color("#fff0cc")
+const SHORT := Color("#a23921")
+const ENOUGH := Color("#35782e")
+const MUTED := Color("#6d5033")
+## Rarity text colours (the kit's), Common .. Legendary.
+const RARITY_TEXT := [Color("#73614c"), Color("#2b7f32"), Color("#196aab"), Color("#8836b4"), Color("#9a731b")]
+const CARD_FRAME := ["card_common", "card_uncommon", "card_rare", "card_epic", "card_legendary"]
 
 var game   # main.gd
 var mode := "bench"
 var root: Control
+var canvas: Control           # the 1536x864 design canvas
 var tab := ""
-var selected := ""          # recipe item id, material id, gear copy id or "card:<dino>"
-var catalyst := ""          # the bench's chosen catalyst ("" = none)
+var selected := ""            # recipe item id, material id, gear copy id or "card:<dino>"
+var catalyst := ""            # the bench's chosen catalyst ("" = none)
 var tab_buttons := {}
-var list: HBoxContainer
+var list: Container           # the tiles (recipe shelf or item grid)
 var scroll: ScrollContainer
-var detail: VBoxContainer
-var dscroll: ScrollContainer
-var board: PanelContainer
-var shelf: VBoxContainer
-var roster: Panel
-var hero: AnimatedSprite2D
-var bench_art: Control      # the workbench (drawn in code until the user's art exists)
-var result_label: Label     # the bench's last craft ("EPIC STONE AXE!")
-var _confirm := ""          # an action waiting for its confirming tap
-var _tile_h := 150.0
-var _kit := false
-var _drag_target: ScrollContainer
+var detail: Control           # the panel's contents, rebuilt on every change
+var kora: AnimatedSprite2D
+var sparkle: AnimatedSprite2D
+var result_label: Label
+var last_crafted := ""        # (tests) the copy the last Craft made
+var _confirm := ""            # an action waiting for its confirming tap
+var _meta := {}
 var _dragging := false
 var _drag_dist := 0.0
 var _fling := 0.0
-var last_crafted := ""      # (tests) the copy the last Craft made
 
 
 static func tabs_of(m: String) -> Array:
@@ -53,145 +63,320 @@ static func tab_name(t: String) -> String:
 	return {"weapon": "Weapons", "armor": "Armor", "materials": "Materials", "cards": "Cards"}.get(t, t.capitalize())
 
 
+# ------------------------------------------------------------ building blocks
+
+func _tex(name: String) -> Texture2D:
+	return SpriteLib.tex(DIR + name + ".png")
+
+
+func _img(tex: Texture2D, r: Rect2, parent: Node, node_name := "") -> TextureRect:
+	var t := TextureRect.new()
+	t.texture = tex
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	t.position = r.position
+	t.size = r.size
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if node_name != "":
+		t.name = node_name
+	parent.add_child(t)
+	return t
+
+
+## A kit piece as a StyleBox: panels and card frames 9-slice (their kit
+## margins), pills, tabs, signs and bars stretch whole.
+func _box(name: String) -> StyleBoxTexture:
+	var sb := StyleBoxTexture.new()
+	sb.texture = _tex(name)
+	var m := float((_meta.get("nine", {}) as Dictionary).get(name, 0))
+	sb.texture_margin_left = m
+	sb.texture_margin_right = m
+	sb.texture_margin_top = m
+	sb.texture_margin_bottom = m
+	return sb
+
+
+func _panel(name: String, r: Rect2, parent: Node, node_name := "") -> Panel:
+	var p := Panel.new()
+	p.add_theme_stylebox_override("panel", _box(name))
+	p.position = r.position
+	p.size = r.size
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if node_name != "":
+		p.name = node_name
+	parent.add_child(p)
+	return p
+
+
+func _label(text: String, r: Rect2, size: int, color: Color, parent: Node, bold := true, align := HORIZONTAL_ALIGNMENT_CENTER, outline := 0) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.position = r.position
+	l.size = r.size
+	l.horizontal_alignment = align
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.add_theme_font_override("font", SpriteLib.ui_font("heading" if bold else "body"))
+	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_color_override("font_color", color)
+	if outline > 0:
+		l.add_theme_color_override("font_outline_color", Color(0.22, 0.11, 0.04))
+		l.add_theme_constant_override("outline_size", outline * 3)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(l)
+	return l
+
+
+## A wrapping paragraph: autowrap is on before the size is set, so the label
+## keeps its width instead of growing to one long line.
+func _para(text: String, r: Rect2, size: int, color: Color, parent: Node, bold := false, align := HORIZONTAL_ALIGNMENT_LEFT) -> Label:
+	var l := _label("", r, size, color, parent, bold, align)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	l.text = text
+	l.size = r.size
+	return l
+
+
+## A button painted with a kit piece (tabs, CRAFT, SALVAGE): light text with
+## an outline; pressing darkens it.
+func _button(text: String, piece: String, r: Rect2, size: int, parent: Node, node_name: String, cb: Callable) -> Button:
+	var b := Button.new()
+	b.name = node_name
+	b.text = text
+	b.focus_mode = Control.FOCUS_NONE
+	b.position = r.position
+	b.size = r.size
+	for st in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+		b.add_theme_stylebox_override(st, _box(piece))
+	b.add_theme_font_override("font", SpriteLib.ui_font("heading"))
+	b.add_theme_font_size_override("font_size", size)
+	for c in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
+		b.add_theme_color_override(c, LIGHT)
+	b.add_theme_color_override("font_disabled_color", LIGHT.darkened(0.25))
+	b.add_theme_color_override("font_outline_color", Color(0.22, 0.11, 0.04))
+	b.add_theme_constant_override("outline_size", 6)
+	b.button_down.connect(func(): b.self_modulate = Color(0.85, 0.85, 0.85))
+	b.button_up.connect(func(): b.self_modulate = Color.WHITE)
+	b.pressed.connect(cb)
+	parent.add_child(b)
+	return b
+
+
+func _disable(b: Button, off: bool) -> void:
+	b.disabled = off
+	b.modulate = Color(0.6, 0.6, 0.6, 0.85) if off else Color.WHITE
+
+
+## A rounded pill (rarity tags, the shelf's status bars).
+func _pill(r: Rect2, color: Color, parent: Node) -> Panel:
+	var p := Panel.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = color
+	sb.set_corner_radius_all(int(r.size.y * 0.5))
+	p.add_theme_stylebox_override("panel", sb)
+	p.position = r.position
+	p.size = r.size
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(p)
+	return p
+
+
+func _frames(clips: Array) -> SpriteFrames:
+	var sf := SpriteFrames.new()
+	sf.remove_animation("default")
+	var anims: Dictionary = _meta.get("animations", {})
+	for clip in clips:
+		if not anims.has(clip):
+			continue
+		var a: Dictionary = anims[clip]
+		SpriteLib._sheet_frames(sf, clip, _tex(String(a.sheet).get_basename()), Vector2(a.frame[0], a.frame[1]), a.times, bool(a.loop))
+	return sf
+
+
+# ------------------------------------------------------------ the scene
+
 func _ready() -> void:
 	layer = 23
 	visible = false
+	_meta = JSON.parse_string(FileAccess.get_file_as_string(DIR + "workshop.json")) if FileAccess.file_exists(DIR + "workshop.json") else {}
 	root = Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
-	_kit = SceneKit.has()
-	var bg := SceneKit.backdrop("dinosaur_camp")
-	root.add_child(bg if bg else Market.backdrop("res://assets/bg/bg_1.png", Color(0.5, 0.68, 0.85)))
-	var shade := ColorRect.new()   # a warmer, darker workshop light over the camp painting
-	shade.color = Color(0.25, 0.12, 0.04, 0.35) if mode == "bench" else Color(0.1, 0.08, 0.05, 0.3)
-	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
-	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(shade)
-	hero = AnimatedSprite2D.new()
-	hero.name = "Hero"
-	hero.centered = false
-	root.add_child(hero)
+	var bg := TextureRect.new()   # covers any screen shape
+	bg.name = "Backdrop"
+	bg.texture = _tex("background")
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(bg)
+	canvas = Control.new()
+	canvas.name = "Canvas"
+	canvas.size = Vector2(1536, 864)
+	canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(canvas)
+	_build_scene()
+	_build_header()
 	if mode == "bench":
-		bench_art = _bench_placeholder()
-		root.add_child(bench_art)
-
-	var header := HBoxContainer.new()
-	header.name = "Header"
-	header.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	header.offset_left = Tuning.UI_MARGIN
-	header.offset_right = -Tuning.UI_MARGIN
-	header.offset_top = 14
-	header.add_theme_constant_override("separation", 12)
-	root.add_child(header)
-	var back := Market._button("‹ Back", Vector2(130, 52))
-	back.name = "Back"
-	back.pressed.connect(close_screen)
-	header.add_child(back)
-	if _kit:
-		SceneKit.style_back(back)
-	var title: Control = SceneKit.text_plaque("CRAFTING BENCH" if mode == "bench" else "ITEMS")
-	if title == null:
-		title = _plaque("CRAFTING BENCH" if mode == "bench" else "ITEMS")
-		title.name = "TitleBanner"
-	header.add_child(title)
-
-	board = PanelContainer.new()
-	board.name = "Board"
-	var kit_panel := SceneKit.box("stats_panel")
-	if kit_panel:
-		kit_panel.content_margin_left = 62
-		kit_panel.content_margin_right = 56
-		kit_panel.content_margin_top = 40
-		kit_panel.content_margin_bottom = 40
-	board.add_theme_stylebox_override("panel", kit_panel if kit_panel else _paper())
-	root.add_child(board)
-	dscroll = ScrollContainer.new()
-	dscroll.name = "DetailScroll"
-	dscroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	board.add_child(dscroll)
-	detail = VBoxContainer.new()
+		_panel("panel_parchment", Rect2(650, 105, 860, 525), canvas, "Parchment")
+		_panel("panel_inventory", Rect2(18, 650, 1494, 198), canvas, "Shelf")
+		for i in tabs_of(mode).size():
+			var t: String = tabs_of(mode)[i]
+			tab_buttons[t] = _button(tab_name(t), "tab_brown", Rect2(72 + 212 * i, 626, 202, 53), 22, canvas, "Tab_" + t, show_tab.bind(t))
+		scroll = ScrollContainer.new()
+		scroll.position = Vector2(40, 690)
+		scroll.size = Vector2(1456, 150)
+		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		canvas.add_child(scroll)
+		var hb := HBoxContainer.new()
+		hb.name = "List"
+		hb.add_theme_constant_override("separation", 14)
+		scroll.add_child(hb)
+		list = hb
+	else:
+		_panel("panel_inventory", Rect2(557, 107, 955, 737), canvas, "Inventory")
+		for i in tabs_of(mode).size():
+			var t: String = tabs_of(mode)[i]
+			tab_buttons[t] = _button(tab_name(t), "tab_brown", Rect2(587 + 224 * i, 129, 214, 59), 22, canvas, "Tab_" + t, show_tab.bind(t))
+		_panel("panel_parchment", Rect2(1020, 211, 468, 608), canvas, "Parchment")
+		scroll = ScrollContainer.new()
+		scroll.position = Vector2(584, 212)
+		scroll.size = Vector2(430, 612)
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+		canvas.add_child(scroll)
+		var g := GridContainer.new()
+		g.name = "List"
+		g.add_theme_constant_override("h_separation", 12)
+		g.add_theme_constant_override("v_separation", 16)
+		scroll.add_child(g)
+		list = g
+	detail = Control.new()
 	detail.name = "Detail"
-	detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	detail.add_theme_constant_override("separation", 6)
-	dscroll.add_child(detail)
-
-	shelf = VBoxContainer.new()
-	shelf.name = "Shelf"
-	shelf.add_theme_constant_override("separation", 8)
-	var tabs := HBoxContainer.new()
-	tabs.add_theme_constant_override("separation", 10)
-	shelf.add_child(tabs)
-	for t in tabs_of(mode):
-		var tb := Market._button(tab_name(t), Vector2(160, 46))
-		tb.name = "Tab_" + t
-		tb.toggle_mode = true
-		tb.pressed.connect(func(): show_tab(t))
-		tabs.add_child(tb)
-		tab_buttons[t] = tb
-		if _kit:
-			SceneKit.style_button(tb, "tab_inactive", "tab_active", 20)
-	scroll = ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	shelf.add_child(scroll)
-	list = HBoxContainer.new()
-	list.name = "List"
-	list.add_theme_constant_override("separation", 12)
-	scroll.add_child(list)
-	roster = Panel.new()
-	roster.name = "Roster"
-	var rp := SceneKit.box("roster_panel")
-	roster.add_theme_stylebox_override("panel", rp if rp else _wood())
-	roster.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(roster)
-	root.add_child(shelf)
+	detail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	canvas.add_child(detail)
 	root.resized.connect(_layout)
 
 
-## The kit's layout, like the Camp's: the board anchored right, the shelf
-## along the bottom, the hero (and the bench) on the left.
+## The workshop: tool rack, campfire, Kora (between the bench's two layers
+## at the bench; behind her open chest on the Items screen) and her name.
+func _build_scene() -> void:
+	_img(_tex("tool_rack"), Rect2(18, 205, 190, 340), canvas)
+	var fire := Node2D.new()
+	fire.name = "Campfire"
+	fire.position = Vector2(520, 455) if mode == "bench" else Vector2(455, 455)
+	fire.scale = Vector2.ONE * 0.22
+	canvas.add_child(fire)
+	var base := Sprite2D.new()
+	base.texture = _tex("firepit_base")
+	base.position = Vector2(0, -163.5)
+	fire.add_child(base)
+	var flame := AnimatedSprite2D.new()
+	flame.sprite_frames = _frames(["fire_loop"])
+	flame.centered = false
+	flame.position = Vector2(0, -165)
+	flame.offset = Vector2(-192, -397)
+	fire.add_child(flame)
+	if flame.sprite_frames.has_animation("fire_loop"):
+		flame.play("fire_loop")
+	if mode == "bench":
+		_img(_tex("workbench_rear"), Rect2(20, 390, 610, 280), canvas)
+	kora = AnimatedSprite2D.new()
+	kora.name = "Kora"
+	kora.sprite_frames = _frames(["idle", "craft", "present", "wave"])
+	kora.centered = false
+	kora.offset = Vector2(-206, -499)
+	kora.position = Vector2(285, 630) if mode == "bench" else Vector2(265, 735)
+	kora.scale = Vector2.ONE * (1.0 if mode == "bench" else 1.07)
+	canvas.add_child(kora)
+	kora.animation_finished.connect(func(): kora.play("idle"))
+	kora.frame_changed.connect(_kora_frame)
+	if kora.sprite_frames.has_animation("idle"):
+		kora.play("idle")
+	sparkle = AnimatedSprite2D.new()
+	sparkle.name = "Sparkle"
+	sparkle.sprite_frames = _frames(["craft_success"])
+	sparkle.centered = false
+	sparkle.offset = Vector2(-192, -270)
+	sparkle.position = Vector2(31, -140)
+	sparkle.visible = false
+	sparkle.z_index = 2
+	sparkle.animation_finished.connect(sparkle.hide)
+	kora.add_child(sparkle)
+	if mode == "bench":
+		_img(_tex("workbench_front"), Rect2(20, 390, 610, 280), canvas)
+		_label("Kora", Rect2(220, 524, 200, 33), 24, INK, canvas)
+		_label("Craftkeeper", Rect2(220, 555, 200, 24), 15, INK, canvas)
+	else:
+		_img(_tex("storage_chest_open"), Rect2(30, 444, 500, 375), canvas)
+		_label("Kora", Rect2(175, 682, 210, 35), 27, INK, canvas)
+		_label("Craftkeeper", Rect2(175, 721, 210, 25), 17, INK, canvas)
+
+
+func _build_header() -> void:
+	var back := TextureButton.new()
+	back.name = "Back"
+	back.texture_normal = _tex("button_back")
+	back.ignore_texture_size = true
+	back.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	back.position = Vector2(16, 16)
+	back.size = Vector2(76, 76)
+	back.pressed.connect(close_screen)
+	canvas.add_child(back)
+	var w := 500.0 if mode == "bench" else 320.0
+	var sign := _panel("title_sign", Rect2(106, 9, w, 91), canvas, "TitleBanner")
+	_label("CRAFTING BENCH" if mode == "bench" else "ITEMS", Rect2(21, 14, w - 42, 57), 34, LIGHT, sign, true, HORIZONTAL_ALIGNMENT_CENTER, 3)
+	_button("Items" if mode == "bench" else "Crafting", "tab_brown", Rect2(1292, 20, 218, 55), 22, canvas, "Switch", _switch)
+
+
+## The top-right button: to the other workshop screen.
+func _switch() -> void:
+	if mode == "bench":
+		visible = false
+		game.open_items()
+	else:
+		if not game.bench_open():
+			game.audio.play("denied", 0.0)
+			return
+		visible = false
+		game.open_bench()
+
+
+## Scale the design canvas to fit the screen, centred.
 func _layout() -> void:
-	var w := root.size.x
-	var h := root.size.y
-	var k := h / 1080.0
-	var pw := maxf(680.0 * k, 560.0)
-	board.position = Vector2(w - 30.0 * k - pw, 96.0 * k)
-	board.size = Vector2(pw, 590.0 * k)
-	var ground := 650.0 * k
-	hero.position = Vector2(220.0 * k, ground)
-	hero.scale = Vector2.ONE * (400.0 * k / 224.0)
-	if bench_art:
-		var bw := clampf(board.position.x - 380.0 * k - 24.0, 180.0, 420.0)
-		bench_art.size = Vector2(bw, bw * 0.62)
-		bench_art.position = Vector2(380.0 * k, ground - bench_art.size.y + 10.0)
-	roster.position = Vector2(20.0 * k, 700.0 * k)
-	roster.size = Vector2(w - 40.0 * k, h - 700.0 * k - 12.0 * k)
-	shelf.position = roster.position + Vector2(56.0, 14.0)
-	shelf.size = roster.size - Vector2(112.0, 26.0)
-	_tile_h = maxf(shelf.size.y - 46.0 - 8.0 - 10.0, 110.0)
-	for t in list.get_children():
-		if t is Button:
-			(t as Control).custom_minimum_size = Vector2(_tile_h * 0.9, _tile_h)
+	var vs := root.size if root.size.x > 0.0 else root.get_viewport_rect().size
+	var s := minf(vs.x / canvas.size.x, vs.y / canvas.size.y)
+	canvas.scale = Vector2(s, s)
+	canvas.position = (vs - canvas.size * s) * 0.5
 
 
 func open_screen(t := "") -> void:
 	visible = true
 	Market.enter(root)
-	hero.sprite_frames = SpriteLib.character(Forms.ROK)
-	hero.offset = -Vector2(Forms.get_data(Forms.ROK).pivot)
-	hero.play("idle")
-	if not hero.has_node("Gear"):
-		var gl := GearLayer.new()
-		gl.name = "Gear"
-		hero.add_child(gl)
-	(hero.get_node("Gear") as GearLayer).hero = String(Forms.get_data(Forms.ROK).id)
 	_layout()
 	show_tab(t if t != "" else (tab if tab != "" else tabs_of(mode)[0]))
+	kora_play("wave")
 
 
 func close_screen() -> void:
 	visible = false
 	closed.emit()
+
+
+func kora_play(clip: String) -> void:
+	if kora and kora.sprite_frames.has_animation(clip):
+		kora.play(clip)
+
+
+## Kora's mallet strike (craft frame `impact`): the success sparkle bursts there.
+func _kora_frame() -> void:
+	if String(kora.animation) != "craft":
+		return
+	var impact: int = int(((_meta.get("animations", {}) as Dictionary).get("craft", {}) as Dictionary).get("impact", 4))
+	if kora.frame == impact and sparkle.sprite_frames.has_animation("craft_success"):
+		sparkle.visible = true
+		sparkle.play("craft_success")
 
 
 func show_tab(t: String) -> void:
@@ -201,19 +386,22 @@ func show_tab(t: String) -> void:
 	var ids := entries()
 	selected = ids[0] if not ids.is_empty() else ""
 	scroll.scroll_horizontal = 0
+	scroll.scroll_vertical = 0
 	refresh()
 
 
 func select(id: String) -> void:
 	if _drag_dist > 24.0:
-		return   # it was a drag along the shelf, not a tap
+		return   # it was a drag, not a tap
+	if id != selected:
+		kora_play("present")
 	selected = id
 	_confirm = ""
 	catalyst = ""
 	refresh()
 
 
-## What the shelf lists on the current tab.
+## What the shelf or grid lists on the current tab.
 func entries() -> Array:
 	if mode == "bench":
 		var out: Array = Crafting.recipes().filter(func(k): return String(Gear.ITEMS[k].slot) == tab)
@@ -229,20 +417,20 @@ func entries() -> Array:
 
 func refresh() -> void:
 	for t in tab_buttons:
-		(tab_buttons[t] as Button).button_pressed = t == tab
+		var b: Button = tab_buttons[t]
+		for st in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
+			b.add_theme_stylebox_override(st, _box("tab_teal" if t == tab else "tab_brown"))
 	for c in list.get_children():
 		list.remove_child(c)
 		c.queue_free()
-	var ids := entries()
-	for id in ids:
+	if list is GridContainer:
+		(list as GridContainer).columns = 3 if tab == "materials" else 2
+	for id in entries():
 		list.add_child(_tile(id))
-	if ids.is_empty():
-		var l := _light("Nothing here yet." if mode == "items" else "No recipes.", 20)
-		l.name = "Empty"
-		list.add_child(l)
 	for c in detail.get_children():
 		detail.remove_child(c)
 		c.queue_free()
+	result_label = null
 	if mode == "bench":
 		_bench_detail()
 	else:
@@ -255,79 +443,64 @@ func _tile(id: String) -> Button:
 	var b := Button.new()
 	b.name = id.replace(":", "_")
 	b.focus_mode = Control.FOCUS_NONE
-	b.custom_minimum_size = Vector2(_tile_h * 0.9, _tile_h)
-	var locked: bool = mode == "bench" and game.best_m < Crafting.learn_m(id)
-	var r := _rarity_of(id)
-	var sb := _tile_box(id == selected, r, locked)
-	for s in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
-		b.add_theme_stylebox_override(s, sb)
+	b.flat = true
 	b.pressed.connect(func(): select(id))
-	var vb := VBoxContainer.new()
-	vb.set_anchors_preset(Control.PRESET_FULL_RECT)
-	vb.offset_left = 10
-	vb.offset_right = -10
-	vb.offset_top = 10
-	vb.offset_bottom = -8
-	vb.alignment = BoxContainer.ALIGNMENT_CENTER
-	vb.add_theme_constant_override("separation", 2)
-	b.add_child(vb)
-	var ic := TextureRect.new()
-	ic.texture = _icon(id)
-	ic.custom_minimum_size = Vector2(0, _tile_h * 0.42)
-	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	if locked:
-		ic.modulate = Color(0.3, 0.3, 0.3, 0.8)
-	vb.add_child(ic)
-	var nm := _light(_name(id), 15 if _name(id).length() < 13 else 13, Crafting.RARITY_COLOR[r].lightened(0.35) if r > 0 else Color(1, 0.96, 0.85))
-	nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	vb.add_child(nm)
-	var sub := ""
+	var chosen := id == selected
 	if mode == "bench":
-		sub = ("%d m" % Crafting.learn_m(id)) if locked else ("Ready ●" if game.can_craft(id) else "")
-	elif tab == "materials":
-		sub = "×%d" % Crafting.have(id)
-	elif tab == "cards":
-		sub = "×%d" % int(Gear.cards.get(id.substr(Gear.CARD_PREFIX.length()), 0))
-	elif _equipped_by(id) != "":
-		sub = "EQUIPPED"
-	if sub != "":
-		var sl := _light(sub, 14, Color(1.0, 0.55, 0.45) if sub.begins_with("Ready") else Color(0.95, 0.88, 0.7))
-		sl.name = "Sub"
-		vb.add_child(sl)
-	_ignore_mouse(b)
+		b.custom_minimum_size = Vector2(195, 138)
+		var locked: bool = game.best_m < Crafting.learn_m(id)
+		_panel("card_selected" if chosen else "card_common", Rect2(Vector2.ZERO, b.custom_minimum_size), b)
+		var ic := _img(Gear.icon(id), Rect2(30, 8, 135, 68), b)
+		if locked:
+			ic.modulate = Color(0.55, 0.5, 0.45)
+			_img(_tex("badge_lock"), Rect2(156, 6, 30, 30), b, "Lock")
+		_label(Gear.name_of(id), Rect2(4, 76, 187, 29), 18, INK, b)
+		_pill(Rect2(22, 106, 151, 24), Color(0.3, 0.17, 0.08, 0.85), b)
+		var ready: bool = game.can_craft(id)
+		var st := ("%d m" % Crafting.learn_m(id)) if locked else ("● Ready" if ready else "Need materials")
+		_label(st, Rect2(22, 106, 151, 24), 15, Color("#9fe07a") if ready else LIGHT, b).name = "Sub"
+		return b
+	var r := _rarity_of(id)
+	if tab == "materials":
+		b.custom_minimum_size = Vector2(132, 182)
+		if chosen:   # the gold frame glows behind the rarity frame
+			_panel("card_selected", Rect2(-7, -7, 146, 196), b)
+		_panel(CARD_FRAME[r], Rect2(Vector2.ZERO, b.custom_minimum_size), b)
+		_img(Crafting.icon(id), Rect2(23, 14, 86, 92), b)
+		_label(Crafting.mat_name(id), Rect2(3, 110, 126, 34), 16 if Crafting.mat_name(id).length() < 12 else 13, INK, b)
+		_label("×%d" % Crafting.have(id), Rect2(3, 144, 126, 26), 18, INK, b).name = "Sub"
+		return b
+	if tab == "cards":
+		var d := id.substr(Gear.CARD_PREFIX.length())
+		b.custom_minimum_size = Vector2(198, 400)
+		if chosen:
+			_panel("card_selected", Rect2(-7, -7, 212, 308), b)
+		_img(CardView.icon(d), Rect2(2, 2, 194, 290), b)
+		_para(Gear.name_of(id), Rect2(0, 300, 198, 56), 19, LIGHT, b, true, HORIZONTAL_ALIGNMENT_CENTER)
+		_label("×%d" % int(Gear.cards.get(d, 0)), Rect2(0, 354, 198, 30), 20, LIGHT, b).name = "Sub"
+		return b
+	b.custom_minimum_size = Vector2(198, 282)
+	if chosen:   # the gold frame glows behind the rarity frame
+		_panel("card_selected", Rect2(-8, -8, 214, 298), b)
+	_panel(CARD_FRAME[r], Rect2(Vector2.ZERO, b.custom_minimum_size), b)
+	_label(Crafting.rarity_name(r).to_upper(), Rect2(5, 22, 188, 28), 16, RARITY_TEXT[r], b)
+	var equipped := _equipped_by(id) != ""
+	_img(Gear.icon(id), Rect2(33, 52, 132, 108 if equipped else 140), b)
+	var nl := _label(Gear.full_name(id), Rect2(10, 194, 178, 62), 20 if Gear.full_name(id).length() < 15 else 17, INK, b)
+	nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	nl.size = Vector2(178, 62)
+	if equipped:
+		_img(_tex("badge_check"), Rect2(10, 168, 30, 30), b)
+		_label("EQUIPPED", Rect2(42, 170, 150, 27), 15, Color("#2c8232"), b, true, HORIZONTAL_ALIGNMENT_LEFT).name = "Sub"
 	return b
 
 
-func _tile_box(chosen: bool, rarity: int, locked: bool) -> StyleBox:
-	var sb := StyleBoxFlat.new()
-	sb.set_corner_radius_all(14)
-	sb.bg_color = Color(0.32, 0.18, 0.08, 0.85) if not locked else Color(0.2, 0.15, 0.1, 0.8)
-	if chosen:
-		sb.bg_color = sb.bg_color.lightened(0.18)
-	sb.set_border_width_all(5 if chosen else 3)
-	sb.border_color = Color(1.0, 0.85, 0.35) if chosen else Crafting.RARITY_COLOR[rarity].darkened(0.1 if rarity > 0 else 0.35)
-	return sb
-
-
 func _rarity_of(id: String) -> int:
-	if mode == "items" and tab == "materials":
-		return Crafting.mat_rarity(id)
-	if mode == "items" and Gear.has(id):
-		return Gear.rarity_of(id)
+	if tab == "materials":
+		return clampi(Crafting.mat_rarity(id), 0, 4)
+	if Gear.has(id):
+		return clampi(Gear.rarity_of(id), 0, 4)
 	return 0
-
-
-func _icon(id: String) -> Texture2D:
-	if mode == "items" and tab == "materials":
-		return Crafting.icon(id)
-	return Gear.icon(id)
-
-
-func _name(id: String) -> String:
-	if mode == "items" and tab == "materials":
-		return Crafting.mat_name(id)
-	return Gear.full_name(id) if mode == "items" else Gear.name_of(id)
 
 
 ## Which hero has this copy equipped ("" = none).
@@ -338,107 +511,109 @@ func _equipped_by(id: String) -> String:
 	return ""
 
 
+## "+2 Power | Reach 175 | 40 hits", each with its stat icon, in a row.
+func _stat_row(parts: Array, pos: Vector2, size: int, parent: Node, node_name: String) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.name = node_name
+	row.position = pos
+	row.add_theme_constant_override("separation", 8)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(row)
+	for i in parts.size():
+		if i > 0:
+			var sep := _label("|", Rect2(), size, MUTED, row)
+			sep.custom_minimum_size = Vector2(10, 30)
+		var p: Array = parts[i]
+		var ic := TextureRect.new()
+		ic.texture = _tex(p[0])
+		ic.custom_minimum_size = Vector2(28, 28)
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(ic)
+		var l := _label(String(p[1]), Rect2(), size, INK, row)
+		l.custom_minimum_size = Vector2(0, 32)
+	return row
+
+
+## A recipe's (Common) stats for _stat_row.
+func _stats(id: String) -> Array:
+	var it: Dictionary = Gear.ITEMS[Gear.base(id)]
+	var parts: Array = [["stat_power", Gear.bonus_text(id)]]
+	if it.has("reach"):
+		parts.append(["stat_reach", "Reach %d" % int(it.reach)])
+	if Gear.max_durability(id) > 0:
+		parts.append(["stat_durability", "%d hits" % Gear.max_durability(id)])
+	return parts
+
+
 # ------------------------------------------------------------ the bench
 
 func _bench_detail() -> void:
 	if selected == "":
 		return
 	var id := selected
-	var top := HBoxContainer.new()
-	top.add_theme_constant_override("separation", 10)
-	detail.add_child(top)
-	var head := _text(Gear.name_of(id), 28, INK)
-	head.name = "Name"
-	head.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	head.clip_text = true
-	top.add_child(head)
-	var craft_b := Market._button("Sure? Craft!" if _confirm == "craft" else "Craft", Vector2(170, 48))
-	craft_b.name = "Craft"
-	craft_b.disabled = not game.can_craft(id, catalyst)
-	craft_b.pressed.connect(press_craft)
-	top.add_child(craft_b)
-	if _kit:
-		SceneKit.style_button(craft_b, "button_primary", "", 22)
-	result_label = _text("", 19, INK)
+	var it: Dictionary = Gear.ITEMS[id]
+	_img(Gear.icon(id), Rect2(690, 151, 212, 254), detail, "Picture")
+	_label(Gear.name_of(id), Rect2(950, 151, 330, 52), 38, INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT).name = "Name"
+	_pill(Rect2(1285, 163, 146, 29), Color(0.6, 0.56, 0.5, 0.75), detail)
+	_label("COMMON", Rect2(1285, 163, 146, 29), 18, Color("#fff8e8"), detail)
+	_stat_row(_stats(id), Vector2(950, 204), 20, detail, "Stats")
+	_para(String(it.desc), Rect2(950, 240, 490, 40), 18, INK, detail)
+	_label("MATERIALS", Rect2(950, 280, 470, 30), 20, INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT)
+	var mats := Control.new()
+	mats.name = "Materials"
+	mats.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	detail.add_child(mats)
+	var r := Crafting.recipe(id)
+	var n := r.size()
+	var w := minf(154.0, (530.0 - 8.0 * (n - 1)) / maxf(n, 1))
+	var i := 0
+	for m in r:
+		var have := Crafting.have(m)
+		var need := int(r[m])
+		var x := 950.0 + i * (w + 8.0)
+		var card := _panel("card_common", Rect2(x, 308, w, 106), mats, "Mat_" + m)
+		_img(Crafting.icon(m), Rect2((w - 74.0) * 0.5, 4, 74, 57), card)
+		_label("%s %d/%d" % [Crafting.mat_name(m), have, need], Rect2(3, 63, w - 6, 31), 19 if w >= 150.0 else 15, ENOUGH if have >= need else SHORT, card)
+		if have >= need:
+			_img(_tex("badge_check"), Rect2(w - 30, -8, 34, 32), card)
+		i += 1
+	_label("CATALYST · BETTER ODDS", Rect2(689, 421, 730, 28), 19, INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT)
+	var cats := Control.new()
+	cats.name = "Catalysts"
+	cats.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	detail.add_child(cats)
+	var opts: Array = [""] + Crafting.catalysts()
+	for k in opts.size():
+		var c: String = opts[k]
+		var label := "None" if c == "" else "%s ×%d" % [Crafting.mat_name(c), Crafting.have(c)]
+		var cb := _button(label, "tab_teal" if c == catalyst else "tab_brown", Rect2(689 + 151 * k, 454, 144, 57), 15, cats,
+				"Cat_" + (c if c != "" else "none"), pick_catalyst.bind(c))
+		_disable(cb, c != "" and Crafting.have(c) < 1 + int(r.get(c, 0)))
+	var odds := Control.new()
+	odds.name = "Odds"
+	odds.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	detail.add_child(odds)
+	var o := Crafting.odds(catalyst)
+	var xs := [691, 834, 1016, 1157, 1282]
+	for k in o.size():
+		_label("%s %s" % [Crafting.rarity_name(k), _pct(float(o[k]))], Rect2(xs[k], 514, 182, 26), 16, RARITY_TEXT[k], odds, true, HORIZONTAL_ALIGNMENT_LEFT)
+	var craft := _button("SURE?" if _confirm == "craft" else "CRAFT", "button_craft_green", Rect2(1054, 552, 370, 57), 26, detail, "Craft", press_craft)
+	_img(_tex("icon_craft"), Rect2(40, 6, 42, 44), craft)
+	_disable(craft, not game.can_craft(id, catalyst))
+	result_label = _label("", Rect2(689, 556, 350, 50), 20, INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT)
 	result_label.name = "Result"
 	result_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	result_label.size = Vector2(350, 50)
 	result_label.visible = false
-	detail.add_child(result_label)
-	var it: Dictionary = Gear.ITEMS[id]
-	var stats := "%s  ·  %s" % [String(it.slot).capitalize(), Gear.bonus_text(id)]
-	if it.has("reach"):
-		stats += "  ·  reach %d" % int(it.reach)
-	if Gear.max_durability(id) > 0:
-		stats += "  ·  %d hits" % Gear.max_durability(id)
-	var st := _text(stats + " (Common)", 15, Color(0.45, 0.28, 0.12))
-	st.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	detail.add_child(st)
 	if game.best_m < Crafting.learn_m(id):
-		var lk := _text("Learn this recipe by running %d m in one run." % Crafting.learn_m(id), 17, SHORT)
+		var lk := _label("Run %d m in one run to learn this." % Crafting.learn_m(id), Rect2(689, 556, 350, 50), 18, SHORT, detail, true, HORIZONTAL_ALIGNMENT_LEFT)
 		lk.name = "Locked"
 		lk.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		detail.add_child(lk)
-	# materials: have / need
-	detail.add_child(_text("MATERIALS", 15, Color(0.75, 0.35, 0.1)))
-	var grid := HFlowContainer.new()
-	grid.name = "Materials"
-	grid.add_theme_constant_override("h_separation", 18)
-	detail.add_child(grid)
-	var r := Crafting.recipe(id)
-	for m in r:
-		grid.add_child(_mat_row(m, Crafting.have(m), int(r[m])))
-	# catalyst
-	detail.add_child(_text("CATALYST (better odds)", 15, Color(0.75, 0.35, 0.1)))
-	var cats := HFlowContainer.new()
-	cats.name = "Catalysts"
-	cats.add_theme_constant_override("h_separation", 6)
-	cats.add_theme_constant_override("v_separation", 6)
-	detail.add_child(cats)
-	for c in [""] + Crafting.catalysts():
-		var label := "None" if c == "" else "%s ×%d" % [Crafting.mat_name(c), Crafting.have(c)]
-		var cb := Market._button(label, Vector2(0, 34))
-		cb.name = "Cat_" + (c if c != "" else "none")
-		cb.add_theme_font_size_override("font_size", 13)
-		cb.toggle_mode = true
-		cb.button_pressed = c == catalyst
-		cb.disabled = c != "" and Crafting.have(c) < 1 + int(r.get(c, 0))
-		cb.pressed.connect(func(): pick_catalyst(c))
-		cats.add_child(cb)
-	# odds
-	var odds := Crafting.odds(catalyst)
-	var ol := RichTextLabel.new()
-	ol.name = "Odds"
-	ol.bbcode_enabled = true
-	ol.fit_content = true
-	ol.scroll_active = false
-	ol.add_theme_font_size_override("normal_font_size", 15)
-	ol.add_theme_color_override("default_color", INK)
-	var parts: Array = []
-	for i in odds.size():
-		parts.append("[color=#%s]%s %s[/color]" % [Crafting.RARITY_COLOR[i].darkened(0.35).to_html(false), Crafting.rarity_name(i), _pct(float(odds[i]))])
-	ol.text = "Odds: " + "  ·  ".join(parts)
-	detail.add_child(ol)
-	var d := _text(String(it.desc), 15, INK)
-	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	detail.add_child(d)
-	if last_crafted != "" and Gear.base(last_crafted) == id and game.gear_owned.has(last_crafted):
+		lk.size = Vector2(350, 50)
+	elif last_crafted != "" and Gear.base(last_crafted) == id and game.gear_owned.has(last_crafted):
 		_show_result(last_crafted)
-
-
-func _mat_row(m: String, have: int, need: int) -> Control:
-	var hb := HBoxContainer.new()
-	hb.name = "Mat_" + m
-	hb.add_theme_constant_override("separation", 6)
-	var ic := TextureRect.new()
-	ic.texture = Crafting.icon(m)
-	ic.custom_minimum_size = Vector2(30, 30)
-	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	hb.add_child(ic)
-	var l := _text("%s  %d/%d" % [Crafting.mat_name(m), have, need], 16, ENOUGH if have >= need else SHORT)
-	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	hb.add_child(l)
-	return hb
 
 
 static func _pct(p: float) -> String:
@@ -451,7 +626,8 @@ func pick_catalyst(c: String) -> void:
 	refresh()
 
 
-## Craft takes two taps (the first arms it); the result shows on the board.
+## Craft takes two taps (the first arms it). Kora swings her mallet, the
+## sparkle bursts on the strike, and the result shows on the panel.
 func press_craft() -> String:
 	if not game.can_craft(selected, catalyst):
 		game.audio.play("denied", 0.0)
@@ -468,7 +644,9 @@ func press_craft() -> String:
 	last_crafted = copy
 	if catalyst != "" and Crafting.have(catalyst) < 1:
 		catalyst = ""
+	kora_play("craft")
 	var r := Gear.rarity_of(copy)
+	game.audio.play("stomp", 0.05, 1.4, -2.0)
 	game.audio.play("unlock", 0.0, 1.0 + 0.08 * r)
 	if r >= 2:
 		game.audio.play("powerup_activate", 0.0, 1.0 + 0.1 * r)
@@ -479,10 +657,10 @@ func press_craft() -> String:
 func _show_result(copy: String) -> void:
 	var r := Gear.rarity_of(copy)
 	result_label.visible = true
-	result_label.text = "%s!  (%s)" % [Gear.full_name(copy).to_upper(), Gear.bonus_text(copy)]
-	result_label.add_theme_color_override("font_color", Crafting.RARITY_COLOR[r].darkened(0.3))
-	result_label.pivot_offset = Vector2(0, 14)
-	result_label.scale = Vector2.ONE * 1.25
+	result_label.text = "%s!" % Gear.full_name(copy).to_upper()
+	result_label.add_theme_color_override("font_color", RARITY_TEXT[r])
+	result_label.pivot_offset = Vector2(0, 25)
+	result_label.scale = Vector2.ONE * 1.2
 	result_label.create_tween().tween_property(result_label, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK)
 
 
@@ -490,70 +668,84 @@ func _show_result(copy: String) -> void:
 
 func _item_detail() -> void:
 	if selected == "":
-		var l := _text("Run, break things and bonk wild dinosaurs to find materials. Craft gear at the Crafting Bench.", 17, INK)
-		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		detail.add_child(l)
+		_para("Nothing here yet. Break things, bonk wild dinosaurs and open chests to find materials, then craft at the Crafting Bench.",
+				Rect2(1076, 270, 366, 200), 19, INK, detail, false, HORIZONTAL_ALIGNMENT_CENTER)
 		return
 	var id := selected
 	if tab == "materials":
 		var r := Crafting.mat_rarity(id)
-		detail.add_child(_head(Crafting.mat_name(id), r))
-		detail.add_child(_text("%s material  ·  you have %d" % [Crafting.rarity_name(r), Crafting.have(id)], 16, Color(0.45, 0.28, 0.12)))
-		var fr := _text("Found by: " + String(Crafting.mat(id).from), 16, INK)
-		fr.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		detail.add_child(fr)
+		_label(Crafting.mat_name(id), Rect2(1076, 250, 366, 50), 29, RARITY_TEXT[r] if r > 0 else INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT).name = "Name"
+		_img(Crafting.icon(id), Rect2(1072, 305, 140, 140), detail, "Picture")
+		_pill(Rect2(1220, 318, 150, 30), RARITY_TEXT[r], detail)
+		_label(Crafting.rarity_name(r).to_upper(), Rect2(1220, 318, 150, 30), 16, Color.WHITE, detail)
+		_label("You have %d" % Crafting.have(id), Rect2(1220, 360, 240, 34), 22, INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT).name = "Stats"
+		_para("Found by: " + String(Crafting.mat(id).from), Rect2(1076, 465, 366, 120), 18, INK, detail).name = "Found"
 		var uses: Array = Crafting.recipes().filter(func(k): return Crafting.recipe(k).has(id)).map(func(k): return Gear.name_of(k))
 		if Crafting.catalysts().has(id):
 			uses.append("a catalyst for better odds")
-		if not uses.is_empty():
-			var ul := _text("Used for: " + ", ".join(uses), 16, INK)
-			ul.name = "Uses"
-			ul.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			detail.add_child(ul)
+		_para("Used for: " + (", ".join(uses) if not uses.is_empty() else "gear still to come (keep it!)"), Rect2(1076, 595, 366, 160), 18, INK, detail, true).name = "Uses"
 		return
 	if tab == "cards":
 		var d := id.substr(Gear.CARD_PREFIX.length())
-		detail.add_child(_head(Gear.name_of(id), 0))
-		for l in [_text("Gives the weapon slot %s  ·  reach %d  ·  you have %d" % [Gear.bonus_text(id), int(Gear.CARD_REACH), int(Gear.cards.get(d, 0))], 16, INK),
-				_text("Dropped by wild %s and found in chests. Equip it at the Dinosaur Camp." % Herd.name_of(d), 15, Color(0.45, 0.28, 0.12))]:
-			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			detail.add_child(l)
+		_label(Gear.name_of(id), Rect2(1050, 245, 400, 50), 29, INK, detail).name = "Name"
+		_img(CardView.icon(d), Rect2(1143, 300, 204, 300), detail, "Picture")
+		_label("%s  ·  Reach %d  ·  ×%d" % [Gear.bonus_text(id), int(Gear.CARD_REACH), int(Gear.cards.get(d, 0))], Rect2(1051, 612, 402, 34), 20, INK, detail).name = "Stats"
+		_para("Dropped by wild %s and found in chests. Put it in a hero's weapon slot at the Dinosaur Camp." % Herd.name_of(d), Rect2(1076, 655, 366, 120), 18, INK, detail, false, HORIZONTAL_ALIGNMENT_CENTER)
 		return
 	var r := Gear.rarity_of(id)
-	detail.add_child(_head(Gear.full_name(id), r))
 	var it: Dictionary = Gear.ITEMS[Gear.base(id)]
-	var line := "%s %s  ·  %s" % [Crafting.rarity_name(r), String(it.slot), Gear.bonus_text(id)]
+	var nm := _label(Gear.full_name(id), Rect2(1050, 238, 410, 50), 29 if Gear.full_name(id).length() < 18 else 24, RARITY_TEXT[r] if r > 0 else INK, detail)
+	nm.name = "Name"
+	_pill(Rect2(1190, 288, 130, 26), RARITY_TEXT[r], detail)
+	_label(Crafting.rarity_name(r).to_upper(), Rect2(1190, 288, 130, 26), 15, Color.WHITE, detail)
+	_img(Gear.icon(id), Rect2(1055, 322, 138, 160), detail, "Picture")
+	var stats := Control.new()
+	stats.name = "Stats"
+	stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	detail.add_child(stats)
+	var y := 330.0
+	_stat_row([["stat_power", Gear.bonus_text(id)]], Vector2(1206, y), 20, stats, "Bonus")
 	if it.has("reach"):
-		line += "  ·  reach %d" % int(it.reach)
-	var sl := _text(line, 16, Color(0.45, 0.28, 0.12))
-	sl.name = "Stats"
-	sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	detail.add_child(sl)
+		y += 42.0
+		_stat_row([["stat_reach", "Reach %d" % int(it.reach)]], Vector2(1206, y), 20, stats, "Reach")
 	if Gear.max_durability(id) > 0:
+		y += 42.0
 		var br := Gear.broken(id)
-		detail.add_child(_text("BROKEN · repair it at the Dinosaur Camp" if br else "Durability %d/%d hits" % [Gear.durability(id), Gear.max_durability(id)], 16, SHORT if br else INK))
-	var d2 := _text(String(it.desc), 15, INK)
-	d2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	detail.add_child(d2)
+		_stat_row([["stat_durability", "BROKEN" if br else "Durability %d/%d" % [Gear.durability(id), Gear.max_durability(id)]]], Vector2(1206, y), 17, stats, "Durability")
+		_panel("durability_track", Rect2(1206, y + 38, 240, 19), stats)
+		var frac := clampf(float(Gear.durability(id)) / float(Gear.max_durability(id)), 0.0, 1.0)
+		if frac > 0.0:
+			var clip := Control.new()
+			clip.clip_contents = true
+			clip.position = Vector2(1210, y + 41)
+			clip.size = Vector2(232.0 * frac, 13)
+			clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			stats.add_child(clip)
+			var fill := TextureRect.new()
+			fill.texture = _tex("durability_fill")
+			fill.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			fill.stretch_mode = TextureRect.STRETCH_SCALE
+			fill.size = Vector2(232, 13)
+			clip.add_child(fill)
+	_para(String(it.desc), Rect2(1066, 488, 380, 60), 18, INK, detail)
 	var who := _equipped_by(id)
+	_pill(Rect2(1060, 552, 388, 52), Color(0.85, 0.72, 0.5, 0.45), detail)
+	var eq := _label(("Equipped by %s\nChange it at the Dinosaur Camp." % Heroes.name_of(who)) if who != "" else "Not equipped\nEquip it at the Dinosaur Camp.",
+			Rect2(1074, 552, 366, 52), 16, ENOUGH if who != "" else INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT)
+	eq.name = "Equip"
 	if who != "":
-		detail.add_child(_text("Equipped by %s (change it at the Dinosaur Camp)." % Heroes.name_of(who), 16, ENOUGH))
 		return
-	detail.add_child(_text("Not equipped · equip it at the Dinosaur Camp.", 15, Color(0.45, 0.28, 0.12)))
 	var back := Crafting.salvage_return(Gear.base(id), r)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
-	detail.add_child(row)
-	var sb := Market._button("Sure? Salvage" if _confirm == "salvage" else "Salvage", Vector2(170, 46))
-	sb.name = "Salvage"
-	sb.add_theme_font_size_override("font_size", 18)
-	sb.pressed.connect(press_salvage)
-	row.add_child(sb)
-	var gl := _text("Returns " + Crafting.cost_text(back), 15, INK)
-	gl.name = "SalvageReturn"
-	gl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	gl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	row.add_child(gl)
+	var sb := _button("SURE?" if _confirm == "salvage" else "SALVAGE", "button_salvage_amber", Rect2(1077, 618, 354, 60), 25, detail, "Salvage", press_salvage)
+	_img(_tex("icon_salvage"), Rect2(34, 8, 44, 44), sb)
+	_label("RETURNS", Rect2(1055, 696, 385, 27), 19, INK, detail).name = "SalvageReturn"
+	var ks := back.keys()
+	var cw := 376.0 / maxf(ks.size(), 1)
+	for k in ks.size():
+		var m: String = ks[k]
+		var x := 1068.0 + k * cw
+		_img(Crafting.icon(m), Rect2(x, 734, 42, 40), detail)
+		_label("%s ×%d" % [Crafting.mat_name(m), int(back[m])], Rect2(x + 44, 736, cw - 46, 34), 15 if cw < 130.0 else 17, INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT)
 
 
 func press_salvage() -> bool:
@@ -565,110 +757,11 @@ func press_salvage() -> bool:
 	_confirm = ""
 	var ok: bool = game.salvage(selected)
 	if ok:
+		kora_play("present")
 		var ids := entries()
 		selected = ids[0] if not ids.is_empty() else ""
 	refresh()
 	return ok
-
-
-func _head(t: String, rarity: int) -> Label:
-	var l := _text(t, 28, Crafting.RARITY_COLOR[rarity].darkened(0.4) if rarity > 0 else INK)
-	l.name = "Name"
-	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	return l
-
-
-# ------------------------------------------------------------ look
-
-func _text(t: String, size: int, color: Color) -> Label:
-	return Market._text(t, size, color)
-
-
-func _light(t: String, size: int, color := Color(1, 0.96, 0.85)) -> Label:
-	var l := Market._text(t, size, color)
-	l.add_theme_color_override("font_outline_color", Color(0.22, 0.11, 0.04))
-	l.add_theme_constant_override("outline_size", 6)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	return l
-
-
-static func _ignore_mouse(n: Node) -> void:
-	for c in n.get_children():
-		if c is Control:
-			(c as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_ignore_mouse(c)
-
-
-## The title: the kit's blank plaque with the name on it (no baked-in art yet).
-func _plaque(t: String) -> Control:
-	var p := PanelContainer.new()
-	var bx := SceneKit.box("title_blank")
-	if bx:
-		bx.content_margin_left = 44
-		bx.content_margin_right = 44
-		bx.content_margin_top = 6
-		bx.content_margin_bottom = 10
-	p.add_theme_stylebox_override("panel", bx if bx else _wood())
-	var l := _light(t, 30)
-	l.add_theme_font_override("font", SpriteLib.ui_font("heading"))
-	p.add_child(l)
-	return p
-
-
-func _paper() -> StyleBoxFlat:
-	var ds := StyleBoxFlat.new()
-	ds.bg_color = Color(0.96, 0.9, 0.76, 0.97)
-	ds.set_corner_radius_all(10)
-	ds.set_border_width_all(6)
-	ds.border_color = Color(0.45, 0.27, 0.12)
-	ds.set_content_margin_all(16)
-	return ds
-
-
-func _wood() -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.3, 0.17, 0.08, 0.9)
-	sb.set_corner_radius_all(14)
-	sb.set_border_width_all(4)
-	sb.border_color = Color(0.18, 0.09, 0.03)
-	sb.set_content_margin_all(10)
-	return sb
-
-
-## A stone workbench with a few tools, drawn in code until the user's
-## Crafting Bench art arrives (assets/scenes/crafting_bench.png).
-func _bench_placeholder() -> Control:
-	var path := "res://assets/scenes/crafting_bench.png"
-	if ResourceLoader.exists(path):
-		var t := TextureRect.new()
-		t.name = "Bench"
-		t.texture = SpriteLib.tex(path)
-		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		return t
-	var c := Control.new()
-	c.name = "Bench"
-	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	c.draw.connect(func():
-		var s := c.size
-		var dark := Color(0.2, 0.12, 0.06)
-		var stone := Color(0.55, 0.52, 0.48)
-		# legs: two stone blocks
-		for x in [s.x * 0.12, s.x * 0.7]:
-			c.draw_rect(Rect2(x - 3, s.y * 0.42 - 3, s.x * 0.18 + 6, s.y * 0.58 + 3), dark)
-			c.draw_rect(Rect2(x, s.y * 0.42, s.x * 0.18, s.y * 0.58), stone.darkened(0.15))
-		# the slab
-		c.draw_rect(Rect2(-4, s.y * 0.28 - 4, s.x + 8, s.y * 0.16 + 8), dark)
-		c.draw_rect(Rect2(0, s.y * 0.28, s.x, s.y * 0.16), stone)
-		c.draw_rect(Rect2(0, s.y * 0.28, s.x, s.y * 0.04), stone.lightened(0.2))
-		# a hammerstone, a flint blade and a coil of fibre on top
-		c.draw_circle(Vector2(s.x * 0.2, s.y * 0.2), s.y * 0.08, dark)
-		c.draw_circle(Vector2(s.x * 0.2, s.y * 0.2), s.y * 0.065, Color(0.65, 0.62, 0.58))
-		c.draw_colored_polygon(PackedVector2Array([Vector2(s.x * 0.42, s.y * 0.27), Vector2(s.x * 0.5, s.y * 0.06), Vector2(s.x * 0.56, s.y * 0.27)]), Color(0.32, 0.35, 0.42))
-		c.draw_arc(Vector2(s.x * 0.78, s.y * 0.2), s.y * 0.07, 0, TAU, 20, Color(0.45, 0.62, 0.25), 6.0)
-		c.draw_arc(Vector2(s.x * 0.78, s.y * 0.2), s.y * 0.035, 0, TAU, 14, Color(0.45, 0.62, 0.25), 5.0))
-	return c
 
 
 # ------------------------------------------------------------ dragging
@@ -680,30 +773,28 @@ func _input(event: InputEvent) -> void:
 	if drag:
 		_dragging = true
 		_drag_dist += drag.relative.length()
-		if _drag_target == null:
-			_drag_target = dscroll if dscroll.get_global_rect().has_point(drag.position) else scroll
-		if _drag_target == scroll:
-			scroll.scroll_horizontal -= int(drag.relative.x)
-			_fling = -drag.velocity.x
+		var k := 1.0 / maxf(canvas.scale.x, 0.01)
+		if mode == "bench":
+			scroll.scroll_horizontal -= int(drag.relative.x * k)
+			_fling = -drag.velocity.x * k
 		else:
-			_drag_target.scroll_vertical -= int(drag.relative.y)
-			_fling = -drag.velocity.y
+			scroll.scroll_vertical -= int(drag.relative.y * k)
+			_fling = -drag.velocity.y * k
 		return
 	var t := event as InputEventScreenTouch
 	if t:
 		if t.pressed:
 			_fling = 0.0
 			_drag_dist = 0.0
-			_drag_target = null
 		else:
 			_dragging = false
 
 
 func _process(delta: float) -> void:
-	if not visible or _dragging or absf(_fling) < 5.0 or _drag_target == null:
+	if not visible or _dragging or absf(_fling) < 5.0:
 		return
-	if _drag_target == scroll:
+	if mode == "bench":
 		scroll.scroll_horizontal += int(_fling * delta)
 	else:
-		_drag_target.scroll_vertical += int(_fling * delta)
+		scroll.scroll_vertical += int(_fling * delta)
 	_fling = move_toward(_fling, 0.0, 2400.0 * delta)

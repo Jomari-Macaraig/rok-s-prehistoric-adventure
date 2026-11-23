@@ -69,30 +69,24 @@ Run drops are **rare** (the user's rule): low chances (a broken obstacle 15%, a 
 
 ## Screens (`Workshop`, one script, two modes)
 
-Both open from the **Camp's header**, which has Crafting and Items buttons (`main.open_bench` / `open_items`). The title screen's side columns have no room for more buttons. Until the bench opens, the Crafting button is disabled and shows "Crafting · 500 m", and the news announces it when it opens. Both screens use the Camp's scene-kit look: the camp painting under a warm shade, the stats-panel board on the right, the roster shelf along the bottom, and the hero on the left.
+Both open from the **Camp's header**, which has Crafting and Items buttons (`main.open_bench` / `open_items`). The title screen's side columns have no room for more buttons. Until the bench opens, the Crafting button is disabled and shows "Crafting · 500 m", and the news announces it when it opens.
+
+Both screens are the user's **Crafting and Items kit** (`../Assets/Rok_Crafting_Items_Kit/Rok_Crafting_Items_Asset_Pack`, imported by `tools/prepare_workshop.py` into `assets/workshop/`), laid out as in the user's approved references (`references/crafting_approved.png` and `items_approved.png` in the kit). Everything is placed on the kit's **1536 × 864 design canvas** (`Workshop.canvas`), which `_layout` scales to fit the screen and centres (a wide phone shows the jungle background either side). The scene: Kora the Craftkeeper (idle loop; craft, present and wave one-shots; the craft-success sparkle bursts on her craft clip's impact frame, `workshop.json`), the campfire (animated flame on the firepit base), the tool rack, and the workbench (rear and front layers, Kora between them) on the Bench or the open storage chest on Items. UI pieces are the kit's: parchment and inventory panels (9-slice), the title sign, teal (selected) and brown tabs, rarity card frames (Common … Legendary, plus a gold "selected" frame drawn behind the rarity frame), the green CRAFT and amber SALVAGE buttons, the stat icons (power, reach, durability) and the durability track and fill.
 
 - **Crafting Bench** (`mode "bench"`).
-  - Tabs: Weapons, Armor.
-  - Shelf: the recipes in learn order. A locked recipe shows its distance; a craftable one shows "Ready ●".
-  - Board, top to bottom:
-    - the name, with the **Craft** button beside it (always in view; one tap arms it, the second crafts),
-    - the result line ("EPIC STONE AXE! (+3.5 Power)") after a craft,
-    - its Common stats,
-    - MATERIALS with have/need for each (green when you have enough, red when short),
-    - CATALYST choices (None and each catalyst with its count; disabled when you don't have one),
-    - the odds for each rarity,
-    - the description.
-  - The workbench is drawn in code until the user's art arrives (`assets/scenes/crafting_bench.png`).
+  - Tabs: Weapons, Armor, under the bench.
+  - Shelf (bottom): the recipes in learn order. A locked recipe shows a padlock and its distance; a craftable one shows "● Ready", otherwise "Need materials".
+  - Parchment (top right): the picture, name and COMMON pill, the stat row, the description, MATERIALS (have/need per material card, green with a check when you have enough, red when short), CATALYST · BETTER ODDS (None and each catalyst with its count; disabled without one), the odds for each rarity in its colour, and **CRAFT** (one tap arms it as "SURE?", the second crafts). After a craft Kora swings her mallet and the result line ("UNCOMMON STONE AXE!") shows in the rarity colour.
 - **Items** (`mode "items"`).
-  - Tabs: Materials (what you have, ×count), Weapons, Armor, Cards.
-  - Board for a material: its rarity, count, "Found by", and which recipes use it.
-  - Board for gear: rarity, stats, durability, who has it equipped, and for unequipped copies **Salvage** (two taps) with what it returns.
-  - Board for a card: its bonus and count.
+  - Tabs: Materials (×count), Weapons, Armor, Cards. The grid scrolls in the inventory panel; tiles use the rarity frame of the material or copy.
+  - Parchment for a material: name, picture, rarity pill, "You have N", "Found by" and "Used for" (which recipes use it, or that it's a catalyst).
+  - For gear: full name and rarity, picture, bonus, reach and durability with a bar, the description, who has it equipped, and for unequipped copies **SALVAGE** (two taps) with what it RETURNS.
+  - For a card: the card art, its bonus, reach and count, and where it drops.
+- Text on the parchment wraps inside its inner area (`Workshop._para` turns wrapping on before it sets the size, so a label can't grow into one long line); the test "a material's details stay inside the parchment" checks it.
 
 The Camp still equips gear. Its Change list shows each copy by full name in its rarity colour, sorted by item and then rarest first.
 
-## Art still to come (placeholders drawn in code)
-- `assets/scenes/crafting_bench.png`: a stone workbench with tools, transparent, about 420 × 260 px at 1x, in the scene-kit style.
+## Art still to come
 - Material icons: all 45 are the user's art (`tools/prepare_materials.py` → `assets/materials/`); a material without one falls back to a code-drawn lump on a rarity ring (`Crafting.icon`).
-- Rarity frames for tiles (grey, green, blue, purple, gold) as 9-slice. Until then a coloured border is drawn.
-- Title plaques for "Crafting Bench" and "Items". Until then the scene kit's blank plaque is used with text.
+- An Armor stat icon in the kit's style (armor uses the power icon today).
+- Title plaques with "Crafting Bench" and "Items" baked in (the kit's blank title sign with text is used).

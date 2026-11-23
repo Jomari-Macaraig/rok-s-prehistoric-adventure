@@ -1,0 +1,4090 @@
+{
+ "canvas": [
+  1536,
+  864
+ ],
+ "animations": {
+  "idle": {
+   "sheet": "kora_idle.png",
+   "frame": [
+    384,
+    512
+   ],
+   "loop": true,
+   "times": [
+    700,
+    150,
+    80,
+    100,
+    80,
+    180,
+    160,
+    550
+   ],
+   "root": [
+    206,
+    499
+   ],
+   "impact": null
+  },
+  "craft": {
+   "sheet": "kora_craft.png",
+   "frame": [
+    384,
+    512
+   ],
+   "loop": false,
+   "times": [
+    100,
+    80,
+    100,
+    60,
+    60,
+    100,
+    120,
+    140
+   ],
+   "root": [
+    206,
+    499
+   ],
+   "impact": 4
+  },
+  "present": {
+   "sheet": "kora_present.png",
+   "frame": [
+    384,
+    512
+   ],
+   "loop": false,
+   "times": [
+    100,
+    100,
+    100,
+    140,
+    200,
+    120,
+    100,
+    140
+   ],
+   "root": [
+    206,
+    499
+   ],
+   "impact": null
+  },
+  "wave": {
+   "sheet": "kora_wave.png",
+   "frame": [
+    384,
+    512
+   ],
+   "loop": false,
+   "times": [
+    100,
+    120,
+    120,
+    150,
+    150,
+    120,
+    120,
+    120
+   ],
+   "root": [
+    206,
+    499
+   ],
+   "impact": null
+  },
+  "fire_loop": {
+   "sheet": "fire_loop.png",
+   "frame": [
+    384,
+    512
+   ],
+   "loop": true,
+   "times": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100
+   ],
+   "root": null,
+   "impact": null
+  },
+  "craft_success": {
+   "sheet": "craft_success.png",
+   "frame": [
+    384,
+    512
+   ],
+   "loop": false,
+   "times": [
+    50,
+    50,
+    50,
+    50,
+    50,
+    50,
+    50,
+    50
+   ],
+   "root": null,
+   "impact": null
+  }
+ },
+ "nine": {
+  "panel_parchment": 36,
+  "panel_inventory": 36,
+  "card_common": 21,
+  "card_uncommon": 21,
+  "card_rare": 21,
+  "card_epic": 21,
+  "card_legendary": 21,
+  "card_selected": 21
+ },
+ "kora_offset": [
+  -206,
+  -499
+ ],
+ "success_at": [
+  31,
+  -140
+ ],
+ "success_offset": [
+  -192,
+  -270
+ ],
+ "fire_base_at": [
+  0,
+  -163.5
+ ],
+ "fire_at": [
+  0,
+  -165
+ ],
+ "fire_offset": [
+  -192,
+  -397
+ ],
+ "layouts": {
+  "crafting_armor": [
+   {
+    "type": "image",
+    "asset": "workshop_background",
+    "rect": [
+     0,
+     0,
+     1536,
+     864
+    ],
+    "fit": "stretch"
+   },
+   {
+    "type": "image",
+    "asset": "tool_rack",
+    "rect": [
+     18,
+     205,
+     190,
+     340
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "fire",
+    "position": [
+     520,
+     455
+    ],
+    "scale": 0.22
+   },
+   {
+    "type": "image",
+    "asset": "workbench_rear",
+    "rect": [
+     20,
+     390,
+     610,
+     280
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "actor",
+    "position": [
+     285,
+     630
+    ],
+    "scale": 1.0
+   },
+   {
+    "type": "image",
+    "asset": "workbench_front",
+    "rect": [
+     20,
+     390,
+     610,
+     280
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Kora",
+    "rect": [
+     220,
+     524,
+     200,
+     33
+    ],
+    "font_size": 24,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Craftkeeper",
+    "rect": [
+     220,
+     555,
+     200,
+     24
+    ],
+    "font_size": 15,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "icon_button",
+    "asset": "button_back",
+    "rect": [
+     16,
+     16,
+     76,
+     76
+    ],
+    "action": "view:items_weapons"
+   },
+   {
+    "type": "panel",
+    "asset": "title_sign",
+    "rect": [
+     106,
+     9,
+     500,
+     91
+    ]
+   },
+   {
+    "type": "text",
+    "text": "CRAFTING BENCH",
+    "rect": [
+     127,
+     23,
+     458,
+     57
+    ],
+    "font_size": 34,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 3
+   },
+   {
+    "type": "button",
+    "text": "Items",
+    "rect": [
+     1292,
+     20,
+     218,
+     55
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_weapons",
+    "font_size": 22
+   },
+   {
+    "type": "panel",
+    "asset": "panel_parchment",
+    "rect": [
+     650,
+     105,
+     860,
+     525
+    ]
+   },
+   {
+    "type": "panel",
+    "asset": "panel_inventory",
+    "rect": [
+     18,
+     650,
+     1494,
+     198
+    ]
+   },
+   {
+    "type": "button",
+    "text": "Weapons",
+    "rect": [
+     72,
+     626,
+     202,
+     53
+    ],
+    "asset": "tab_brown",
+    "action": "view:crafting_weapons",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Armor",
+    "rect": [
+     284,
+     626,
+     202,
+     53
+    ],
+    "asset": "tab_teal",
+    "action": "view:crafting_armor",
+    "font_size": 22
+   },
+   {
+    "type": "image",
+    "asset": "hide_vest",
+    "rect": [
+     690,
+     151,
+     212,
+     254
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Hide Vest",
+    "rect": [
+     950,
+     151,
+     480,
+     52
+    ],
+    "font_size": 38,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "COMMON",
+    "rect": [
+     1285,
+     163,
+     146,
+     29
+    ],
+    "font_size": 18,
+    "color": "#72604b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "+1 Armor",
+    "rect": [
+     950,
+     204,
+     490,
+     36
+    ],
+    "font_size": 22,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Softens trips and bumps.",
+    "rect": [
+     950,
+     243,
+     490,
+     36
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "MATERIALS",
+    "rect": [
+     950,
+     280,
+     470,
+     30
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     950,
+     308,
+     154,
+     106
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "hide",
+    "rect": [
+     990,
+     312,
+     74,
+     57
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Hide 2/6",
+    "rect": [
+     953,
+     371,
+     148,
+     31
+    ],
+    "font_size": 19,
+    "color": "#a23921",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     1112,
+     308,
+     154,
+     106
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "fiber",
+    "rect": [
+     1152,
+     312,
+     74,
+     57
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Fiber 7/3",
+    "rect": [
+     1115,
+     371,
+     148,
+     31
+    ],
+    "font_size": 19,
+    "color": "#35782e",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "CATALYST \u00b7 BETTER ODDS",
+    "rect": [
+     689,
+     421,
+     730,
+     28
+    ],
+    "font_size": 19,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "tab_teal",
+    "rect": [
+     689,
+     454,
+     144,
+     57
+    ]
+   },
+   {
+    "type": "text",
+    "text": "None",
+    "rect": [
+     694,
+     467,
+     134,
+     30
+    ],
+    "font_size": 15,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 1
+   },
+   {
+    "type": "panel",
+    "asset": "tab_brown",
+    "rect": [
+     840,
+     454,
+     144,
+     57
+    ]
+   },
+   {
+    "type": "text",
+    "text": "Resin \u00d72",
+    "rect": [
+     845,
+     467,
+     134,
+     30
+    ],
+    "font_size": 15,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 1
+   },
+   {
+    "type": "panel",
+    "asset": "tab_brown",
+    "rect": [
+     991,
+     454,
+     144,
+     57
+    ]
+   },
+   {
+    "type": "text",
+    "text": "Obsidian \u00d71",
+    "rect": [
+     996,
+     467,
+     134,
+     30
+    ],
+    "font_size": 15,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 1
+   },
+   {
+    "type": "panel",
+    "asset": "tab_brown",
+    "rect": [
+     1142,
+     454,
+     144,
+     57
+    ]
+   },
+   {
+    "type": "text",
+    "text": "Fossil Shard \u00d71",
+    "rect": [
+     1147,
+     467,
+     134,
+     30
+    ],
+    "font_size": 15,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 1
+   },
+   {
+    "type": "panel",
+    "asset": "tab_brown",
+    "rect": [
+     1293,
+     454,
+     144,
+     57
+    ]
+   },
+   {
+    "type": "text",
+    "text": "Primal Crystal \u00d71",
+    "rect": [
+     1298,
+     467,
+     134,
+     30
+    ],
+    "font_size": 15,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 1
+   },
+   {
+    "type": "text",
+    "text": "Common 60%",
+    "rect": [
+     691,
+     514,
+     182,
+     26
+    ],
+    "font_size": 16,
+    "color": "#686255",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Uncommon 25%",
+    "rect": [
+     834,
+     514,
+     182,
+     26
+    ],
+    "font_size": 16,
+    "color": "#368c40",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Rare 10%",
+    "rect": [
+     1016,
+     514,
+     182,
+     26
+    ],
+    "font_size": 16,
+    "color": "#176fa7",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Epic 4%",
+    "rect": [
+     1157,
+     514,
+     182,
+     26
+    ],
+    "font_size": 16,
+    "color": "#9042a7",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Legendary 1%",
+    "rect": [
+     1282,
+     514,
+     182,
+     26
+    ],
+    "font_size": 16,
+    "color": "#9a731b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "button",
+    "text": "CRAFT",
+    "rect": [
+     1054,
+     552,
+     370,
+     57
+    ],
+    "asset": "button_craft_green",
+    "action": "clip:present",
+    "font_size": 26
+   },
+   {
+    "type": "image",
+    "asset": "icon_craft",
+    "rect": [
+     1094,
+     558,
+     42,
+     44
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "panel",
+    "asset": "card_selected",
+    "rect": [
+     64,
+     695,
+     340,
+     138
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "hide_vest",
+    "rect": [
+     94,
+     701,
+     280,
+     71
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Hide Vest",
+    "rect": [
+     68,
+     772,
+     332,
+     29
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Ready",
+    "rect": [
+     68,
+     803,
+     332,
+     24
+    ],
+    "font_size": 16,
+    "color": "#40732e",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     421,
+     695,
+     340,
+     138
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "bone_guards",
+    "rect": [
+     451,
+     701,
+     280,
+     71
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Bone Guards",
+    "rect": [
+     425,
+     772,
+     332,
+     29
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Ready",
+    "rect": [
+     425,
+     803,
+     332,
+     24
+    ],
+    "font_size": 16,
+    "color": "#40732e",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     778,
+     695,
+     340,
+     138
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "scale_mail",
+    "rect": [
+     808,
+     701,
+     280,
+     71
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Scale Mail",
+    "rect": [
+     782,
+     772,
+     332,
+     29
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "3600 m",
+    "rect": [
+     782,
+     803,
+     332,
+     24
+    ],
+    "font_size": 16,
+    "color": "#6d5033",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "badge_lock",
+    "rect": [
+     1080,
+     700,
+     30,
+     30
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     1135,
+     695,
+     340,
+     138
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "shell_plate",
+    "rect": [
+     1165,
+     701,
+     280,
+     71
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Shell Plate",
+    "rect": [
+     1139,
+     772,
+     332,
+     29
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "5400 m",
+    "rect": [
+     1139,
+     803,
+     332,
+     24
+    ],
+    "font_size": 16,
+    "color": "#6d5033",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "badge_lock",
+    "rect": [
+     1437,
+     700,
+     30,
+     30
+    ],
+    "fit": "contain"
+   }
+  ],
+  "crafting_weapons": [
+   {
+    "type": "image",
+    "asset": "workshop_background",
+    "rect": [
+     0,
+     0,
+     1536,
+     864
+    ],
+    "fit": "stretch"
+   },
+   {
+    "type": "image",
+    "asset": "tool_rack",
+    "rect": [
+     18,
+     205,
+     190,
+     340
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "fire",
+    "position": [
+     520,
+     455
+    ],
+    "scale": 0.22
+   },
+   {
+    "type": "image",
+    "asset": "workbench_rear",
+    "rect": [
+     20,
+     390,
+     610,
+     280
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "actor",
+    "position": [
+     285,
+     630
+    ],
+    "scale": 1.0
+   },
+   {
+    "type": "image",
+    "asset": "workbench_front",
+    "rect": [
+     20,
+     390,
+     610,
+     280
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Kora",
+    "rect": [
+     220,
+     524,
+     200,
+     33
+    ],
+    "font_size": 24,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Craftkeeper",
+    "rect": [
+     220,
+     555,
+     200,
+     24
+    ],
+    "font_size": 15,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "icon_button",
+    "asset": "button_back",
+    "rect": [
+     16,
+     16,
+     76,
+     76
+    ],
+    "action": "view:items_weapons"
+   },
+   {
+    "type": "panel",
+    "asset": "title_sign",
+    "rect": [
+     106,
+     9,
+     500,
+     91
+    ]
+   },
+   {
+    "type": "text",
+    "text": "CRAFTING BENCH",
+    "rect": [
+     127,
+     23,
+     458,
+     57
+    ],
+    "font_size": 34,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 3
+   },
+   {
+    "type": "button",
+    "text": "Items",
+    "rect": [
+     1292,
+     20,
+     218,
+     55
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_weapons",
+    "font_size": 22
+   },
+   {
+    "type": "panel",
+    "asset": "panel_parchment",
+    "rect": [
+     650,
+     105,
+     860,
+     525
+    ]
+   },
+   {
+    "type": "panel",
+    "asset": "panel_inventory",
+    "rect": [
+     18,
+     650,
+     1494,
+     198
+    ]
+   },
+   {
+    "type": "button",
+    "text": "Weapons",
+    "rect": [
+     72,
+     626,
+     202,
+     53
+    ],
+    "asset": "tab_teal",
+    "action": "view:crafting_weapons",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Armor",
+    "rect": [
+     284,
+     626,
+     202,
+     53
+    ],
+    "asset": "tab_brown",
+    "action": "view:crafting_armor",
+    "font_size": 22
+   },
+   {
+    "type": "image",
+    "asset": "stone_axe",
+    "rect": [
+     690,
+     151,
+     212,
+     254
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Stone Axe",
+    "rect": [
+     950,
+     151,
+     480,
+     52
+    ],
+    "font_size": 38,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "COMMON",
+    "rect": [
+     1285,
+     163,
+     146,
+     29
+    ],
+    "font_size": 18,
+    "color": "#72604b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "+2 Power  \u00b7  Reach 175  \u00b7  40 hits",
+    "rect": [
+     950,
+     204,
+     490,
+     36
+    ],
+    "font_size": 22,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Chops through logs and thorn bushes.",
+    "rect": [
+     950,
+     243,
+     490,
+     36
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "MATERIALS",
+    "rect": [
+     950,
+     280,
+     470,
+     30
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     950,
+     308,
+     154,
+     106
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "wood",
+    "rect": [
+     990,
+     312,
+     74,
+     57
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Wood 14/4",
+    "rect": [
+     953,
+     371,
+     148,
+     31
+    ],
+    "font_size": 19,
+    "color": "#35782e",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     1112,
+     308,
+     154,
+     106
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "stone",
+    "rect": [
+     1152,
+     312,
+     74,
+     57
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Stone 16/4",
+    "rect": [
+     1115,
+     371,
+     148,
+     31
+    ],
+    "font_size": 19,
+    "color": "#35782e",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     1274,
+     308,
+     154,
+     106
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "fiber",
+    "rect": [
+     1314,
+     312,
+     74,
+     57
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Fiber 10/3",
+    "rect": [
+     1277,
+     371,
+     148,
+     31
+    ],
+    "font_size": 19,
+    "color": "#35782e",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "CATALYST \u00b7 BETTER ODDS",
+    "rect": [
+     689,
+     421,
+     730,
+     28
+    ],
+    "font_size": 19,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "tab_teal",
+    "rect": [
+     689,
+     454,
+     144,
+     57
+    ]
+   },
+   {
+    "type": "text",
+    "text": "None",
+    "rect": [
+     694,
+     467,
+     134,
+     30
+    ],
+    "font_size": 15,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 1
+   },
+   {
+    "type": "panel",
+    "asset": "tab_brown",
+    "rect": [
+     840,
+     454,
+     144,
+     57
+    ]
+   },
+   {
+    "type": "text",
+    "text": "Resin \u00d72",
+    "rect": [
+     845,
+     467,
+     134,
+     30
+    ],
+    "font_size": 15,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 1
+   },
+   {
+    "type": "panel",
+    "asset": "tab_brown",
+    "rect": [
+     991,
+     454,
+     144,
+     57
+    ]
+   },
+   {
+    "type": "text",
+    "text": "Obsidian \u00d71",
+    "rect": [
+     996,
+     467,
+     134,
+     30
+    ],
+    "font_size": 15,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 1
+   },
+   {
+    "type": "panel",
+    "asset": "tab_brown",
+    "rect": [
+     1142,
+     454,
+     144,
+     57
+    ]
+   },
+   {
+    "type": "text",
+    "text": "Fossil Shard \u00d71",
+    "rect": [
+     1147,
+     467,
+     134,
+     30
+    ],
+    "font_size": 15,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 1
+   },
+   {
+    "type": "panel",
+    "asset": "tab_brown",
+    "rect": [
+     1293,
+     454,
+     144,
+     57
+    ]
+   },
+   {
+    "type": "text",
+    "text": "Primal Crystal \u00d71",
+    "rect": [
+     1298,
+     467,
+     134,
+     30
+    ],
+    "font_size": 15,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 1
+   },
+   {
+    "type": "text",
+    "text": "Common 60%",
+    "rect": [
+     691,
+     514,
+     182,
+     26
+    ],
+    "font_size": 16,
+    "color": "#686255",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Uncommon 25%",
+    "rect": [
+     834,
+     514,
+     182,
+     26
+    ],
+    "font_size": 16,
+    "color": "#368c40",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Rare 10%",
+    "rect": [
+     1016,
+     514,
+     182,
+     26
+    ],
+    "font_size": 16,
+    "color": "#176fa7",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Epic 4%",
+    "rect": [
+     1157,
+     514,
+     182,
+     26
+    ],
+    "font_size": 16,
+    "color": "#9042a7",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Legendary 1%",
+    "rect": [
+     1282,
+     514,
+     182,
+     26
+    ],
+    "font_size": 16,
+    "color": "#9a731b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "button",
+    "text": "CRAFT",
+    "rect": [
+     1054,
+     552,
+     370,
+     57
+    ],
+    "asset": "button_craft_green",
+    "action": "clip:craft",
+    "font_size": 26
+   },
+   {
+    "type": "image",
+    "asset": "icon_craft",
+    "rect": [
+     1094,
+     558,
+     42,
+     44
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     43,
+     695,
+     195,
+     138
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "wooden_club",
+    "rect": [
+     73,
+     701,
+     135,
+     71
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Wooden Club",
+    "rect": [
+     47,
+     772,
+     187,
+     29
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Ready",
+    "rect": [
+     47,
+     803,
+     187,
+     24
+    ],
+    "font_size": 16,
+    "color": "#40732e",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_selected",
+    "rect": [
+     252,
+     695,
+     195,
+     138
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "stone_axe",
+    "rect": [
+     282,
+     701,
+     135,
+     71
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Stone Axe",
+    "rect": [
+     256,
+     772,
+     187,
+     29
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Ready",
+    "rect": [
+     256,
+     803,
+     187,
+     24
+    ],
+    "font_size": 16,
+    "color": "#40732e",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     461,
+     695,
+     195,
+     138
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "flint_spear",
+    "rect": [
+     491,
+     701,
+     135,
+     71
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Flint Spear",
+    "rect": [
+     465,
+     772,
+     187,
+     29
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Ready",
+    "rect": [
+     465,
+     803,
+     187,
+     24
+    ],
+    "font_size": 16,
+    "color": "#40732e",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     670,
+     695,
+     195,
+     138
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "torch",
+    "rect": [
+     700,
+     701,
+     135,
+     71
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Torch",
+    "rect": [
+     674,
+     772,
+     187,
+     29
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "3400 m",
+    "rect": [
+     674,
+     803,
+     187,
+     24
+    ],
+    "font_size": 16,
+    "color": "#6d5033",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "badge_lock",
+    "rect": [
+     827,
+     700,
+     30,
+     30
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     879,
+     695,
+     195,
+     138
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "bone_hammer",
+    "rect": [
+     909,
+     701,
+     135,
+     71
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Bone Hammer",
+    "rect": [
+     883,
+     772,
+     187,
+     29
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "4200 m",
+    "rect": [
+     883,
+     803,
+     187,
+     24
+    ],
+    "font_size": 16,
+    "color": "#6d5033",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "badge_lock",
+    "rect": [
+     1036,
+     700,
+     30,
+     30
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     1088,
+     695,
+     195,
+     138
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "sling",
+    "rect": [
+     1118,
+     701,
+     135,
+     71
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Sling",
+    "rect": [
+     1092,
+     772,
+     187,
+     29
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "6000 m",
+    "rect": [
+     1092,
+     803,
+     187,
+     24
+    ],
+    "font_size": 16,
+    "color": "#6d5033",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "badge_lock",
+    "rect": [
+     1245,
+     700,
+     30,
+     30
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     1297,
+     695,
+     195,
+     138
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "bow",
+    "rect": [
+     1327,
+     701,
+     135,
+     71
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Bow",
+    "rect": [
+     1301,
+     772,
+     187,
+     29
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "7400 m",
+    "rect": [
+     1301,
+     803,
+     187,
+     24
+    ],
+    "font_size": 16,
+    "color": "#6d5033",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "badge_lock",
+    "rect": [
+     1454,
+     700,
+     30,
+     30
+    ],
+    "fit": "contain"
+   }
+  ],
+  "items_armor": [
+   {
+    "type": "image",
+    "asset": "workshop_background",
+    "rect": [
+     0,
+     0,
+     1536,
+     864
+    ],
+    "fit": "stretch"
+   },
+   {
+    "type": "image",
+    "asset": "tool_rack",
+    "rect": [
+     18,
+     205,
+     190,
+     340
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "fire",
+    "position": [
+     455,
+     455
+    ],
+    "scale": 0.22
+   },
+   {
+    "type": "actor",
+    "position": [
+     265,
+     735
+    ],
+    "scale": 1.07
+   },
+   {
+    "type": "image",
+    "asset": "storage_chest_open",
+    "rect": [
+     30,
+     444,
+     500,
+     375
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Kora",
+    "rect": [
+     175,
+     682,
+     210,
+     35
+    ],
+    "font_size": 27,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Craftkeeper",
+    "rect": [
+     175,
+     721,
+     210,
+     25
+    ],
+    "font_size": 17,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "icon_button",
+    "asset": "button_back",
+    "rect": [
+     16,
+     16,
+     76,
+     76
+    ],
+    "action": "view:crafting_weapons"
+   },
+   {
+    "type": "panel",
+    "asset": "title_sign",
+    "rect": [
+     106,
+     9,
+     320,
+     91
+    ]
+   },
+   {
+    "type": "text",
+    "text": "ITEMS",
+    "rect": [
+     127,
+     23,
+     278,
+     57
+    ],
+    "font_size": 34,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 3
+   },
+   {
+    "type": "button",
+    "text": "Crafting",
+    "rect": [
+     1292,
+     20,
+     218,
+     55
+    ],
+    "asset": "tab_brown",
+    "action": "view:crafting_weapons",
+    "font_size": 22
+   },
+   {
+    "type": "panel",
+    "asset": "panel_inventory",
+    "rect": [
+     557,
+     107,
+     955,
+     737
+    ]
+   },
+   {
+    "type": "button",
+    "text": "Materials",
+    "rect": [
+     587,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_materials",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Weapons",
+    "rect": [
+     811,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_weapons",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Armor",
+    "rect": [
+     1035,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_teal",
+    "action": "view:items_armor",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Cards",
+    "rect": [
+     1259,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_cards",
+    "font_size": 22
+   },
+   {
+    "type": "panel",
+    "asset": "panel_parchment",
+    "rect": [
+     1020,
+     211,
+     468,
+     608
+    ]
+   },
+   {
+    "type": "panel",
+    "asset": "card_selected",
+    "rect": [
+     626,
+     242,
+     336,
+     495
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "hide_vest",
+    "rect": [
+     670,
+     290,
+     248,
+     300
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Hide Vest",
+    "rect": [
+     642,
+     616,
+     304,
+     45
+    ],
+    "font_size": 27,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "COMMON",
+    "rect": [
+     642,
+     671,
+     304,
+     29
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Hide Vest",
+    "rect": [
+     1050,
+     253,
+     400,
+     45
+    ],
+    "font_size": 34,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "hide_vest",
+    "rect": [
+     1161,
+     292,
+     178,
+     201
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Common armor  \u00b7  +1 Armor",
+    "rect": [
+     1051,
+     515,
+     402,
+     37
+    ],
+    "font_size": 22,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Softens trips and bumps.",
+    "rect": [
+     1051,
+     562,
+     402,
+     42
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Not equipped\nEquip at the Dinosaur Camp.",
+    "rect": [
+     1051,
+     615,
+     402,
+     63
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "button",
+    "text": "SALVAGE",
+    "rect": [
+     1077,
+     696,
+     354,
+     56
+    ],
+    "asset": "button_salvage_amber",
+    "action": "clip:present",
+    "font_size": 24
+   },
+   {
+    "type": "text",
+    "text": "Returns 3 Hide, 1 Fiber",
+    "rect": [
+     1051,
+     770,
+     402,
+     31
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   }
+  ],
+  "items_cards": [
+   {
+    "type": "image",
+    "asset": "workshop_background",
+    "rect": [
+     0,
+     0,
+     1536,
+     864
+    ],
+    "fit": "stretch"
+   },
+   {
+    "type": "image",
+    "asset": "tool_rack",
+    "rect": [
+     18,
+     205,
+     190,
+     340
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "fire",
+    "position": [
+     455,
+     455
+    ],
+    "scale": 0.22
+   },
+   {
+    "type": "actor",
+    "position": [
+     265,
+     735
+    ],
+    "scale": 1.07
+   },
+   {
+    "type": "image",
+    "asset": "storage_chest_open",
+    "rect": [
+     30,
+     444,
+     500,
+     375
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Kora",
+    "rect": [
+     175,
+     682,
+     210,
+     35
+    ],
+    "font_size": 27,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Craftkeeper",
+    "rect": [
+     175,
+     721,
+     210,
+     25
+    ],
+    "font_size": 17,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "icon_button",
+    "asset": "button_back",
+    "rect": [
+     16,
+     16,
+     76,
+     76
+    ],
+    "action": "view:crafting_weapons"
+   },
+   {
+    "type": "panel",
+    "asset": "title_sign",
+    "rect": [
+     106,
+     9,
+     320,
+     91
+    ]
+   },
+   {
+    "type": "text",
+    "text": "ITEMS",
+    "rect": [
+     127,
+     23,
+     278,
+     57
+    ],
+    "font_size": 34,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 3
+   },
+   {
+    "type": "button",
+    "text": "Crafting",
+    "rect": [
+     1292,
+     20,
+     218,
+     55
+    ],
+    "asset": "tab_brown",
+    "action": "view:crafting_weapons",
+    "font_size": 22
+   },
+   {
+    "type": "panel",
+    "asset": "panel_inventory",
+    "rect": [
+     557,
+     107,
+     955,
+     737
+    ]
+   },
+   {
+    "type": "button",
+    "text": "Materials",
+    "rect": [
+     587,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_materials",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Weapons",
+    "rect": [
+     811,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_weapons",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Armor",
+    "rect": [
+     1035,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_armor",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Cards",
+    "rect": [
+     1259,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_teal",
+    "action": "view:items_cards",
+    "font_size": 22
+   },
+   {
+    "type": "panel",
+    "asset": "panel_parchment",
+    "rect": [
+     1020,
+     211,
+     468,
+     608
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "card_gallimimus",
+    "rect": [
+     591,
+     230,
+     196,
+     338
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Gallimimus Card",
+    "rect": [
+     591,
+     580,
+     196,
+     67
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "\u00d71",
+    "rect": [
+     591,
+     649,
+     196,
+     35
+    ],
+    "font_size": 21,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "card_raptor",
+    "rect": [
+     801,
+     230,
+     196,
+     338
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Raptor Card",
+    "rect": [
+     801,
+     580,
+     196,
+     67
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "\u00d71",
+    "rect": [
+     801,
+     649,
+     196,
+     35
+    ],
+    "font_size": 21,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Gallimimus Card",
+    "rect": [
+     1050,
+     253,
+     400,
+     45
+    ],
+    "font_size": 29,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "card_gallimimus",
+    "rect": [
+     1143,
+     292,
+     204,
+     307
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "+1 Speed  \u00b7  Reach 200",
+    "rect": [
+     1051,
+     615,
+     402,
+     34
+    ],
+    "font_size": 21,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Dropped by wild Gallimimus and\nfound in chests.\n\nEquip at the Dinosaur Camp.",
+    "rect": [
+     1051,
+     673,
+     402,
+     126
+    ],
+    "font_size": 19,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 0,
+    "outline": 0
+   }
+  ],
+  "items_materials": [
+   {
+    "type": "image",
+    "asset": "workshop_background",
+    "rect": [
+     0,
+     0,
+     1536,
+     864
+    ],
+    "fit": "stretch"
+   },
+   {
+    "type": "image",
+    "asset": "tool_rack",
+    "rect": [
+     18,
+     205,
+     190,
+     340
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "fire",
+    "position": [
+     455,
+     455
+    ],
+    "scale": 0.22
+   },
+   {
+    "type": "actor",
+    "position": [
+     265,
+     735
+    ],
+    "scale": 1.07
+   },
+   {
+    "type": "image",
+    "asset": "storage_chest_open",
+    "rect": [
+     30,
+     444,
+     500,
+     375
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Kora",
+    "rect": [
+     175,
+     682,
+     210,
+     35
+    ],
+    "font_size": 27,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Craftkeeper",
+    "rect": [
+     175,
+     721,
+     210,
+     25
+    ],
+    "font_size": 17,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "icon_button",
+    "asset": "button_back",
+    "rect": [
+     16,
+     16,
+     76,
+     76
+    ],
+    "action": "view:crafting_weapons"
+   },
+   {
+    "type": "panel",
+    "asset": "title_sign",
+    "rect": [
+     106,
+     9,
+     320,
+     91
+    ]
+   },
+   {
+    "type": "text",
+    "text": "ITEMS",
+    "rect": [
+     127,
+     23,
+     278,
+     57
+    ],
+    "font_size": 34,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 3
+   },
+   {
+    "type": "button",
+    "text": "Crafting",
+    "rect": [
+     1292,
+     20,
+     218,
+     55
+    ],
+    "asset": "tab_brown",
+    "action": "view:crafting_weapons",
+    "font_size": 22
+   },
+   {
+    "type": "panel",
+    "asset": "panel_inventory",
+    "rect": [
+     557,
+     107,
+     955,
+     737
+    ]
+   },
+   {
+    "type": "button",
+    "text": "Materials",
+    "rect": [
+     587,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_teal",
+    "action": "view:items_materials",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Weapons",
+    "rect": [
+     811,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_weapons",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Armor",
+    "rect": [
+     1035,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_armor",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Cards",
+    "rect": [
+     1259,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_cards",
+    "font_size": 22
+   },
+   {
+    "type": "panel",
+    "asset": "panel_parchment",
+    "rect": [
+     1020,
+     211,
+     468,
+     608
+    ]
+   },
+   {
+    "type": "panel",
+    "asset": "card_selected",
+    "rect": [
+     590,
+     220,
+     130,
+     180
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "wood",
+    "rect": [
+     612,
+     235,
+     86,
+     95
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Wood",
+    "rect": [
+     593,
+     335,
+     124,
+     31
+    ],
+    "font_size": 16,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "\u00d710",
+    "rect": [
+     593,
+     366,
+     124,
+     28
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     730,
+     220,
+     130,
+     180
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "stone",
+    "rect": [
+     752,
+     235,
+     86,
+     95
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Stone",
+    "rect": [
+     733,
+     335,
+     124,
+     31
+    ],
+    "font_size": 16,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "\u00d712",
+    "rect": [
+     733,
+     366,
+     124,
+     28
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     870,
+     220,
+     130,
+     180
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "fiber",
+    "rect": [
+     892,
+     235,
+     86,
+     95
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Fiber",
+    "rect": [
+     873,
+     335,
+     124,
+     31
+    ],
+    "font_size": 16,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "\u00d77",
+    "rect": [
+     873,
+     366,
+     124,
+     28
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     590,
+     412,
+     130,
+     180
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "flint",
+    "rect": [
+     612,
+     427,
+     86,
+     95
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Flint",
+    "rect": [
+     593,
+     527,
+     124,
+     31
+    ],
+    "font_size": 16,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "\u00d76",
+    "rect": [
+     593,
+     558,
+     124,
+     28
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     730,
+     412,
+     130,
+     180
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "hide",
+    "rect": [
+     752,
+     427,
+     86,
+     95
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Hide",
+    "rect": [
+     733,
+     527,
+     124,
+     31
+    ],
+    "font_size": 16,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "\u00d72",
+    "rect": [
+     733,
+     558,
+     124,
+     28
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     870,
+     412,
+     130,
+     180
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "bone",
+    "rect": [
+     892,
+     427,
+     86,
+     95
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Bone",
+    "rect": [
+     873,
+     527,
+     124,
+     31
+    ],
+    "font_size": 16,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "\u00d73",
+    "rect": [
+     873,
+     558,
+     124,
+     28
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     590,
+     604,
+     130,
+     180
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "resin",
+    "rect": [
+     612,
+     619,
+     86,
+     95
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Resin",
+    "rect": [
+     593,
+     719,
+     124,
+     31
+    ],
+    "font_size": 16,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "\u00d71",
+    "rect": [
+     593,
+     750,
+     124,
+     28
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     730,
+     604,
+     130,
+     180
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "dino_scale",
+    "rect": [
+     752,
+     619,
+     86,
+     95
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Dino Scale",
+    "rect": [
+     733,
+     719,
+     124,
+     31
+    ],
+    "font_size": 16,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "\u00d72",
+    "rect": [
+     733,
+     750,
+     124,
+     28
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     870,
+     604,
+     130,
+     180
+    ]
+   },
+   {
+    "type": "image",
+    "asset": "obsidian",
+    "rect": [
+     892,
+     619,
+     86,
+     95
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Obsidian",
+    "rect": [
+     873,
+     719,
+     124,
+     31
+    ],
+    "font_size": 16,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "\u00d71",
+    "rect": [
+     873,
+     750,
+     124,
+     28
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Wood",
+    "rect": [
+     1050,
+     253,
+     400,
+     45
+    ],
+    "font_size": 34,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "wood",
+    "rect": [
+     1133,
+     299,
+     240,
+     176
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "COMMON MATERIAL  \u00b7  YOU HAVE 10",
+    "rect": [
+     1051,
+     495,
+     402,
+     31
+    ],
+    "font_size": 16,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Found by:\nBreaking logs, fences and bridges.\nForest reward spots.",
+    "rect": [
+     1051,
+     549,
+     402,
+     104
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Used for:\nWooden Club \u00b7 Stone Axe\nFlint Spear \u00b7 Torch \u00b7 Bow",
+    "rect": [
+     1051,
+     678,
+     402,
+     104
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 0,
+    "outline": 0
+   }
+  ],
+  "items_weapons": [
+   {
+    "type": "image",
+    "asset": "workshop_background",
+    "rect": [
+     0,
+     0,
+     1536,
+     864
+    ],
+    "fit": "stretch"
+   },
+   {
+    "type": "image",
+    "asset": "tool_rack",
+    "rect": [
+     18,
+     205,
+     190,
+     340
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "fire",
+    "position": [
+     455,
+     455
+    ],
+    "scale": 0.22
+   },
+   {
+    "type": "actor",
+    "position": [
+     265,
+     735
+    ],
+    "scale": 1.07
+   },
+   {
+    "type": "image",
+    "asset": "storage_chest_open",
+    "rect": [
+     30,
+     444,
+     500,
+     375
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Kora",
+    "rect": [
+     175,
+     682,
+     210,
+     35
+    ],
+    "font_size": 27,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Craftkeeper",
+    "rect": [
+     175,
+     721,
+     210,
+     25
+    ],
+    "font_size": 17,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "icon_button",
+    "asset": "button_back",
+    "rect": [
+     16,
+     16,
+     76,
+     76
+    ],
+    "action": "view:crafting_weapons"
+   },
+   {
+    "type": "panel",
+    "asset": "title_sign",
+    "rect": [
+     106,
+     9,
+     320,
+     91
+    ]
+   },
+   {
+    "type": "text",
+    "text": "ITEMS",
+    "rect": [
+     127,
+     23,
+     278,
+     57
+    ],
+    "font_size": 34,
+    "color": "#fff0cc",
+    "bold": true,
+    "align": 1,
+    "outline": 3
+   },
+   {
+    "type": "button",
+    "text": "Crafting",
+    "rect": [
+     1292,
+     20,
+     218,
+     55
+    ],
+    "asset": "tab_brown",
+    "action": "view:crafting_weapons",
+    "font_size": 22
+   },
+   {
+    "type": "panel",
+    "asset": "panel_inventory",
+    "rect": [
+     557,
+     107,
+     955,
+     737
+    ]
+   },
+   {
+    "type": "button",
+    "text": "Materials",
+    "rect": [
+     587,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_materials",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Weapons",
+    "rect": [
+     811,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_teal",
+    "action": "view:items_weapons",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Armor",
+    "rect": [
+     1035,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_armor",
+    "font_size": 22
+   },
+   {
+    "type": "button",
+    "text": "Cards",
+    "rect": [
+     1259,
+     129,
+     214,
+     59
+    ],
+    "asset": "tab_brown",
+    "action": "view:items_cards",
+    "font_size": 22
+   },
+   {
+    "type": "panel",
+    "asset": "panel_parchment",
+    "rect": [
+     1020,
+     211,
+     468,
+     608
+    ]
+   },
+   {
+    "type": "panel",
+    "asset": "card_selected",
+    "rect": [
+     590,
+     217,
+     198,
+     282
+    ]
+   },
+   {
+    "type": "text",
+    "text": "RARE",
+    "rect": [
+     595,
+     241,
+     188,
+     28
+    ],
+    "font_size": 16,
+    "color": "#196aab",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "wooden_club",
+    "rect": [
+     623,
+     266,
+     132,
+     146
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Rare Wooden\nClub",
+    "rect": [
+     596,
+     420,
+     186,
+     67
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_common",
+    "rect": [
+     800,
+     217,
+     198,
+     282
+    ]
+   },
+   {
+    "type": "text",
+    "text": "COMMON",
+    "rect": [
+     805,
+     241,
+     188,
+     28
+    ],
+    "font_size": 16,
+    "color": "#73614c",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "wooden_club",
+    "rect": [
+     833,
+     266,
+     132,
+     146
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Wooden\nClub",
+    "rect": [
+     806,
+     420,
+     186,
+     67
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_epic",
+    "rect": [
+     590,
+     517,
+     198,
+     282
+    ]
+   },
+   {
+    "type": "text",
+    "text": "EPIC",
+    "rect": [
+     595,
+     541,
+     188,
+     28
+    ],
+    "font_size": 16,
+    "color": "#8836b4",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "stone_axe",
+    "rect": [
+     623,
+     566,
+     132,
+     146
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Epic Stone\nAxe",
+    "rect": [
+     596,
+     720,
+     186,
+     67
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "badge_check",
+    "rect": [
+     597,
+     688,
+     31,
+     31
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "EQUIPPED",
+    "rect": [
+     630,
+     691,
+     152,
+     27
+    ],
+    "font_size": 15,
+    "color": "#2c8232",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "card_uncommon",
+    "rect": [
+     800,
+     517,
+     198,
+     282
+    ]
+   },
+   {
+    "type": "text",
+    "text": "UNCOMMON",
+    "rect": [
+     805,
+     541,
+     188,
+     28
+    ],
+    "font_size": 16,
+    "color": "#2b7f32",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "stone_axe",
+    "rect": [
+     833,
+     566,
+     132,
+     146
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Uncommon\nStone Axe",
+    "rect": [
+     806,
+     720,
+     186,
+     67
+    ],
+    "font_size": 20,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Rare Wooden Club",
+    "rect": [
+     1050,
+     251,
+     410,
+     47
+    ],
+    "font_size": 29,
+    "color": "#1b6ca9",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "wooden_club",
+    "rect": [
+     1055,
+     305,
+     138,
+     167
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "+1.4 Power",
+    "rect": [
+     1206,
+     314,
+     245,
+     35
+    ],
+    "font_size": 22,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Reach 165",
+    "rect": [
+     1206,
+     358,
+     245,
+     35
+    ],
+    "font_size": 22,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Durability 45/45 hits",
+    "rect": [
+     1206,
+     402,
+     245,
+     34
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "panel",
+    "asset": "durability_track",
+    "rect": [
+     1204,
+     443,
+     240,
+     19
+    ]
+   },
+   {
+    "type": "panel",
+    "asset": "durability_fill",
+    "rect": [
+     1208,
+     446,
+     232,
+     13
+    ]
+   },
+   {
+    "type": "text",
+    "text": "A sturdy branch. Whacks small hazards\na little harder.",
+    "rect": [
+     1052,
+     470,
+     400,
+     64
+    ],
+    "font_size": 19,
+    "color": "#4e2b1b",
+    "bold": false,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "text",
+    "text": "Not equipped\nEquip at the Dinosaur Camp.",
+    "rect": [
+     1052,
+     545,
+     400,
+     56
+    ],
+    "font_size": 18,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "button",
+    "text": "SALVAGE",
+    "rect": [
+     1077,
+     618,
+     354,
+     60
+    ],
+    "asset": "button_salvage_amber",
+    "action": "clip:present",
+    "font_size": 25
+   },
+   {
+    "type": "text",
+    "text": "RETURNS",
+    "rect": [
+     1055,
+     701,
+     385,
+     27
+    ],
+    "font_size": 19,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 1,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "wood",
+    "rect": [
+     1054,
+     739,
+     45,
+     40
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Wood \u00d73",
+    "rect": [
+     1100,
+     744,
+     84,
+     29
+    ],
+    "font_size": 17,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "fiber",
+    "rect": [
+     1188,
+     739,
+     45,
+     40
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Fiber \u00d71",
+    "rect": [
+     1234,
+     744,
+     84,
+     29
+    ],
+    "font_size": 17,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   },
+   {
+    "type": "image",
+    "asset": "resin",
+    "rect": [
+     1322,
+     739,
+     45,
+     40
+    ],
+    "fit": "contain"
+   },
+   {
+    "type": "text",
+    "text": "Resin \u00d71",
+    "rect": [
+     1368,
+     744,
+     84,
+     29
+    ],
+    "font_size": 17,
+    "color": "#4e2b1b",
+    "bold": true,
+    "align": 0,
+    "outline": 0
+   }
+  ]
+ }
+}

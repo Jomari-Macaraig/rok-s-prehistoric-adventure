@@ -19,6 +19,17 @@ var heights := {}
 var deaths: Array[String] = []
 
 
+## Every label on a workshop's detail board sits inside its parchment (a
+## wrapping label that grew to one long line would spill past it).
+func _text_inside(ws: Workshop) -> bool:
+	var paper: Rect2 = (ws.canvas.get_node("Parchment") as Control).get_global_rect()
+	for l in ws.detail.find_children("*", "Label", true, false):
+		if not paper.encloses((l as Label).get_global_rect()):
+			push_warning("spills out of the parchment: %s" % (l as Label).text)
+			return false
+	return true
+
+
 func check(cond: bool, msg: String) -> void:
 	if not cond:
 		failures.append(msg)
@@ -1447,9 +1458,12 @@ func _feedback_checks() -> void:
 	main.open_items("materials")
 	var c_it: Workshop = main.items
 	check(c_it.visible and c_it.list.get_child_count() == Crafting.materials().filter(func(m): return Crafting.have(m) > 0).size(), "the Items screen lists the materials you have")
+	c_it.select(c_it.entries()[0])
+	check(_text_inside(c_it), "a material's details stay inside the parchment")
 	c_it.show_tab("weapon")
 	c_it.select(c_made)
 	check(c_it.detail.find_child("Salvage", true, false) != null and c_it.detail.find_child("Stats", true, false) != null, "an unequipped weapon shows its stats and Salvage")
+	check(_text_inside(c_it), "a weapon's details stay inside the parchment")
 	c_it.press_salvage()
 	check(main.gear_owned.has(c_made), "one tap only arms Salvage")
 	c_it.press_salvage()
