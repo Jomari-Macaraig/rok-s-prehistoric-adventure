@@ -103,7 +103,7 @@ static var ITEMS := [
 	{"name": "Milestone Chest", "icon": "res://assets/items/meat.png", "art": "res://assets/items/chest_common_closed.png", "seen": "chest",
 		"hint": "Run %d m in one go to find one." % int(Tuning.CHEST_EVERY_M),
 		"text": "One waits on the ground every %d m of a run (and an early one near the start): run into it. You can tell its rarity from afar: red-brown common chests hold meat, XP or materials; teal rare ones can hold a power-up, a heart or a card; purple ultra rare and golden legendary ones a Primal Frenzy, full hearts or a strong dinosaur card, and far more meat and XP. The further you get, the rarer they are." % int(Tuning.CHEST_EVERY_M)},
-	{"name": "Combo & Primal Frenzy", "icon": "Other_07", "seen": "combo",
+	{"name": "Combo & Primal Frenzy", "icon": "Other_07", "art": "res://assets/badges/clean_3.png", "seen": "combo",
 		"hint": "Clear a few hazards in a row without a stumble.",
 		"text": "Every hazard cleared without a stumble builds your combo: x1.5 points after 5, up to x5 after 60, and from x2 every meat counts double or more. A stumble or a long gap ends it. The streak also fills the gold meter: full, Rok goes into a Primal Frenzy and smashes through everything for a few seconds (pits still bite!)."}
 ]
@@ -807,18 +807,16 @@ func _show_tab(i: int) -> void:
 		3:
 			_powerup_cards()
 		4:
-			var icons := {"forest": "res://assets/bg/bg_2.png", "desert": "res://assets/bg/desert_far.png",
-					"canyon": "res://assets/bg/canyon_mid.png", "volcanic": "res://assets/bg/volcanic_far.png"}
 			for zi in Zones.ZONES.size():
 				var z: Dictionary = Zones.ZONES[zi]
 				var start := int(zi * Zones.ZONE_LEN_M)
 				if not zone_known(zi, best_m, seen):
-					_card(load(icons[z.id]), "???", "Reach %d m to discover." % start, "", true, false)
+					_card(zone_icon(z.id), "???", "Reach %d m to discover." % start, "", true, false)
 					continue
-				_card(load(icons[z.id]), z.name, z.blurb,
+				_card(zone_icon(z.id), z.name, z.blurb,
 						"From %d m, then every %d m after" % [start, int(Zones.ZONE_LEN_M * Zones.ZONES.size())],
 						false, _new_ids.has("zone_" + z.id), Color(0.55, 0.35, 0.15))
-			_card(SpriteLib.tex("res://assets/props/Other_07.png"), "Day & Night",
+			_card(SpriteLib.tex("res://assets/ui/daynight_half.png"), "Day & Night",
 					"Night falls every %d m and lasts a while. At night the world dims, stars and the moon come out, and fireflies glow in the forest." % int(Zones.DAY_CYCLE_M),
 					"Hazards work the same, but they're harder to spot!", false, false, Color(0.3, 0.35, 0.6))
 		5:
@@ -845,7 +843,7 @@ func _cards_tab() -> void:
 		var have := int(Gear.cards.get(id, 0))
 		var found := have > 0 or seen.has("card_" + id)
 		var bonus := Gear.bonus_text(Gear.CARD_PREFIX + id)
-		var where := "Dropped by a wild %s: bonk one with ATTACK." % Herd.name_of(id) if Critters.DATA.has(id) else "Found in rare and epic treasure chests."
+		var where := "Dropped by a wild %s: bonk one with ATTACK." % Herd.name_of(id) if Critters.DATA.has(id) else "Found in rare, ultra rare and legendary chests."
 		if found:
 			_card(CardView.icon(id), Herd.name_of(id) + " Card", "Use it on a weapon at the Dinosaur Camp: it gives the weapon %s." % bonus,
 					"You have x%d  ·  %s" % [have, where], false, false, Color(0.55, 0.32, 0.12))
@@ -1267,24 +1265,65 @@ func _hazard_card(h: Dictionary, is_hazard: bool) -> void:
 
 ## A row with a hazard's look in each zone it differs in (nothing if it
 ## looks the same everywhere or only lives in one zone).
+## A zone's picture for its card: a little scene made from the game's own art
+## (the zone's daytime sky, its background layers and a strip of its ground),
+## instead of a thin background strip that left the card mostly empty.
+const ZONE_LAYERS := {"forest": ["res://assets/bg/bg_2.png", "res://assets/bg/bg_1.png"],
+		"desert": ["res://assets/bg/desert_far.png", "res://assets/bg/desert_dunes.png"],
+		"canyon": ["res://assets/bg/canyon_far.png", "res://assets/bg/canyon_mid.png", "res://assets/bg/canyon_near.png"],
+		"volcanic": ["res://assets/bg/volcanic_far.png", "res://assets/bg/volcanic_dunes.png"]}
+static var _zone_icons := {}
+
+
+static func zone_icon(zid: String) -> Texture2D:
+	if _zone_icons.has(zid):
+		return _zone_icons[zid]
+	const W := 300
+	const H := 200
+	var img := Image.create(W, H, false, Image.FORMAT_RGBA8)
+	var z: Dictionary = Zones.ZONES[maxi(Zones.ZONES.map(func(d): return d.id).find(zid), 0)]
+	var sky: Array = z.sky_day
+	for y in H:
+		var t := float(y) / H
+		img.fill_rect(Rect2i(0, y, W, 1), (sky[0] as Color).lerp(sky[1], t * 1.4) if t < 0.7 else (sky[1] as Color).lerp(sky[2], (t - 0.7) / 0.3))
+	for path in ZONE_LAYERS.get(zid, []):
+		if not ResourceLoader.exists(path):
+			continue
+		var l := HazardIcons._rgba(load(path))
+		# the lower part of the layer (its bottom is near the ground line), a screen's width
+		var cw := mini(l.get_width(), 900)
+		var crop := l.get_region(Rect2i(0, l.get_height() - 600, cw, 600))
+		crop.resize(W, int(600.0 * W / cw), Image.INTERPOLATE_LANCZOS)
+		img.blend_rect(crop, Rect2i(Vector2i.ZERO, crop.get_size()), Vector2i(0, H - crop.get_height() + 30))
+	var gpath := "res://assets/terrain/%s_ground.png" % String(z.get("ground", zid))
+	if ResourceLoader.exists(gpath):
+		var g := HazardIcons._rgba(load(gpath))
+		var strip := g.get_region(Rect2i(0, 0, mini(g.get_width(), 600), 70))
+		strip.resize(W, 35, Image.INTERPOLATE_LANCZOS)
+		img.blend_rect(strip, Rect2i(Vector2i.ZERO, strip.get_size()), Vector2i(0, H - 35))
+	var tex := ImageTexture.create_from_image(img)
+	_zone_icons[zid] = tex
+	return tex
+
+
 func _zone_looks(key: String) -> Control:
 	var zones := HazardIcons.variant_zones(key)
 	if zones.size() < 2:
 		return null
 	var row := HBoxContainer.new()
 	row.name = "ZoneLooks"
-	row.add_theme_constant_override("separation", 10)
+	row.add_theme_constant_override("separation", 4)   # four zones fit the page (it ran off with 78 px cells)
 	for zid in zones:
 		var v := VBoxContainer.new()
 		v.add_theme_constant_override("separation", 0)
 		var ic := TextureRect.new()
 		ic.texture = HazardIcons.icon(key, zid)
-		ic.custom_minimum_size = Vector2(78, 52)
+		ic.custom_minimum_size = Vector2(66, 48)
 		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		v.add_child(ic)
 		var z: Dictionary = Zones.ZONES[Zones.ZONES.map(func(d): return d.id).find(zid)]
-		var cap := _text(String(z.name).replace(" Badlands", ""), 14, Color(0.5, 0.35, 0.2))
+		var cap := _text(String(z.name).replace(" Badlands", ""), 13, Color(0.5, 0.35, 0.2))
 		cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		v.add_child(cap)
 		row.add_child(v)

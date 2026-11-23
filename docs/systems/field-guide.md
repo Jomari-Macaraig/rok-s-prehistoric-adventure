@@ -70,3 +70,9 @@ Layout (`_layout_kit`): the kit's 1920×1080 reference scaled by the screen heig
 ## Cards tab
 
 The seventh tab lists every dinosaur card: the four originals, then the 28 expansion species (`Codex._cards_tab`, tiles `Card_<id>`). A card is found once you've had one (`Gear.cards` or `seen` "card_<id>"; they drop from wild dinosaurs and come in rare/epic chests, see [weapons-and-armor](weapons-and-armor.md)). A found card shows on the book's left page as the card itself (`CardView`): the user's card art (`assets/cards/<id>`, `tools/prepare_cards.py`; so far Raptor, Triceratops, Spinosaurus and Pterosaur = Pteranodon) with what it gives a weapon (`Gear.bonus_text`) written on its blank parchment (`cards.json` `text_box`), or for a dinosaur without art yet its portrait on the kit's card with the bonus below. The right page says what it gives the weapon, how many you have and where they come from. A card not found is "???" with where to look. Cards don't count toward "Discovered".
+
+## Pictures (fixed 2026-11-23)
+- Hazard pictures cut from animation sheets (`HazardIcons.from_spec` `trap:<anim>:<frame>`) read the frame from the sheet's real pixels: the sheets are sharp @2x images with a 1x size (`SpriteLib.tex`), and `AtlasTexture.get_image()` took the 1x region from the 2x pixels (a zoomed, cropped top-left quarter). `HazardIcons._rgba` cuts the frame itself at the atlas's real scale.
+- The per-zone looks row (`_zone_looks`) has room for all four zones (66 px cells).
+- Zone cards show a small scene made from the zone's own art (`Codex.zone_icon`: daytime sky, background layers, a strip of its ground) instead of a thin background strip.
+- Day & Night uses the user's half-sun, half-moon icon; Combo & Primal Frenzy the Untouchable gold medal (it was the amber icon, twice).

@@ -104,8 +104,25 @@ static func from_spec(spec: String, zid := "") -> Texture2D:
 	return tex
 
 
+## The texture's pixels as RGBA8. An AtlasTexture (a frame of a sheet) is cut
+## out here: its atlas is often a sharp @2x image with its size overridden to
+## 1x (SpriteLib.tex), and AtlasTexture.get_image() would take the 1x region
+## from the 2x pixels: the top-left quarter, zoomed (the Field Guide's
+## cropped, blown-up hazard pictures).
 static func _rgba(tex: Texture2D) -> Image:
-	var img := tex.get_image()
+	var img: Image
+	if tex is AtlasTexture and (tex as AtlasTexture).atlas != null:
+		var at := tex as AtlasTexture
+		var full := at.atlas.get_image()
+		if full.is_compressed():
+			full.decompress()
+		var k := float(full.get_width()) / maxf(at.atlas.get_width(), 1.0)   # 2 for a sharp twin
+		var r := Rect2i(Rect2(at.region.position * k, at.region.size * k))
+		img = full.get_region(r)
+		if k != 1.0:
+			img.resize(int(at.region.size.x), int(at.region.size.y), Image.INTERPOLATE_LANCZOS)
+	else:
+		img = tex.get_image()
 	if img.is_compressed():
 		img.decompress()
 	img.convert(Image.FORMAT_RGBA8)
