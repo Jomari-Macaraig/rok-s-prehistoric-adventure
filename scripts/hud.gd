@@ -32,6 +32,8 @@ var herd_button: TouchButton   # opens the Camp (level up, gear, choose dinosaur
 var stop_button: TouchButton   # ends the run early (two taps; main._press_stop)
 var tips_button: TouchButton   # coach hints on/off, shown on the pause screen
 var tutorial_button: TouchButton   # replays the training run, on the main menu
+var tutorial_plaque: PanelContainer   # "Tutorial", top centre while the training run plays
+var skip_button: TouchButton          # "Skip »" beside it (action "stop": a tap asks, a second skips)
 var _bulb_on: Texture2D
 var _bulb_off: Texture2D
 var buttons: Array[TouchButton] = []
@@ -131,6 +133,32 @@ func _ready() -> void:
 	tutorial_button.caption = "Tutorial"
 	tutorial_button.caption_below = true
 	tutorial_button.visible = false
+	# the training run's plaque and Skip (after the user's mockups)
+	tutorial_plaque = PanelContainer.new()
+	tutorial_plaque.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var psb := StyleBoxFlat.new()
+	psb.bg_color = Color(0.96, 0.86, 0.62)
+	psb.border_color = Color(0.45, 0.26, 0.1)
+	psb.set_border_width_all(3)
+	psb.set_corner_radius_all(12)
+	psb.content_margin_left = 22
+	psb.content_margin_right = 22
+	psb.content_margin_top = 4
+	psb.content_margin_bottom = 6
+	psb.shadow_color = Color(0, 0, 0, 0.3)
+	psb.shadow_size = 3
+	tutorial_plaque.add_theme_stylebox_override("panel", psb)
+	var pl := _label(26, Color(0.32, 0.17, 0.06))
+	pl.text = "Tutorial"
+	pl.remove_theme_constant_override("outline_size")
+	tutorial_plaque.add_child(pl)
+	tutorial_plaque.visible = false
+	root.add_child(tutorial_plaque)
+	skip_button = _button("stop", 60.0)
+	skip_button.pill_text = "Skip »"
+	skip_button.custom_minimum_size = Vector2(112, 44)
+	skip_button.size = skip_button.custom_minimum_size
+	skip_button.visible = false
 	# the user's square menu buttons replace the drawn ones when imported, their name below
 	for trio in [[codex_button, "encyclopedia", "Encyclopedia"], [market_button, "marketplace", "Marketplace"], [herd_button, "dinosaurs", "Dinosaurs"], [tutorial_button, "tutorial", "Tutorial"]]:
 		var path := "res://assets/ui/square_%s.png" % trio[1]
@@ -510,7 +538,7 @@ func _layout() -> void:
 		_place(arc[i], rc + Vector2(cos(a), -sin(a)) * Tuning.RIGHT_ARC_R[i], d)
 	# buttons that rise above the ground are a little see-through
 	for b in buttons:
-		if b != pause_button and b != sound_button and b != codex_button and b != market_button and b != herd_button and b != tips_button and b != tutorial_button:
+		if b != pause_button and b != sound_button and b != codex_button and b != market_button and b != herd_button and b != tips_button and b != tutorial_button and b != skip_button:
 			b.self_modulate.a = 0.82 if b.position.y < Tuning.GROUND_Y else 1.0
 
 
@@ -661,7 +689,7 @@ func coach(action: String, text: String, under := false) -> bool:
 ## The coach marker on any control (a HUD part, or a screen's Back button).
 ## It lives on its own layer above everything, the Market, Camp and Field
 ## Guide included, so the menu tour can point inside them.
-func coach_control(target: Control, text: String, under := false, chips: Array = [], title := "") -> bool:
+func coach_control(target: Control, text: String, under := false, chips: Array = [], title := "", card := false, arc := PackedVector2Array()) -> bool:
 	if target == null and title == "":
 		return false
 	if coach_marker == null:
@@ -672,8 +700,19 @@ func coach_control(target: Control, text: String, under := false, chips: Array =
 		coach_marker = CoachMarker.new()
 		coach_marker.name = "Coach"
 		layer.add_child(coach_marker)
-	coach_marker.show_on(target, text, under, chips, title)
+	coach_marker.show_on(target, text, under, chips, title, card, arc)
 	return true
+
+
+## The training run's moment to act (after the user's mockups): a big card at
+## the top (title + a line, [WORD] highlighted), the button for `action`
+## glowing with rays and the tap hand, and optionally a dashed `arc` (screen
+## points) showing the move.
+func coach_card(action: String, title: String, text: String, arc := PackedVector2Array()) -> bool:
+	for x in buttons:
+		if x.action == action and x.visible:
+			return coach_control(x, text, false, [], title, true, arc)
+	return false
 
 
 ## A tutorial note: on a HUD part (hud_part key), or free-standing near the
@@ -731,6 +770,26 @@ func set_herd(visible_now: bool, ready := false) -> void:
 
 ## The Stop button shows during a run (and while paused); armed = waiting
 ## for its confirming second tap.
+## The training run's "Tutorial" plaque and "Skip »", centred in the gap
+## between Rok's status panel and the score panel (armed = waiting for the
+## confirming second tap).
+func set_tutorial_bar(visible_now: bool, armed: bool) -> void:
+	tutorial_plaque.visible = visible_now
+	skip_button.visible = visible_now
+	if not visible_now:
+		return
+	var vw := root.get_viewport_rect().size.x
+	var x0 := status_panel.position.x + status_panel.size.x + 12.0
+	var x1 := vw - 300.0 - Tuning.UI_MARGIN   # the score panel's left edge
+	var w := tutorial_plaque.size.x + 12.0 + skip_button.size.x
+	var x := x0 + maxf((x1 - x0 - w) * 0.5, 0.0)
+	tutorial_plaque.position = Vector2(x, 16.0)
+	skip_button.position = Vector2(x + tutorial_plaque.size.x + 12.0, 16.0 + (tutorial_plaque.size.y - skip_button.size.y) * 0.5)
+	if skip_button.active != armed:
+		skip_button.active = armed
+		skip_button.queue_redraw()
+
+
 func set_stop(visible_now: bool, armed: bool) -> void:
 	stop_button.visible = visible_now
 	if stop_button.active != armed:

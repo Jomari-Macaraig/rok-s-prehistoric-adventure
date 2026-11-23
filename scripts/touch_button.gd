@@ -7,6 +7,7 @@ extends Control
 var action := ""
 var icon: Texture2D
 var caption := ""
+var pill_text := ""   # a text pill instead of a round button (the training run's "Skip »"): tapped anywhere on it
 var caption_below := false   # draw the caption under the button (like the square menu buttons) instead of inside it
 var key_hint := ""
 var ring := Color(0.4, 0.22, 0.1)
@@ -56,7 +57,7 @@ func radius() -> float:
 
 
 func hit(p: Vector2) -> bool:
-	if banner:
+	if banner or pill_text != "":
 		return visible and Rect2(global_position, size).has_point(p)
 	return visible and (p - (global_position + size * 0.5)).length() <= radius() * 1.12
 
@@ -88,6 +89,17 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
+	if pill_text != "":   # a dark rounded pill with light text (lit while armed)
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.62, 0.22, 0.1, 0.95) if active else Color(0.25, 0.13, 0.06, 0.85 if not held else 0.95)
+		sb.border_color = Color(1.0, 0.85, 0.55, 0.9)
+		sb.set_border_width_all(2)
+		sb.set_corner_radius_all(int(size.y * 0.5))
+		draw_style_box(sb, Rect2(Vector2.ZERO, size))
+		var pf := get_theme_default_font()
+		var pw := pf.get_string_size(pill_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x
+		draw_string(pf, Vector2(size.x * 0.5 - pw * 0.5, size.y * 0.5 + 8.0), pill_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1, 0.96, 0.88))
+		return
 	if banner:
 		var tint := Color(0.85, 0.85, 0.85) if held else Color.WHITE
 		draw_texture_rect(banner, Rect2(Vector2.ZERO, size), false, tint)

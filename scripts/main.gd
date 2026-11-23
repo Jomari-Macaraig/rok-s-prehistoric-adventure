@@ -1087,7 +1087,7 @@ func _press_stop() -> void:
 	if stop_armed <= 0.0:
 		stop_armed = Tuning.STOP_CONFIRM_TIME
 		if tutorial_run != null:
-			hud.show_banner("SKIP THE TUTORIAL?", "Tap the stop button again to skip it. Tips will still help along the way.", Color(1.0, 0.55, 0.45), Tuning.STOP_CONFIRM_TIME)
+			hud.show_banner("SKIP THE TUTORIAL?", "Tap Skip again to skip it. Tips will still help along the way, and the Tutorial button replays it.", Color(1.0, 0.55, 0.45), Tuning.STOP_CONFIRM_TIME)
 		else:
 			hud.show_banner("STOP THIS RUN?", "Tap the stop button again to end it. Your meat and progress are kept.", Color(1.0, 0.55, 0.45), Tuning.STOP_CONFIRM_TIME)
 		return
@@ -3139,7 +3139,9 @@ func _refresh_hud() -> void:
 	var overlay: bool = codex.visible or market.visible or herd.visible
 	hud.combo_meter.shown = state == State.PLAYING or state == State.INFO or state == State.PAUSED
 	hud.set_tips(state == State.PAUSED and not overlay, tutorial.enabled)
-	hud.set_stop((state == State.PLAYING or state == State.PAUSED) and not overlay, stop_armed > 0.0)
+	var in_run := (state == State.PLAYING or state == State.PAUSED) and not overlay
+	hud.set_stop(in_run and tutorial_run == null, stop_armed > 0.0)
+	hud.set_tutorial_bar(in_run and tutorial_run != null, stop_armed > 0.0)
 	hud.set_codex(menu and not overlay, menu and Codex.has_new(unlocked, best_m, seen, guide_viewed))
 	hud.set_market(state == State.TITLE and not overlay, market_badge())
 	hud.set_herd(state == State.TITLE and not overlay, not level_ready().is_empty() or gear_ready())

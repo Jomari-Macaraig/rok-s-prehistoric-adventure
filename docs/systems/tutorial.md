@@ -29,10 +29,27 @@ time (`main.replay_tutorial` → `start_tutorial`). A replay works the same way
 and ends on the main menu. What it marks learned or taught is already known,
 and the Raptor is only lent if it isn't unlocked yet.
 
+**Look** (after the user's mockups, polished on 2026-11-23): at each moment
+to act the world freezes and a big **card** shows at the top: a bold title
+and one line with the button's name highlighted (`[JUMP]` in the text is
+drawn in the accent colour), e.g. "JUMP THE ROCK / Tap JUMP to clear the
+obstacle." The button glows (a soft halo, the pulsing ring and three little
+rays), the user's tapping hand bobs on it once `assets/ui/tap_hand.png`
+exists (`CoachMarker.HAND_PATH`; the fingertip is the image's top left), and
+a dashed, crawling path shows the move: an arc over the rock or log (`arc`
+"jump"/"high", and from Rok in mid-air for the double jump's second hop), a
+low line under the branch ("slide") (`TutorialRun._arc`, `Hud.coach_card`,
+`CoachMarker` card mode). A **"Tutorial" plaque and a "Skip »" pill** sit in
+the gap at the top between Rok's status panel and the score panel
+(`Hud.set_tutorial_bar`; Skip is action `stop`: a tap asks, a second skips;
+the Stop button is hidden meanwhile). Only steps with something to explain or
+grab first (`intro`: your screen, meat, power-ups, amber) open with a note;
+the button steps go straight to their card.
+
 **How each step works** (`TutorialRun.STEPS`)
-1. A note names the step (its title and hint, frozen, until a tap; the user
-   wanted nothing to move on by itself). A retry after a hit skips it. Then
-   one thing spawns ahead of Rok.
+1. An `intro` step first shows a note with its title and hint (frozen, until
+   a tap; the user wanted nothing to move on by itself; a retry skips it).
+   Then one thing spawns ahead of Rok.
 2. At the step's trigger distance (`at`, px from Rok's hitbox) the world
    **freezes**: main skips `_play_step`, Rok's and the hunter's animations
    hold, and a coach ring sits on the button with a few words.

@@ -27,37 +27,43 @@ extends RefCounted
 ## unlocked: config/requirements.cfg), then a card about the Market,
 ## Camp and Encyclopedia. Afterwards coach hints (tutorial.gd) cover the rest.
 
-## kind, what to spawn, the button, its words, the trigger distance (px from
-## Rok's hitbox to the thing), and a banner shown as the step starts.
-## "notes": [HUD part, words] shown one at a time (Hud.coach_part), before the
-## step's spawn when it has none, or once its pickup is collected.
+## Per step: what to spawn, the button, the trigger distance (px from Rok's
+## hitbox to the thing), and the words. "card" is [title, line] shown at the
+## moment to act (a big card at the top, after the user's mockups; [WORD] is
+## highlighted); "air" the double jump's mid-air card, "back" the card for
+## turning back into Rok; "arc" draws the move ("jump", "high", "slide").
+## "intro" steps first show a note with their title and hint (they have
+## something to explain or grab before any button). "notes": [HUD part,
+## words] shown one at a time (Hud.coach_part), before the step's spawn when
+## it has none, or once its pickup is collected.
 const STEPS := [
-	{"id": "hud", "title": "YOUR SCREEN", "hint": "A quick look around before the T-rex closes in.",
-		"notes": [["hearts", "Your HEARTS. Crashing into things costs\none. Lose them all and the run ends."],
-			["chase", "The HUNTER behind you. Stumbles let it\ncatch up. If it reaches Rok, you're caught!"],
-			["score", "Your POINTS. Clear hazards and\ngrab things to score more."],
-			["distance", "How far you've run, and the zone.\nRun farther to unlock new dinosaurs."]]},
-	{"id": "jump", "spawn": "small", "button": "jump", "text": "Tap to jump!", "at": 70.0,
-		"title": "RUN, ROK!", "hint": "The T-rex is right behind you. Hop over what's in your way."},
+	{"id": "hud", "intro": true, "title": "YOUR SCREEN", "hint": "A quick look around before the T-rex catches up.",
+		"notes": [["hearts", "Your [HEARTS]. Crashing into things costs\none. Lose them all and the run ends."],
+			["chase", "The [HUNTER] behind you. Stumbles let it\ncatch up. If it reaches Rok, you're caught!"],
+			["score", "Your [POINTS]. Clear hazards and\ngrab things to score more."],
+			["distance", "How [FAR] you've run, and the zone.\nRun farther to unlock new dinosaurs."]]},
+	{"id": "jump", "spawn": "small", "button": "jump", "at": 70.0, "arc": "jump",
+		"card": ["JUMP THE ROCK", "Tap [JUMP] to clear the obstacle."]},
 	# (a held jump stays above a log ~0.6 s, ~230 px at START_SPEED: 60 px out
 	# centres that window on this log; 150 px landed Rok on it)
-	{"id": "high_jump", "spawn": "log", "button": "jump", "text": "Hold to jump higher!", "at": 60.0, "hold": true,
-		"title": "BIGGER THINGS", "hint": "Hold JUMP longer to leap higher."},
-	{"id": "double_jump", "spawn": "wall", "button": "jump", "text": "Tap to jump!", "at": 140.0, "air": "Tap again in mid-air!",
-		"title": "TALL WALLS", "hint": "Jump, then jump again in mid-air."},
-	{"id": "slide", "spawn": "ledge", "button": "slide", "text": "Tap to slide under!", "at": 110.0,
-		"title": "LOW LEDGES", "hint": "Slide under them."},
-	{"id": "attack", "spawn": "small", "button": "attack", "text": "Tap to smash it!", "at": 60.0,
-		"title": "ATTACK", "hint": "Smash small things in your way. Weapons and dinosaurs break bigger ones."},
-	{"id": "meat", "spawn": "meat", "title": "MEAT", "hint": "Grab the meat!",
-		"notes": [["meat", "MEAT you collected this run. Spend it\nin the MARKETPLACE after the run."]]},
-	{"id": "booster", "spawn": "egg", "button": "slot_0", "text": "Use your power-up!",
-		"title": "POWER-UPS", "hint": "Grab the Dino Egg. It goes in a slot until you use it."},
-	{"id": "shift", "spawn": "raptor_gate", "button": "form_1", "text": "Become the Raptor!", "at": 520.0,
-		"title": "SHAPESHIFT", "hint": "Some paths need a dinosaur. Only the light Raptor crosses this bridge.",
-		"back": "Back to Rok to save energy"},
-	{"id": "amber", "spawn": "amber", "title": "AMBER", "hint": "Dinosaurs use PRIMAL energy. Amber fills it back up.",
-		"notes": [["primal", "PRIMAL energy. Dinosaurs use it up and\namber fills it. Empty means back to Rok."]]},
+	{"id": "high_jump", "spawn": "log", "button": "jump", "at": 60.0, "hold": true, "arc": "high",
+		"card": ["JUMP HIGHER!", "Hold [JUMP] longer to leap over the log."]},
+	{"id": "double_jump", "spawn": "wall", "button": "jump", "at": 140.0, "arc": "high",
+		"card": ["TALL WALL!", "Tap [JUMP] to start your leap..."],
+		"air": ["JUMP AGAIN!", "Tap [JUMP] again in mid-air!"]},
+	{"id": "slide", "spawn": "ledge", "button": "slide", "at": 110.0, "arc": "slide",
+		"card": ["STAY LOW!", "Tap [SLIDE] to duck under branches."]},
+	{"id": "attack", "spawn": "small", "button": "attack", "at": 60.0,
+		"card": ["SMASH THROUGH!", "Tap [ATTACK] to break small obstacles."]},
+	{"id": "meat", "intro": true, "spawn": "meat", "title": "GRAB THE MEAT", "hint": "Meat is your money. Run through it!",
+		"notes": [["meat", "[MEAT] you collected this run. Spend it\nin the MARKETPLACE after the run."]]},
+	{"id": "booster", "intro": true, "spawn": "egg", "button": "slot_0", "title": "POWER-UPS", "hint": "Grab the Dino Egg. It waits in a slot until you use it.",
+		"card": ["USE YOUR POWER-UP", "Tap the [EGG] slot for a burst of speed."]},
+	{"id": "shift", "spawn": "raptor_gate", "button": "form_1", "at": 520.0,
+		"card": ["BECOME THE RAPTOR", "Tap the [RAPTOR] to cross the crumbling bridge."],
+		"back": ["BACK TO ROK", "Tap [ROK] to save your PRIMAL energy."]},
+	{"id": "amber", "intro": true, "spawn": "amber", "title": "GRAB THE AMBER", "hint": "Dinosaurs use PRIMAL energy. Amber fills it back up.",
+		"notes": [["primal", "[PRIMAL] energy. Dinosaurs use it up and\namber fills it. Empty means back to Rok."]]},
 	{"id": "finish"},
 ]
 
@@ -128,7 +134,7 @@ func step(delta: float) -> void:
 				return
 			hit = false
 			var notes := []
-			if _intro_done != i:
+			if _intro_done != i and s.get("intro", false):
 				_intro_done = i
 				notes.append(["", String(s.title), String(s.hint)])   # the step's intro, until a tap
 			if not s.has("spawn") and s.has("notes"):
@@ -156,7 +162,7 @@ func step(delta: float) -> void:
 				return
 			if s.id == "booster":
 				if g.slots[0] != "":
-					_freeze(s.button, s.text)
+					_freeze(s.button, s.card)
 				elif thing == null or not is_instance_valid(thing) or (g.course.pickups.has(thing) and thing.position.x < Tuning.PLAYER_X - 150.0):
 					_repeat()   # missed the egg
 				return
@@ -164,17 +170,17 @@ func step(delta: float) -> void:
 				var mk = _gate_marker()
 				if mk != null and Course.gate_x0(mk) - Tuning.PLAYER_X <= float(s.at):
 					thing = mk
-					_freeze(s.button, s.text)
+					_freeze(s.button, s.card)
 				return
 			if not _alive(thing):
 				return
 			if _ahead(thing) <= float(s.at) and g.player.on_ground:
-				_freeze(s.button, s.text)
+				_freeze(s.button, s.card)
 		"frozen", "note":
 			pass   # waiting for the press (pressed() / note_tap())
 		"air":
 			if g.player.vy >= -60.0 and not g.player.on_ground:
-				_freeze(s.button, s.air)
+				_freeze(s.button, s.air, "air")
 			elif g.player.on_ground:
 				phase = "after"
 		"after":
@@ -188,7 +194,7 @@ func step(delta: float) -> void:
 				if thing == null or not is_instance_valid(thing) or not g.course.markers.has(thing) \
 						or Course.gate_x0(thing) + g.terrain.gate_width() < Tuning.PLAYER_X - 120.0:
 					phase = "back"
-					_freeze("form_0", s.back)
+					_freeze("form_0", s.back, "")
 				return
 			if not _alive(thing) or thing.hitbox().end.x < g.player.hitbox().position.x - 10.0:
 				if hit:
@@ -279,14 +285,48 @@ func _freeze_world() -> void:
 	game.trex.process_mode = Node.PROCESS_MODE_DISABLED
 
 
-func _freeze(button: String, text: String) -> void:
+## Freeze on the moment to act: the card ([title, line]) at the top, the
+## button glowing, and the move drawn (`arc_kind`: the step's "arc", or "air"
+## for the double jump's second hop, "" for none).
+func _freeze(button: String, card: Array, arc_kind := "step") -> void:
 	frozen = true
 	if phase != "back":
 		phase = "frozen"
 	var g = game
 	g.player.sprite.pause()
 	g.trex.process_mode = Node.PROCESS_MODE_DISABLED
-	g.hud.coach(button, text)
+	var kind: String = String(step_data().get("arc", "")) if arc_kind == "step" else arc_kind
+	g.hud.coach_card(button, String(card[0]), String(card[1]), _arc(kind))
+
+
+## The dashed path for a move, in screen points: a hop from Rok over the
+## thing (higher for "high"), a low dash under it ("slide"), or from Rok in
+## mid-air on over it ("air"). Empty if there's nothing to draw.
+func _arc(kind: String) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	if kind == "" or not _alive(thing):
+		return pts
+	var hb: Rect2 = game.player.hitbox()
+	var ob: Rect2 = thing.hitbox()
+	var ground: float = game.player.position.y
+	var a := Vector2(hb.end.x + 4.0, ground - 34.0)   # from Rok's front knee...
+	var b := Vector2(ob.end.x + 56.0, ground - 14.0)   # ...arching well over the thing to land past it
+	if kind == "slide":
+		var y := ground - 22.0
+		pts.append(Vector2(hb.end.x + 10.0, y))
+		pts.append(Vector2(ob.end.x + 60.0, y))
+		return pts
+	var top := ob.position.y - (130.0 if kind == "high" else 95.0)
+	if kind == "air":
+		a = Vector2(hb.end.x + 6.0, hb.get_center().y)
+		top = minf(a.y, ob.position.y) - 50.0
+	for k in 15:   # a parabola from a to b peaking at `top`
+		var t := k / 14.0
+		var x := lerpf(a.x, b.x, t)
+		var base := lerpf(a.y, b.y, t)
+		var lift := 4.0 * t * (1.0 - t) * (minf(a.y, b.y) - top)
+		pts.append(Vector2(x, base - lift))
+	return pts
 
 
 func _unfreeze() -> void:

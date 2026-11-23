@@ -3363,6 +3363,8 @@ func _training_run_checks() -> void:
 	var tried_still := false
 	var note_still := false
 	var hurt_in := {}
+	var cards_ok := {}
+	var bar_ok := true
 	var meat_note_clear := true
 	check(main.next_chest_m == INF and main.preview_done, "no starter chest or wild-dinosaur preview in the training run")
 	for f in 6000:
@@ -3415,6 +3417,12 @@ func _training_run_checks() -> void:
 				main._touch_pressed("")   # any tap moves on
 		elif tr.frozen:
 			froze = true
+			var st: Dictionary = TutorialRun.STEPS[tr.i]
+			var want_card: Array = st.back if tr.phase == "back" else (st.air if st.has("air") and not main.player.on_ground else st.card)
+			cards_ok[st.id] = main.hud.coach_marker.card and main.hud.coach_marker.title == want_card[0] and main.hud.coach_marker.target is TouchButton
+			if main.state == main.State.PLAYING:
+				main._refresh_hud()
+				bar_ok = bar_ok and main.hud.skip_button.visible and main.hud.tutorial_plaque.visible and not main.hud.stop_button.visible
 			if f % 10 == 0:
 				var b: String = "form_0" if tr.phase == "back" else String(TutorialRun.STEPS[tr.i].button)
 				main._touch_pressed(b)
@@ -3422,6 +3430,9 @@ func _training_run_checks() -> void:
 					hold = 20 if TutorialRun.STEPS[tr.i].get("hold", false) else 3
 		main._process(1.0 / 60.0)
 	check(froze, "the training run freezes on each hint until the right button")
+	check(TutorialRun.STEPS.filter(func(st): return st.has("card")).all(func(st): return cards_ok.get(st.id, false)),
+			"each moment to act shows its card at the top with the button glowing %s" % [cards_ok])
+	check(bar_ok, "during the training run a Tutorial plaque and Skip show (instead of Stop)")
 	check(not hurt_in.has("high_jump"), "holding JUMP at the hint clears the log (it used to land Rok on a long one) %s" % [hurt_in.keys()])
 	check(meat_note_clear, "the meat note waits until every piece is grabbed or passed")
 	check(main.tutorial_run == null and main.tutorial_run_done and SaveData.load_tutorial_run_done(), "the training run ends and is saved as done")
