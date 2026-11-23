@@ -67,7 +67,11 @@ STYLES = ["swing", "thrust", "throw", "shoot", "fist"]
 RELEASE = {"throw": 4, "shoot": 4}
 K = 7 / 16
 HEROES = {
-    "rok": {"pack": "Rok_Style_Attacks", "cell": (384, 512), "pivot": (192, 488)},
+    # Rok's standing clips come from his consistency update (redrawn at his
+    # run's size; the pack's were ~15% bigger); his running clips stay in
+    # Rok_Style_Attacks.
+    "rok": {"pack": "Rok_Style_Attacks", "standing": "Rok_Animation_Consistency_Update 3/rok",
+            "cell": (384, 512), "pivot": (192, 488)},
     "nira": {"pack": "Nira_Style_Attacks", "cell": (576, 512), "pivot": (288, 488)},
     "boro": {"pack": "Boro_Style_Attacks", "cell": (576, 512), "pivot": (288, 488)},
 }
@@ -217,7 +221,7 @@ def main():
         meta[hero] = {}
         # ---- standing
         for st in STYLES:
-            base = pack / "standing" / st / f"{hero}_{st}_attack.png"
+            base = (ASSETS / h.get("standing", h["pack"])) / "standing" / st / f"{hero}_{st}_attack.png"
             if not base.exists():
                 continue
             frames = [clear(c) for c in cells(Image.open(base).convert("RGBA"), cw, ch)]

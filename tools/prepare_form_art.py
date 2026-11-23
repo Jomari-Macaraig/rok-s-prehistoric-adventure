@@ -37,6 +37,10 @@ PACK = SRC / "Rok" / "Rok_Complete_Animation_Pack" / "Rok_Animations"
 ADDON = SRC / "Rok" / "Rok_Duck_Slide_Addon"
 OLD_CELEBRATE = SRC / "Rok_Hunters_Crouches_Best_Distance" / "celebrations" / "rok" / "spritesheets" / "celebrate_jump.png"
 REACTIONS = SRC / "Rok_Dinosaur_Expansion" / "Rok_Hit_Reactions"
+# Rok's consistency update: idle, walk, duck, trip, dizzy and snag redrawn at
+# his run's size (384x512 cells, feet on y 488). Its standing attack styles
+# are read by prepare_styles.py.
+CONSISTENCY = "Rok_Animation_Consistency_Update 3/rok"
 
 SCALE = 7 / 16             # 1x game scale
 SOLID = 128                # alpha that counts as the art's body when aligning
@@ -49,11 +53,13 @@ FORMS = {
     "rok": {
         "frame": (384, 512),
         "sheets": {
-            "idle": "Rok's Eight-Pose Idle Sprite Sheet-1.png",
-            "walk": "Rok's Eight-Pose Walking Sprite Sheet-2.png",
+            # idle, walk and duck: the consistency redraws at the run's size
+            # (the older sheets drew Rok ~15% bigger than his run)
+            "idle": CONSISTENCY + "/spritesheets/idle.png",
+            "walk": CONSISTENCY + "/spritesheets/walk.png",
             "run": "Rok’s Eight-Pose Run Sprite Sheet-3.png",
             "jump": "Rok's Eight-Pose Jump Sprite Sheet-4.png",
-            "duck": "Rok's polished eight-frame crouch sheet-5.png",
+            "duck": CONSISTENCY + "/spritesheets/duck.png",
             "slide": "Rok's eight-pose sliding sprite sheet-6.png",
             "celebrate": "Rok’s Celebration Jump Sprite Sheet-7.png",
         },
@@ -273,9 +279,23 @@ def portrait(form: str) -> None:
     both(img, f"portraits/{form}.png", small.width, small.height)
 
 
+def reaction_sheet(form: str, sheet: str) -> Image.Image:
+    """The hit-reaction pack's sheet (576x512 cells, pivot 288,488), or for Rok
+    the consistency redraw (384x512 cells, pivot 192,488) centred in 576-wide
+    cells so the pivot and the game's canvas stay the same."""
+    new = SRC / CONSISTENCY / "spritesheets" / Path(sheet).name
+    if form != "rok" or not new.exists():
+        return Image.open(REACTIONS / sheet).convert("RGBA")
+    out = Image.new("RGBA", (576 * 4, 512 * 2))
+    for i, f in enumerate(frames(load_new(str(new.relative_to(SRC))), 384, 512)):
+        out.alpha_composite(f, (i % 4 * 576 + 96, i // 4 * 512))
+    return out
+
+
 def reactions(form: str) -> None:
-    """Trip, dizzy and snag: no new art yet, so the hit-reaction pack's sheets
-    at the sizes prepare_reactions.gd gave them, plus 2x twins."""
+    """Trip, dizzy and snag at the sizes prepare_reactions.gd gave them, plus
+    2x twins: Rok's from his consistency redraws, the others' from the
+    hit-reaction pack."""
     meta = json.loads((REACTIONS / "hit_reactions.json").read_text())
     if form not in meta["characters"]:
         return
@@ -286,7 +306,7 @@ def reactions(form: str) -> None:
         done.add(a["sheet"])
         rel = f"reactions/{form}/{Path(a['sheet']).stem}.png"
         w1, h1 = Image.open(OUT / rel).size
-        both(Image.open(REACTIONS / a["sheet"]).convert("RGBA"), rel, w1, h1)
+        both(reaction_sheet(form, a["sheet"]), rel, w1, h1)
 
 
 if __name__ == "__main__":

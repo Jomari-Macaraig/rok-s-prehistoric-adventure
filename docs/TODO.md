@@ -20,7 +20,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Art (the user)
 
-- [ ] **Rok's 11 bigger sheets redrawn at his run's size** (idle, walk, duck, trip, dizzy, snag, the 5 standing styles; same 4×2 grid, 384×512 cells, feet at y 488): they're ~15% bigger than run, jump, slide and the running styles. Re-import with `prepare_form_art.py`, the reactions importer and `prepare_styles.py`, then check with the size-check image.
+- [ ] **Rok's Fist and Shoot standing styles, fresh redraws** (the consistency update ships them as the old art scaled to his run's size; same 4×2, 384×512 cells, feet at y 488, guides and landmarks): drop them in `Rok_Animation_Consistency_Update 3/rok/standing/` and rerun `prepare_styles.py`.
 - [ ] **Optional: Nira's and Boro's running style attacks redrawn over their in-game run** (`Rok_New_Heroes_Nira_Boro/<hero>/spritesheets/run.png`): their packs used a different, ~10% taller run, so the game fits them; legs only match exactly for Rok.
 - [ ] **UI:** an Armor stat icon (kit glyph style); "Crafting Bench", "Items" and "DINOSAUR CAMP" title plaques.
 - [ ] **Card art** for the 12 balanced-pack dinosaurs (Deinonychus … Dsungaripterus).
@@ -43,5 +43,6 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Done recently
 
+- 2026-11-23: Rok's size made consistent: idle, walk, duck, trip, dizzy, snag and the 5 standing styles from the user's consistency update (redrawn at his run's size), his per-weapon clips and gear sockets refitted.
 - 2026-11-23: the Blaze Pepper replaced the Dino Egg as the speed-boost power-up (id `pepper`; old saves renamed on load).
 - 2026-11-23: Desert and Volcanic biome obstacles with breaks, Forest twig and mushroom breaks; all five attack styles for Rok, Nira and Boro, standing and running (bare hands = Fist); the Canyon zone (4th, from the user's canyon pack; timeline probe: every zone lesson lands in its zone); Point Hunter and Seasoned medals; day/night icon on the HUD; chest rarities; bug-proof tutorial; Kora's lines and name plank; Ugo's name plank; Camp meat counter hidden; Rok's Swing pilot (approved); [NEW_ITEM_ART.md](NEW_ITEM_ART.md).
