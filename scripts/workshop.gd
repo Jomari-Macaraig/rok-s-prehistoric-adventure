@@ -426,8 +426,10 @@ func entries() -> Array:
 		"materials":
 			return Crafting.materials().filter(func(m): return Crafting.have(m) > 0)
 		"cards":
-			return Gear.choices("weapon").filter(func(id): return String(id).begins_with(Gear.CARD_PREFIX))
-	return Gear.choices(tab).filter(func(id): return not String(id).begins_with(Gear.CARD_PREFIX))
+			var ds: Array = Gear.cards.keys().filter(func(d): return int(Gear.cards[d]) > 0)
+			ds.sort()
+			return ds.map(func(d): return Gear.CARD_PREFIX + String(d))
+	return Gear.choices(tab)
 
 
 func refresh() -> void:
@@ -705,8 +707,8 @@ func _item_detail() -> void:
 		var d := id.substr(Gear.CARD_PREFIX.length())
 		_label(Gear.name_of(id), Rect2(1050, 245, 400, 50), 29, INK, detail).name = "Name"
 		_img(CardView.icon(d), Rect2(1143, 300, 204, 300), detail, "Picture")
-		_label("%s  ·  Reach %d  ·  ×%d" % [Gear.bonus_text(id), int(Gear.CARD_REACH), int(Gear.cards.get(d, 0))], Rect2(1051, 612, 402, 34), 20, INK, detail).name = "Stats"
-		_para("Dropped by wild %s and found in chests. Put it in a hero's weapon slot at the Dinosaur Camp." % Herd.name_of(d), Rect2(1076, 655, 366, 120), 18, INK, detail, false, HORIZONTAL_ALIGNMENT_CENTER)
+		_label("%s  ·  ×%d (%d free)" % [Gear.bonus_text(id), int(Gear.cards.get(d, 0)), Gear.free_cards(d)], Rect2(1051, 612, 402, 34), 20, INK, detail).name = "Stats"
+		_para("Dropped by wild %s and found in chests. Slot it into a weapon's card slot at the Dinosaur Camp: it adds this on top of the weapon." % Herd.name_of(d), Rect2(1076, 655, 366, 120), 18, INK, detail, false, HORIZONTAL_ALIGNMENT_CENTER)
 		return
 	var r := Gear.rarity_of(id)
 	var it: Dictionary = Gear.ITEMS[Gear.base(id)]
@@ -907,7 +909,7 @@ const KORA_LINES := {
 		"%s. I remember making that one!",
 	],
 	"card": [
-		"A %s! Pop it in a hero's weapon slot.",
+		"A %s! Slot it into a weapon.",
 		"%s. I didn't make that one, the dinosaurs did!",
 		"Ooh, %s. That's a rare find.",
 		"The %s gives a real boost. Try it at the Camp.",

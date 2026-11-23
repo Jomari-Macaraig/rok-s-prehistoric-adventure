@@ -102,6 +102,12 @@ static func _load() -> void:
 			_v[sec][key] = c.get_value(sec, key)
 
 
+## Is this key set in the config (or its defaults)?
+static func has_key(section: String, key: String) -> bool:
+	_load()
+	return _v.get(section, {}).has(key) or DEFAULTS.get(section, {}).has(key)
+
+
 ## A value from the config: Crafting.num("spots", "chance").
 static func num(section: String, key: String) -> Variant:
 	_load()

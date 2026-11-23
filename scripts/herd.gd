@@ -391,11 +391,15 @@ func press_slot(slot: String) -> void:
 	refresh()
 
 
-## A choice in the gear list: put it on the selected hero ("" empties the slot).
+## A choice in the gear list: put it on the selected hero ("" empties the
+## slot), or in card mode slot that dinosaur's card into the hero's weapon.
 func press_gear(id: String) -> void:
 	if _drag_dist > 12.0:
 		return
-	game.equip_gear(selected, picking, id)
+	if picking == "card":
+		game.slot_card(Gear.slot_item(selected, "weapon"), id)
+	else:
+		game.equip_gear(selected, picking, id)
 	picking = ""
 	game.audio.play("click", 0.0)
 	refresh()
@@ -594,8 +598,11 @@ func _stage_idle() -> void:
 
 
 ## The gear list for the slot being picked: "Nothing", then owned weapons or
-## armor (and dinosaur cards for the weapon slot), each with its bonuses.
+## armor, each with its bonuses (cards go in a weapon's card slot: _card_list).
 func _gear_list() -> void:
+	if picking == "card":
+		_card_list()
+		return
 	var head := _light("Choose the %s for %s:" % [picking, name_of(selected)], 18)
 	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	head.custom_minimum_size = Vector2(150, 0)
@@ -633,8 +640,8 @@ func _gear_list() -> void:
 			nl.add_theme_color_override("font_color", Crafting.RARITY_COLOR[Gear.rarity_of(gid)])
 		names.add_child(nl)
 		var sub := "Empty slot" if gid == "" else Gear.bonus_text(gid)
-		if gid.begins_with(Gear.CARD_PREFIX):
-			sub += "  ·  x%d" % int(Gear.cards.get(gid.substr(Gear.CARD_PREFIX.length()), 0))
+		if gid != "" and Gear.socketed(gid) != "":
+			sub += "  ·  + %s Card" % Herd.name_of(Gear.socketed(gid))
 		if gid == on:
 			sub += "  ·  EQUIPPED"
 		var sl := _light(sub, 13, Color(0.6, 1.0, 0.55) if gid == on else Color(1.0, 0.85, 0.5))
@@ -644,8 +651,64 @@ func _gear_list() -> void:
 		_ignore_mouse(hb)
 		list.add_child(b)
 	if options.size() == 1:
-		var none := Market._text("Nothing to put here yet: buy %s in the Market's Gear tab%s." % [
-				"weapons" if picking == "weapon" else "armor", " or find dinosaur cards in chests" if picking == "weapon" else ""], 16, Color(0.5, 0.3, 0.15))
+		var none := Market._text("Nothing to put here yet: craft %s at the Crafting Bench." % [
+				"weapons" if picking == "weapon" else "armor"], 16, Color(0.5, 0.3, 0.15))
+		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		list.add_child(none)
+
+
+## The card list for the hero's weapon's card slot: "Empty", the card in it
+## now, then every dinosaur with a free card (not slotted elsewhere).
+func _card_list() -> void:
+	var w := Gear.slot_item(selected, "weapon")
+	var head := _light("Slot a card into %s:" % Gear.full_name(w), 18)
+	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	head.custom_minimum_size = Vector2(150, 0)
+	head.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	list.add_child(head)
+	var on := Gear.socketed(w)
+	var options: Array = [""]
+	if on != "":
+		options.append(on)
+	for d in Gear.card_choices():
+		if d != on:
+			options.append(d)
+	for d in options:
+		var b := Button.new()
+		b.name = "Card_" + (d if d != "" else "none")
+		b.focus_mode = Control.FOCUS_NONE
+		b.custom_minimum_size = Vector2(170, _tile_h)
+		for st in ["normal", "hover", "pressed", "hover_pressed"]:
+			b.add_theme_stylebox_override(st, _tile_box(false, d == on))
+		b.pressed.connect(func(): press_gear(d))
+		var hb := VBoxContainer.new()
+		hb.set_anchors_preset(Control.PRESET_FULL_RECT)
+		hb.offset_left = 6
+		hb.offset_right = -6
+		hb.alignment = BoxContainer.ALIGNMENT_CENTER
+		hb.add_theme_constant_override("separation", 2)
+		b.add_child(hb)
+		var ic := TextureRect.new()
+		ic.custom_minimum_size = Vector2(0, 60)
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		if d != "":
+			ic.texture = Gear.icon(Gear.CARD_PREFIX + d)
+		hb.add_child(ic)
+		hb.add_child(_light("Empty" if d == "" else Gear.name_of(Gear.CARD_PREFIX + d), 17))
+		var sub := "No card" if d == "" else Gear.bonus_text(Gear.CARD_PREFIX + d)
+		if d != "":
+			sub += "  ·  %d free" % Gear.free_cards(d)
+		if d == on:
+			sub += "  ·  SLOTTED"
+		var sl := _light(sub, 13, Color(0.6, 1.0, 0.55) if d == on else Color(1.0, 0.85, 0.5))
+		sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		hb.add_child(sl)
+		_ignore_mouse(hb)
+		list.add_child(b)
+	if options.size() == 1:
+		var none := Market._text("No dinosaur cards yet: bonk wild dinosaurs with ATTACK or open chests to find them.", 16, Color(0.5, 0.3, 0.15))
 		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		list.add_child(none)
 
@@ -956,6 +1019,8 @@ func _gear_rows(id: String) -> void:
 			rb.pressed.connect(func(): press_repair(gid))
 			row.add_child(rb)
 		detail.add_child(row)
+		if slot == "weapon" and gid != "" and Gear.card_slots(gid) > 0:
+			_card_row(gid)
 		if worn:   # weapon durability on its own line: hits left, BROKEN at 0
 			var br := Gear.broken(gid)
 			var dtxt := ("      BROKEN · repair it to use it again" if br else "      Durability %d/%d hits") % ([] if br else [Gear.durability(gid), Gear.max_durability(gid)])
@@ -965,6 +1030,37 @@ func _gear_rows(id: String) -> void:
 					15, Color(0.8, 0.15, 0.1) if br else Color(0.45, 0.3, 0.15))
 			dl.name = "Durability_" + gid
 			detail.add_child(dl)
+
+
+## The weapon's card slot: the card in it (or empty) and a Change button.
+func _card_row(w: String) -> void:
+	var row := HBoxContainer.new()
+	row.name = "Slot_card"
+	row.add_theme_constant_override("separation", 8)
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(16, 0)
+	row.add_child(spacer)
+	var d := Gear.socketed(w)
+	var ic := TextureRect.new()
+	ic.custom_minimum_size = Vector2(28, 40)
+	ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	if d != "":
+		ic.texture = Gear.icon(Gear.CARD_PREFIX + d)
+	row.add_child(ic)
+	var txt := "Card slot: %s" % (("%s (%s)" % [Gear.name_of(Gear.CARD_PREFIX + d), Gear.bonus_text(Gear.CARD_PREFIX + d)]) if d != "" else "empty")
+	var l := Market._text(txt, 15)
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	l.clip_text = true
+	row.add_child(l)
+	var can := not Gear.card_choices().is_empty()
+	var b := Market._button(("Done" if picking == "card" else ("Change ●" if d == "" and can else "Change")), Vector2(110, 40))
+	b.name = "Change_card"
+	b.add_theme_font_size_override("font_size", 15)
+	b.pressed.connect(func(): press_slot("card"))
+	row.add_child(b)
+	detail.add_child(row)
 
 
 ## Drag to scroll the list (as in the Market and Field Guide).

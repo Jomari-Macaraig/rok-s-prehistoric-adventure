@@ -55,7 +55,8 @@ Ones you don't own are silhouettes but can still be compared, with how to get th
 ## Gear (Heroes tab)
 
 - EQUIPMENT rows (`_gear_rows`): weapon and armor by full name ("Epic Stone Axe") with their bonuses and attack reach, and "Durability n/max" (or BROKEN) with its material repair cost and a **Repair** button (two taps, `press_repair`; disabled without the materials).
-- **Change** (`press_slot`) turns the shelf into that slot's choices (`_gear_list`: Nothing, owned copies by item then rarest first, in their rarity colour, then cards); a tap equips (`press_gear`).
+- **Change** (`press_slot`) turns the shelf into that slot's choices (`_gear_list`: Nothing, owned copies by item then rarest first, in their rarity colour, with any slotted card named); a tap equips (`press_gear`).
+- A weapon with a card slot gets a **Card slot** row under it (`_card_row`): its Change (`press_slot("card")`) lists Empty, the slotted card and the free cards (`_card_list`); a tap slots it (`main.slot_card`). Cards can't go in the weapon slot itself.
 - The header has **Crafting** (disabled and showing its distance until the bench opens, `bench_button`) and **Items** buttons, opening the [Crafting Bench and Items screens](crafting.md). Those two are their own full screens (Kora's workshop from the Crafting and Items kit); the back button returns to the Camp.
 
 ## Red dots

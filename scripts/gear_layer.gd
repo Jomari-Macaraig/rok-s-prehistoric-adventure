@@ -10,7 +10,7 @@ extends Node2D
 ## - the Shell Plate rides on the back socket.
 ## Both draw behind the body, so the fist and torso cover the handle and the
 ## shell. Hidden for anything that isn't a hero clip (dinosaur forms, the
-## death hop) and for gear without art (dinosaur cards in the weapon slot;
+## death hop) and for gear without art (old saves' cards in the weapon slot;
 ## the vest, scale mail and bone guards need fitted overlay sheets).
 
 ## Tilt of a held weapon per clip, degrees clockwise from upright.

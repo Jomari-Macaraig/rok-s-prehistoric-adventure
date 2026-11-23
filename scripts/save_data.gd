@@ -183,7 +183,8 @@ static func save_missions(d: Dictionary) -> void:
 	_write("missions", "state", d)
 
 
-## Hero gear: {"owned": [gear ids], "equipped": {hero: {"weapon", "armor"}}, "cards": {dino: count}}.
+## Hero gear: {"owned": [gear ids], "equipped": {hero: {"weapon", "armor"}}, "cards": {dino: count},
+## "sockets": {weapon copy: dino id of its slotted card}, ...}.
 static func load_gear() -> Dictionary:
 	var d: Variant = _read("gear", "state", {})
 	return d if d is Dictionary else {}

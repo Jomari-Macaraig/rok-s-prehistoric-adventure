@@ -108,7 +108,8 @@ var gear_rarity: Dictionary = {}   # copy -> rarity 0-4 (missing = Common; Gear.
 var gear_next := 1                 # the next copy number
 var materials: Dictionary = {}     # crafting material -> how many (crafting.gd)
 var run_materials: Dictionary = {} # materials found this run (for the summary's news)
-var gear_equipped: Dictionary = {} # hero -> {"weapon": id or "card:<dino>", "armor": id}
+var gear_equipped: Dictionary = {} # hero -> {"weapon": id, "armor": id}
+var gear_sockets: Dictionary = {}  # weapon copy -> dino id of the card slotted in it (Gear.sockets)
 var cards: Dictionary = {}         # dino id -> dinosaur cards owned
 var last_card := ""                # the card a wild dinosaur or chest just gave
 var _lap_banner_t := 0.0
@@ -152,6 +153,10 @@ func _ready() -> void:
 	gear_owned = Array(g.get("owned", []))
 	gear_equipped = Dictionary(g.get("equipped", {}))
 	cards = Dictionary(g.get("cards", {}))
+	gear_sockets = Dictionary(g.get("sockets", {}))
+	for h in gear_equipped:   # old saves: a card in the weapon slot goes back to the card pile
+		if String(gear_equipped[h].get("weapon", "")).begins_with(Gear.CARD_PREFIX):
+			gear_equipped[h]["weapon"] = ""
 	gear_wear = Dictionary(g.get("wear", {}))
 	gear_rarity = Dictionary(g.get("rarity", {}))
 	gear_next = int(g.get("next", 1))
@@ -1000,12 +1005,16 @@ func level_ready() -> Array:
 	return out
 
 
-## Something to equip: an owned hero with an empty slot it has gear or cards for.
+## Something to equip: an owned hero with an empty slot it has gear for, or
+## an equipped weapon with an empty card slot and a free card to put in it.
 func gear_ready() -> bool:
 	for h in Heroes.IDS.filter(func(x): return x == "rok" or dinos_owned.has(x)):
 		for slot in ["weapon", "armor"]:
 			if Gear.slot_item(h, slot) == "" and not Gear.choices(slot).is_empty():
 				return true
+		var w := Gear.slot_item(h, "weapon")
+		if w != "" and Gear.card_slots(w) > 0 and Gear.socketed(w) == "" and not Gear.card_choices().is_empty():
+			return true
 	return false
 
 
@@ -2546,6 +2555,7 @@ func _sync_gear() -> void:
 	Gear.owned = gear_owned
 	Gear.equipped = gear_equipped
 	Gear.cards = cards
+	Gear.sockets = gear_sockets
 	Gear.wear = gear_wear
 	Gear.rarity = gear_rarity
 	Crafting.bank = materials
@@ -2554,7 +2564,7 @@ func _sync_gear() -> void:
 
 func _save_gear() -> void:
 	_sync_gear()
-	SaveData.save_gear({"owned": gear_owned, "equipped": gear_equipped, "cards": cards, "wear": gear_wear,
+	SaveData.save_gear({"owned": gear_owned, "equipped": gear_equipped, "cards": cards, "sockets": gear_sockets, "wear": gear_wear,
 			"rarity": gear_rarity, "next": gear_next, "materials": materials})
 
 
@@ -2590,7 +2600,7 @@ func _drop_card(o: Obstacle) -> void:
 	t.tween_callback(pic.queue_free)
 	fx.sparkle(pic.global_position, Color(1.0, 0.9, 0.5))
 	audio.play("unlock", 0.05, 1.3, -4.0)
-	hud.show_banner(Herd.name_of(d).to_upper() + " CARD!", "It dropped its card. Put it in a hero's weapon slot at the Dinosaur Camp.", Color(1.0, 0.85, 0.45), 2.4)
+	hud.show_banner(Herd.name_of(d).to_upper() + " CARD!", "It dropped its card. Slot it into a weapon at the Dinosaur Camp.", Color(1.0, 0.85, 0.45), 2.4)
 	new_this_run.append(Herd.name_of(d) + " Card")
 
 
@@ -2607,16 +2617,31 @@ func equip_gear(hero: String, slot: String, id: String) -> bool:
 	if not Heroes.is_hero(hero) or not (slot == "weapon" or slot == "armor"):
 		return false
 	if id != "":
-		if Gear.slot_of(id) != slot:
-			return false
-		if id.begins_with(Gear.CARD_PREFIX):
-			if int(cards.get(id.substr(Gear.CARD_PREFIX.length()), 0)) <= 0:
-				return false
-		elif not gear_owned.has(id):
+		if id.begins_with(Gear.CARD_PREFIX) or Gear.slot_of(id) != slot:
+			return false   # cards aren't equipped: they're slotted into a weapon (slot_card)
+		if not gear_owned.has(id):
 			return false
 	var e: Dictionary = gear_equipped.get(hero, {}).duplicate()
 	e[slot] = id
 	gear_equipped[hero] = e
+	_save_gear()
+	if player.form == Forms.ROK:
+		player.refresh_form()
+	return true
+
+
+## Slots a dinosaur card into a weapon copy ("" takes it out; it goes back to
+## the card pile). The weapon needs a card slot (Gear.card_slots) and the card
+## must be free (not in another weapon). Returns true if it changed.
+func slot_card(weapon: String, dino: String) -> bool:
+	if not gear_owned.has(weapon) or Gear.card_slots(weapon) <= 0:
+		return false
+	if dino == "":
+		gear_sockets.erase(weapon)
+	else:
+		if Gear.socketed(weapon) != dino and Gear.free_cards(dino) <= 0:
+			return false
+		gear_sockets[weapon] = dino
 	_save_gear()
 	if player.form == Forms.ROK:
 		player.refresh_form()
@@ -2724,6 +2749,7 @@ func salvage(copy: String) -> bool:
 			return false
 	var back := Crafting.salvage_return(Gear.base(copy), Gear.rarity_of(copy))
 	gear_owned.erase(copy)
+	gear_sockets.erase(copy)   # its card goes back to the card pile
 	gear_wear.erase(copy)
 	gear_rarity.erase(copy)
 	grant_materials(back, false)

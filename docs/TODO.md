@@ -15,7 +15,6 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 - [ ] **Pet system (future):** the user plans pets; design to come. The eggs' new use (to be described) may tie in.
 - [ ] **Eggs:** the user's new idea for the egg art (to be described).
-- [ ] **Cards:** should a dinosaur card add to a weapon instead of replacing it in the weapon slot?
 - [ ] **Stomps:** which wild species are stompable, and does a stomp bounce Rok?
 
 ## Art (the user)
@@ -43,6 +42,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Done recently
 
+- 2026-11-23: dinosaur cards are slotted into weapons (`[card_slots]`, a slot can stay empty), not equipped.
 - 2026-11-23: damage tiers per obstacle (`config/damage.cfg`; pits, liquids, quicksand and gates stay instant); a NEW banner per obstacle look (`config/obstacle_looks.cfg`), two banners at once; PRIMAL energy explained (Field Guide page, first-dino card, tiring banner, tutorial note).
 - 2026-11-23: Rok's size made consistent: idle, walk, duck, trip, dizzy, snag and the 5 standing styles from the user's consistency update (redrawn at his run's size), his per-weapon clips and gear sockets refitted.
 - 2026-11-23: the Blaze Pepper replaced the Dino Egg as the speed-boost power-up (id `pepper`; old saves renamed on load).

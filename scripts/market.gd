@@ -1090,7 +1090,7 @@ func _build_detail() -> void:
 		var n := 0
 		for k in game.cards:
 			n += int(game.cards[k])
-		desc = "A random dinosaur card for a hero's weapon slot. You have %d card%s." % [n, "" if n == 1 else "s"]
+		desc = "A random dinosaur card to slot into a weapon. You have %d card%s." % [n, "" if n == 1 else "s"]
 		if game.last_card != "":
 			desc += " Last: %s Card." % Herd.name_of(game.last_card)
 	elif dino:

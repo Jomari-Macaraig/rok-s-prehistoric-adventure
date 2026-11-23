@@ -30,7 +30,7 @@ Art conventions shared by everything:
 | trip, dizzy, snag | hit reactions | dizzy and snag: enter 0–1, hold 2–5, recover 6–7 |
 | **Flyers:** fly, glide, takeoff, land | flight | registered at the same point as the other clips |
 | **Tanks:** swim | Flooded Crossing gate | floats at the waterline |
-| **Card art** | the dinosaur card (Field Guide Cards tab, weapon slot) | transparent PNG at `../Assets/Rok_Dinosaur_Cards/cards/<id>.png` (1024×1536, name painted on the plank, blank parchment below), like the 21 in the pack; `prepare_cards.py` trims and sizes it |
+| **Card art** | the dinosaur card (Field Guide Cards tab, a weapon's card slot) | transparent PNG at `../Assets/Rok_Dinosaur_Cards/cards/<id>.png` (1024×1536, name painted on the plank, blank parchment below), like the 21 in the pack; `prepare_cards.py` trims and sizes it |
 
 ### Data and config
 - **Metadata** (`characters` / `role` in the pack): name, category (Runner, Smasher, Tank, Flyer), tier, blurb → `tools/prepare_dinos.gd` writes `assets/dinos/dinos.json`.
@@ -60,7 +60,7 @@ Art conventions shared by everything:
 | celebrate | the new-best celebration jump | launch and land frames marked |
 | trip, dizzy, snag | hit reactions | |
 | **attack × every weapon** | ATTACK with each weapon | 7 today: club, stone_axe, flint_spear, bone_hammer, sling, torch, bow. Hand position matches the weapon icon's grip |
-| **bare-hand attack** | ATTACK with no weapon, a card, or a broken weapon | still missing for all heroes |
+| **bare-hand attack** | ATTACK with no weapon or a broken weapon | still missing for all heroes |
 | **running attack × every weapon** | ATTACK while running (seamless) | a pack like `Rok_Running_Club`: `run.png` carrying the weapon, `phases/run_attack_phase_0..7.png`, `validation.json` |
 | **armor overlays** (Hide Vest, Bone Guards, Scale Mail) | armor drawn on the body | 4×2 per clip, on the hero's canvas and pivot, armor only (transparent elsewhere). Shell Plate uses the back socket |
 | portrait | Camp tile, Market card | cut from idle |
@@ -81,7 +81,7 @@ Art conventions shared by everything:
 
 > **What art to generate** for a new weapon, armor or accessory: [NEW_ITEM_ART.md](NEW_ITEM_ART.md).
 
-> Moving to **attack styles** (heroes drawn empty-handed once per style, with weapons placed by guide sheets), so a new weapon will need only its icon and a `[weapon_styles]` entry in `config/crafting.cfg`. See [ITEM_ART_PLAN.md](ITEM_ART_PLAN.md). Rok's **Swing** is in (the pilot, approved): a new swing weapon already needs no attack clip for Rok. Until every hero has every style, the list below is what a weapon needs.
+> Moving to **attack styles** (heroes drawn empty-handed once per style, with weapons placed by guide sheets), so a new weapon will need only its icon, a `[weapon_styles]` entry and a `[card_slots]` count (0 = no card slot; unlisted weapons use `default`) in `config/crafting.cfg`. See [ITEM_ART_PLAN.md](ITEM_ART_PLAN.md). Rok's **Swing** is in (the pilot, approved): a new swing weapon already needs no attack clip for Rok. Until every hero has every style, the list below is what a weapon needs.
 
 ### Art
 

@@ -9,11 +9,16 @@ class_name Gear
 ## Legendary) that multiplies its bonuses and durability: its id is the
 ## item id plus "#<n>" ("stone_axe#3"); `base(id)` gives the item id. Gear
 ## from old saves has no "#" and is Common.
-## Dinosaur CARDS can go in the weapon slot instead: one card per dinosaur
-## (the playable four and the 28 expansion species), found in rare and epic
-## milestone chests or Card Packs from the Market. A card adds CARD_BONUS (by
-## the dinosaur's tier) to its category's lean attribute (Runner Speed,
-## Smasher Power, Tank Armor, Flyer Jump) and reaches CARD_REACH.
+## Dinosaur CARDS aren't equipped (the user's rule, 2026-11-23): they're
+## SLOTTED into a weapon. Each weapon has a card slot or not
+## (config/crafting.cfg [card_slots], `card_slots`), and a slot can stay empty.
+## One card per dinosaur (the playable four and the 28 expansion species),
+## dropped by wild dinosaurs and found in milestone chests. A slotted card adds
+## CARD_BONUS (by the dinosaur's tier) to its category's lean attribute (Runner
+## Speed, Smasher Power, Tank Armor, Flyer Jump) on top of the weapon's own
+## bonuses, while the weapon is equipped and not broken. `sockets` (main.
+## gear_sockets, saved) maps a weapon copy to its card's dinosaur; a card in a
+## weapon is used up until it's taken out (`free_cards`).
 ## State lives in main (`gear_owned`, `gear_equipped`, `cards`), saved by
 ## SaveData.load/save_gear; main keeps these static vars pointing at it.
 ## Art: icons are drawn in code until the user supplies them (tools/CLAUDE.md).
@@ -83,13 +88,13 @@ const CARD_PACK := "card_pack"
 const CARD_PACK_PRICE := 350
 ## Card bonus to the lean attribute, by the dinosaur's tier (0 original, 1-4 Starter..Legend).
 const CARD_BONUS := [1.0, 1.0, 1.5, 2.0, 3.0]
-const CARD_REACH := 200.0
 const CARD_PREFIX := "card:"
 
 static var owned: Array = []          # gear copy ids (main.gear_owned)
 static var rarity: Dictionary = {}    # copy id -> rarity 0-4 (missing = 0 Common; main.gear_rarity)
 static var equipped: Dictionary = {}  # hero id -> {"weapon": id or "card:<dino>", "armor": id}
 static var cards: Dictionary = {}     # dino id -> how many (main.cards)
+static var sockets: Dictionary = {}   # weapon copy id -> the dino id of the card slotted in it (main.gear_sockets)
 ## Weapon durability (the user's design): every ATTACK that connects costs 1;
 ## at 0 the weapon is broken (no bonus, no reach, not drawn) until repaired
 ## at the Camp for meat. id -> uses left (missing = new). main.gear_wear.
@@ -197,21 +202,46 @@ static func has_any(hero: String) -> bool:
 	return slot_item(hero, "weapon") != "" or slot_item(hero, "armor") != ""
 
 
-## Everything a hero's gear adds to one attribute.
+## Everything a hero's gear adds to one attribute (a weapon's slotted card included).
 static func bonus(hero: String, attr: String) -> float:
 	var t := 0.0
 	for slot in ["weapon", "armor"]:
 		var id := slot_item(hero, slot)
 		if id != "" and not broken(id):
 			t += float(item_bonus(id).get(attr, 0.0))
+			if socketed(id) != "":
+				t += float(item_bonus(CARD_PREFIX + socketed(id)).get(attr, 0.0))
 	return t
+
+
+## How many card slots a weapon has (config/crafting.cfg [card_slots]; 0 = none).
+static func card_slots(id: String) -> int:
+	if not ITEMS.has(base(id)) or ITEMS[base(id)].slot != "weapon":
+		return 0
+	var key := base(id) if Crafting.has_key("card_slots", base(id)) else "default"
+	return int(Crafting.num("card_slots", key)) if Crafting.has_key("card_slots", key) else 1
+
+
+## The dinosaur whose card is slotted in this weapon copy, or "".
+static func socketed(id: String) -> String:
+	return String(sockets.get(id, ""))
+
+
+## Cards of a dinosaur not slotted in any weapon.
+static func free_cards(dino: String) -> int:
+	return int(cards.get(dino, 0)) - sockets.values().count(dino)
+
+
+## Dinosaurs with a free card, sorted.
+static func card_choices() -> Array:
+	var ids: Array = cards.keys().filter(func(d): return free_cards(String(d)) > 0)
+	ids.sort()
+	return ids
 
 
 ## How far ahead the hero's ATTACK reaches (bare hands without a weapon).
 static func reach(hero: String) -> float:
 	var w := slot_item(hero, "weapon")
-	if w.begins_with(CARD_PREFIX):
-		return CARD_REACH
 	return float(ITEMS[base(w)].reach) if ITEMS.has(base(w)) and not broken(w) else Tuning.ATTACK_REACH_HAND
 
 
@@ -230,16 +260,11 @@ static func random_card(epic: bool) -> String:
 	return pool.pick_random()
 
 
-## Gear and card ids a hero could put in a slot: owned gear, owned cards.
+## Gear a hero could put in a slot: owned weapons or armor (cards go in a
+## weapon's card slot instead: card_choices).
 static func choices(slot: String) -> Array:
 	var out: Array = owned.filter(func(id): return ITEMS.has(base(id)) and ITEMS[base(id)].slot == slot)
 	out.sort_custom(func(a, b): return [ITEMS.keys().find(base(a)), -rarity_of(a)] < [ITEMS.keys().find(base(b)), -rarity_of(b)])
-	if slot == "weapon":
-		var ids: Array = cards.keys()
-		ids.sort()
-		for d in ids:
-			if int(cards[d]) > 0:
-				out.append(CARD_PREFIX + String(d))
 	return out
 
 
