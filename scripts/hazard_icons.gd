@@ -18,11 +18,11 @@ class_name HazardIcons
 const P := "res://assets/props/%s.png"
 
 const ZONE_ICONS := {
-	"small": {"forest": "Stones_03", "desert": "Stones_03@stone", "canyon": "res://assets/canyon/stone_scatter.png", "volcanic": "Stones_03@stone"},
-	"log": {"forest": "Logs_03", "desert": "Logs_03@wood", "canyon": "res://assets/canyon/sandstone_spikes.png", "volcanic": "Logs_03@wood"},
-	"fence": {"forest": "Fences_01", "desert": "Fences_01@wood", "canyon": "res://assets/canyon/wooden_barricade.png", "volcanic": "Fences_01@wood"},
-	"tall_fence": {"forest": "Fences_03", "desert": "Fences_03@wood", "canyon": "res://assets/canyon/tall_rock_pillar.png", "volcanic": "Fences_03@wood"},
-	"thorn_bush": {"forest": "Grasses_16", "desert": "Grasses_16@thorn", "canyon": "res://assets/canyon/tumble_thorn.png", "volcanic": "Stones_03@stone"},
+	"small": {"forest": "Stones_03", "desert": "trap:biome_raptor_skull:0", "canyon": "res://assets/canyon/stone_scatter.png", "volcanic": "trap:biome_ember_rock:0"},
+	"log": {"forest": "Logs_03", "desert": "trap:biome_horned_skull_a:0", "canyon": "res://assets/canyon/sandstone_spikes.png", "volcanic": "trap:biome_cooled_lava_ridge:0"},
+	"fence": {"forest": "Fences_01", "desert": "trap:biome_rib_bone_row:0", "canyon": "res://assets/canyon/wooden_barricade.png", "volcanic": "trap:biome_obsidian_spike_row:0"},
+	"tall_fence": {"forest": "Fences_03", "desert": "trap:biome_vertebra_column:0", "canyon": "res://assets/canyon/tall_rock_pillar.png", "volcanic": "trap:biome_basalt_column:0"},
+	"thorn_bush": {"forest": "Grasses_16", "desert": "trap:biome_dry_thorn_shrub:0", "canyon": "res://assets/canyon/tumble_thorn.png", "volcanic": "trap:biome_ember_bramble:0"},
 	"boulder": {"forest": "Stones_04", "desert": "trap:desert_wall_break:0", "canyon": "res://assets/canyon/sandstone_boulder.png", "volcanic": "trap:volcanic_wall_break:0"},
 	"wall": {"forest": "Tile-3_08", "desert": "trap:desert_wall_break:0", "canyon": "res://assets/canyon/cracked_sandstone_wall.png", "volcanic": "trap:volcanic_wall_break:0"},
 	"ledge": {"forest": "res://assets/traps/forest_overhead.png", "desert": "res://assets/traps/desert_fossil_arch.png", "canyon": "res://assets/canyon/rock_arch.png",

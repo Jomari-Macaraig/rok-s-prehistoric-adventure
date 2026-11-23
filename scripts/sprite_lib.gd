@@ -440,6 +440,9 @@ static func trap_meta() -> Dictionary:
 	if _trap_meta.is_empty():
 		var f := FileAccess.open("res://assets/traps/traps.json", FileAccess.READ)
 		_trap_meta = JSON.parse_string(f.get_as_text())
+		# the user's biome obstacles and their breaks (tools/prepare_biome_obstacles.py)
+		if FileAccess.file_exists("res://assets/traps/biome.json"):
+			_trap_meta.merge(JSON.parse_string(FileAccess.get_file_as_string("res://assets/traps/biome.json")), true)
 	return _trap_meta
 
 

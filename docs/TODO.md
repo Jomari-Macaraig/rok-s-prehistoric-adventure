@@ -18,10 +18,6 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Art (the user)
 
-- [ ] **Zone obstacles** (19 pieces; transparent PNG + `@2x`, each with a 4×2 break sheet):
-  - Desert: horned dinosaur skull on its side (2 variants), half-buried fossil spine segment, petrified stone log, row of ribs in the sand, standing rib cage or tall vertebra column, small raptor skull, bone pile, sandstone shard, dry spiky shrub with bleached thorns.
-  - Volcanic: cooled lava ridge with glowing cracks, charred stone log, row of short obsidian spikes, hexagonal basalt column, smouldering ember rock, obsidian shard cluster, pumice lump, ash-grey bramble with ember-tipped thorns.
-  - Forest: break animations for the small twig and the two mushrooms.
 - [ ] **Optional: Nira's and Boro's running style attacks redrawn over their in-game run** (`Rok_New_Heroes_Nira_Boro/<hero>/spritesheets/run.png`): their packs used a different, ~10% taller run, so the game fits them; legs only match exactly for Rok.
 - [ ] **UI:** an Armor stat icon (kit glyph style); "Crafting Bench", "Items" and "DINOSAUR CAMP" title plaques.
 - [ ] **Card art** for the 12 balanced-pack dinosaurs (Deinonychus … Dsungaripterus).
@@ -41,4 +37,4 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Done recently
 
-- 2026-11-23: all five attack styles for Rok, Nira and Boro, standing and running (bare hands = Fist); the Canyon zone (4th, from the user's canyon pack; timeline probe: every zone lesson lands in its zone); Point Hunter and Seasoned medals; day/night icon on the HUD; chest rarities; bug-proof tutorial; Kora's lines and name plank; Ugo's name plank; Camp meat counter hidden; Rok's Swing pilot (approved); [NEW_ITEM_ART.md](NEW_ITEM_ART.md).
+- 2026-11-23: Desert and Volcanic biome obstacles with breaks, Forest twig and mushroom breaks; all five attack styles for Rok, Nira and Boro, standing and running (bare hands = Fist); the Canyon zone (4th, from the user's canyon pack; timeline probe: every zone lesson lands in its zone); Point Hunter and Seasoned medals; day/night icon on the HUD; chest rarities; bug-proof tutorial; Kora's lines and name plank; Ugo's name plank; Camp meat counter hidden; Rok's Swing pilot (approved); [NEW_ITEM_ART.md](NEW_ITEM_ART.md).

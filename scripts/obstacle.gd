@@ -44,10 +44,13 @@ const BREAKS := {
 	"Tile-3_09": "existing_stone_break", "Tile-3_10": "existing_stone_break",
 	# small rocks (and meteors) crumble like a little boulder
 	"Stones_01": "existing_boulder_break", "Stones_02": "existing_boulder_break", "Stones_03": "existing_boulder_break",
+	# the Forest's twig and mushrooms (the user's biome pack: a snap, a squash and spores)
+	"Logs_05": "biome_small_twig", "Mushrooms_02": "biome_mushroom_red", "Mushrooms_05": "biome_mushroom_tan",
 }
 ## A break animation drawn at the prop's scale x this (the boulder break is
 ## boulder-sized; the small rocks crumble at their own size).
-const BREAK_SCALE := {"Stones_01": 0.45, "Stones_02": 0.42, "Stones_03": 0.55}
+const BREAK_SCALE := {"Stones_01": 0.45, "Stones_02": 0.42, "Stones_03": 0.55,
+		"Logs_05": 1.04, "Mushrooms_02": 0.8, "Mushrooms_05": 0.79}   # frame 0 as wide as the prop
 
 
 func setup(k: String, parts: Array, scale_factor: float) -> Obstacle:
@@ -70,6 +73,26 @@ func setup(k: String, parts: Array, scale_factor: float) -> Obstacle:
 		w = maxf(w, sz.x)
 		add_child(s)
 	size = Vector2(w, y + 10.0 * scale_factor)
+	return self
+
+
+## One obstacle drawn as frame 0 of its break animation (the user's biome
+## obstacles: Desert skulls and bones, Volcanic lava rock and obsidian…),
+## scaled so it stands `height` px tall (and at most `max_w` wide); smashing
+## it plays the rest of the sheet (shatter). Origin: its base on the ground.
+func setup_anim(k: String, anim: String, height: float, max_w := 9999.0) -> Obstacle:
+	kind = k
+	var m: Dictionary = SpriteLib.trap_meta()[anim]
+	var b: Array = m.bounds0
+	var bw := float(b[2]) - float(b[0])
+	var bh := float(b[3]) - float(b[1])
+	var s := minf(height / bh, max_w / bw)
+	var a := SpriteLib.trap_sprite(anim, false)
+	a.scale = Vector2.ONE * s
+	a.position = Vector2(-((float(b[0]) + float(b[2])) * 0.5 - float(m.anchor[0])) * s, 0.0)   # the art centred on the origin
+	add_child(a)
+	parts_info.append({"node": a, "bottom": 0.0, "scale": s, "break": anim, "self": true})
+	size = Vector2(bw * s, bh * s)
 	return self
 
 

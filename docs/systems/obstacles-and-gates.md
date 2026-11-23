@@ -52,23 +52,21 @@ Part of the [system docs](README.md).
 
 `Course.small/log_/boulder/rock_wall/fence/thorn_bush` check `zone_at_x()`. Tints sit on the obstacle node, so rubble keeps them.
 
-| | Forest | Desert | Canyon (`Course._canyon`, `assets/canyon/`) | Volcanic |
+| | Forest | Desert (`Course.BIOME`) | Canyon (`Course._canyon`, `assets/canyon/`) | Volcanic (`Course.BIOME`) |
 |---|---|---|---|---|
-| Rocks | as drawn, plus mushrooms | sandstone tint, no mushrooms | loose canyon stones (60%) or a sandstone-tinted rock | basalt tint |
-| Logs | as drawn | sun-bleached (`WOOD_TINT`) | a row of canyon rock spikes (same rules as a log) | charred |
-| Fences | as drawn | sun-bleached | wooden canyon barricade; tall: a rock pillar or a cactus cluster | charred |
+| Small | rocks, mushrooms, a twig | small raptor skull, bone pile, sandstone shard | loose canyon stones (60%) or a sandstone-tinted rock | smouldering ember rock, obsidian shards, pumice |
+| Logs | as drawn | horned dinosaur skulls (2), half-buried fossil spine, petrified log | a row of canyon rock spikes | cooled lava ridge, charred stone log |
+| Fences | as drawn | a row of rib bones; tall: a vertebra column | wooden canyon barricade; tall: a rock pillar or a cactus | a row of obsidian spikes; tall: a hexagonal basalt column |
 | Boulders | as drawn | desert barricade art (`_zone_rock`) | low sandstone boulder | basalt chunk |
 | Walls | stacked tiles | desert barricade art | stacked cracked sandstone blocks | basalt walls |
-| Thorn bushes | yes | dry tumble-thorns (tinted) | the pack's dry tumble-thorn | none (a rock instead) |
+| Thorn bushes | yes | dry thorn shrub | the pack's dry tumble-thorn | ash-grey ember bramble (it had none before) |
 | Low ledge | vine branch (snags) | fossil arch | rock arch on sandstone legs (`setup_overhead_arch`: only the lintel collides, its underside at `LEDGE_CLEARANCE`) | floating rock |
 | Floating islands | grass island | sandstone island | the raised sandstone ledge | basalt island |
 | Sturdy pit bridges | logs | logs | the rope bridge, stretched over the gap | logs |
 | Gap edges | outline | outline | the pack's cliff edges | outline |
 | Dino gates | | sandstone bridge / wall | the Desert's (kin) | lava / basalt |
 
-The Canyon pack has no break animations, so its obstacles vanish in a puff of particles when smashed.
-
-Desert and Volcanic logs, fences, small rocks and thorn bushes are the Forest props tinted until the user's zone art arrives; the art list is in [tools/CLAUDE.md](../../tools/CLAUDE.md) ("Zone obstacles that don't fit their zone").
+**Biome obstacles** (the user's `Rok_Biome_Obstacles`, `tools/prepare_biome_obstacles.py`): each Desert and Volcanic obstacle stands as frame 0 of its own 8-frame break sheet (`Obstacle.setup_anim`, scaled to the height of the Forest obstacle it replaces, its width capped) and plays the rest when smashed. They keep the kind they replace (`small`, `wood`, `fence`, `thorns`), so the rules are the same: jump them, Power or a dinosaur's smash breaks them as before. The Forest's twig and mushrooms now play the pack's snap and squash-and-spores breaks (`Obstacle.BREAKS`). The Canyon pack has no break animations, so its obstacles still vanish in a puff of particles.
 
 Desert and Volcanic walls use `ZONE_WALL_PIECE_H` pieces so a wall of height h matches the Forest's.
 

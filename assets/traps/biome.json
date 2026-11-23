@@ -1,0 +1,706 @@
+{
+ "biome_bone_pile": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   62,
+   151,
+   194,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "desert",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_dry_thorn_shrub": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   47,
+   121,
+   209,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "desert",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_fossil_spine": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   56,
+   161,
+   200,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "desert",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_horned_skull_a": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   40,
+   118,
+   216,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "desert",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_horned_skull_b": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   50,
+   129,
+   206,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "desert",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_petrified_log": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   44,
+   144,
+   212,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "desert",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_raptor_skull": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   75,
+   166,
+   180,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "desert",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_rib_bone_row": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   48,
+   107,
+   208,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "desert",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_sandstone_shard": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   85,
+   115,
+   171,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "desert",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_vertebra_column": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   90,
+   54,
+   166,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "desert",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_mushroom_red": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   90,
+   151,
+   166,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "forest",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_mushroom_tan": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   80,
+   158,
+   176,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "forest",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_mushrooms_pair": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224
+  ],
+  "bounds0": [
+   63,
+   174,
+   193,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "forest",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_small_twig": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   84,
+   188,
+   173,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "forest",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_basalt_column": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   90,
+   67,
+   166,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "volcanic",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_charred_stone_log": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   45,
+   144,
+   212,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "volcanic",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_cooled_lava_ridge": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   33,
+   160,
+   223,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "volcanic",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_ember_bramble": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   47,
+   121,
+   209,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "volcanic",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_ember_rock": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   65,
+   147,
+   191,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "volcanic",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_obsidian_shard_cluster": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   84,
+   152,
+   173,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "volcanic",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_obsidian_spike_row": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   58,
+   149,
+   198,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "volcanic",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ },
+ "biome_pumice_lump": {
+  "frame": [
+   256,
+   256
+  ],
+  "anchor": [
+   128,
+   224.0
+  ],
+  "bounds0": [
+   75,
+   144,
+   181,
+   224
+  ],
+  "duration_ms": [
+   70,
+   70,
+   80,
+   90,
+   90,
+   100,
+   110,
+   220
+  ],
+  "loop": false,
+  "biome": "volcanic",
+  "events": {
+   "impact_frame": 2,
+   "final_remains_frame": 7
+  }
+ }
+}

@@ -317,6 +317,26 @@ func _platform(x: float, y: float) -> FloatingPlatform:
 ## sun-bleached wood and dry thorns in the Desert; basalt and charred wood in
 ## the Volcanic Badlands. Boulders and walls there use the zone's barricade
 ## art, so they shatter with its break animation.
+## The user's biome obstacles (tools/prepare_biome_obstacles.py), per zone and
+## kind: [break animation, height px, max width px], picked at random. Each
+## stands as frame 0 of its break sheet and plays the rest when smashed; the
+## sizes match the Forest obstacle it replaces, so it plays the same.
+const BIOME := {
+	"desert": {
+		"small": [["biome_raptor_skull", 44.0, 90.0], ["biome_bone_pile", 42.0, 90.0], ["biome_sandstone_shard", 52.0, 60.0]],
+		"log": [["biome_horned_skull_a", 86.0, 190.0], ["biome_horned_skull_b", 82.0, 180.0], ["biome_fossil_spine", 70.0, 190.0], ["biome_petrified_log", 80.0, 190.0]],
+		"fence": [["biome_rib_bone_row", 112.0, 200.0]],
+		"tall_fence": [["biome_vertebra_column", 132.0, 80.0]],
+		"thorns": [["biome_dry_thorn_shrub", 80.0, 140.0]],
+	},
+	"volcanic": {
+		"small": [["biome_ember_rock", 44.0, 90.0], ["biome_obsidian_shard_cluster", 46.0, 70.0], ["biome_pumice_lump", 44.0, 80.0]],
+		"log": [["biome_cooled_lava_ridge", 72.0, 210.0], ["biome_charred_stone_log", 80.0, 190.0]],
+		"fence": [["biome_obsidian_spike_row", 104.0, 200.0]],
+		"tall_fence": [["biome_basalt_column", 132.0, 80.0]],
+		"thorns": [["biome_ember_bramble", 80.0, 140.0]],
+	},
+}
 const STONE_TINT := {"desert": Color(1.0, 0.78, 0.52), "volcanic": Color(0.5, 0.45, 0.5)}
 const WOOD_TINT := {"desert": Color(1.0, 0.93, 0.8), "volcanic": Color(0.34, 0.28, 0.26)}
 const THORN_TINT := {"desert": Color(1.25, 1.05, 0.62)}
@@ -345,8 +365,24 @@ func _canyon(kind: String, name: String, s: float, x: float, n := 1) -> Obstacle
 	return o
 
 
+## A biome obstacle for this zone and kind, or null if the zone has none.
+func _biome(zid: String, key: String, kind: String, x: float) -> Obstacle:
+	if not BIOME.has(zid) or not BIOME[zid].has(key) or not SpriteLib.trap_meta().has(BIOME[zid][key][0][0]):
+		return null
+	var pick: Array = (BIOME[zid][key] as Array).pick_random()
+	var o := Obstacle.new().setup_anim(kind, pick[0], pick[1], pick[2])
+	o.position = Vector2(x, _ground + 6.0)
+	o.shrink = Vector2(0.82, 0.9)
+	add_child(o)
+	obstacles.append(o)
+	return o
+
+
 func small(x: float) -> Obstacle:
 	var zid := _zid(x)
+	var bo := _biome(zid, "small", "small", x)
+	if bo:
+		return bo
 	if zid == "canyon" and randf() < 0.6:
 		return _canyon("small", "stone_scatter", 1.1, x)   # loose canyon stones (else a tinted rock)
 	if zid != "forest":
@@ -360,6 +396,9 @@ func small(x: float) -> Obstacle:
 
 
 func log_(x: float) -> Obstacle:
+	var bo := _biome(_zid(x), "log", "wood", x)   # a skull, fossil spine, petrified or charred log, lava ridge
+	if bo:
+		return bo
 	if _zid(x) == "canyon":
 		return _canyon("wood", "sandstone_spikes", 1.3, x)   # a row of rock spikes, the canyon's log
 	var pick: Array = [["Logs_03", 1.05], ["Logs_04", 1.0], ["Logs_01", 1.0], ["Logs_02", 1.0]].pick_random()
@@ -413,6 +452,11 @@ func fence(x: float, tall: bool) -> Obstacle:
 		var t := _canyon("fence", pick[0], pick[1], x)   # a rock pillar or a cactus, as tall as the tall fence
 		t.shrink = Vector2(0.75, 0.9)
 		return t
+	var bo := _biome(_zid(x), "tall_fence" if tall else "fence", "fence", x)   # ribs, vertebrae, obsidian spikes, basalt
+	if bo:
+		if tall:
+			bo.shrink = Vector2(0.75, 0.9)
+		return bo
 	var o: Obstacle
 	if tall:
 		o = _obstacle("fence", ["Fences_03"], 1.5, x)
@@ -675,6 +719,9 @@ func rolling_boulder(x: float) -> Obstacle:
 ## Volcanic Badlands, so a basalt rock takes its place there.
 func thorn_bush(x: float) -> Obstacle:
 	var zid := _zid(x)
+	var bo := _biome(zid, "thorns", "thorns", x)   # a dry thorn shrub, an ember bramble (the Volcanic zone had none)
+	if bo:
+		return bo
 	if zid == "volcanic":
 		return small(x)
 	if zid == "canyon":
