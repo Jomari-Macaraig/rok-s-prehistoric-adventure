@@ -35,7 +35,6 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 - [ ] Canyon break animations (its obstacles vanish in a puff today): boulder, wall block, barricade, rock spikes, pillar, cactus, tumble-thorn (4×2, frame 2 the impact).
 - [ ] Canyon's own hunter, wild dinosaurs and music (it borrows the Desert's for now).
-- [ ] Rerun `tests/timeline_probe.gd -- 9600` and check the new schedule (the Canyon moved Steam to 4650, Rolling Boulders 5250, Lava Crossing 5850, Flooded Crossing 6150 m).
 
 ## Unused art
 
@@ -43,4 +42,4 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Done recently
 
-- 2026-11-23: the Canyon zone (4th, from the user's canyon pack); Point Hunter and Seasoned medals; day/night icon on the HUD; chest rarities; bug-proof tutorial; Kora's lines and name plank; Ugo's name plank; Camp meat counter hidden; Rok's Swing pilot (approved); [NEW_ITEM_ART.md](NEW_ITEM_ART.md).
+- 2026-11-23: the Canyon zone (4th, from the user's canyon pack; timeline probe: every zone lesson lands in its zone); Point Hunter and Seasoned medals; day/night icon on the HUD; chest rarities; bug-proof tutorial; Kora's lines and name plank; Ugo's name plank; Camp meat counter hidden; Rok's Swing pilot (approved); [NEW_ITEM_ART.md](NEW_ITEM_ART.md).
