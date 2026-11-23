@@ -76,3 +76,8 @@ The seventh tab lists every dinosaur card: the four originals, then the 28 expan
 - The per-zone looks row (`_zone_looks`) has room for all four zones (66 px cells).
 - Zone cards show a small scene made from the zone's own art (`Codex.zone_icon`: daytime sky, background layers, a strip of its ground) instead of a thin background strip.
 - Day & Night uses the user's half-sun, half-moon icon; Combo & Primal Frenzy the Untouchable gold medal (it was the amber icon, twice).
+
+## Drops and unlock hints (the user's rule, 2026-11-23: the Encyclopedia stays in sync with the game)
+
+- **What things drop** is written by `scripts/drops.gd` (`Drops`) from the same config the game rolls with, never typed in: a hazard's page lists breaking it (`[break_loot]` amber, heart and power-up shares, and `[break_drops]` materials per zone, `Drops.for_hazard`; rocks by zone, the "Rocks" page adds mushrooms), a wild dinosaur's materials and card chances (`[wild_drops]`, `[cards]`; on the Stampede, Swooper and Diving Flyer pages, and on the species' and original dinosaurs' pages with where they run wild, `Drops.for_wild`, `wild_zones`), a hunter's trophy (`[trophies]`, on its page), and the Milestone Chest's odds and rewards (`[chests]`, `Drops.for_chests`). Change a number in the config and the page follows.
+- **How to unlock** every locked entry: hazards say the distance and the zone they live in plus anything `config/requirements.cfg` still waits for (`Codex.unlock_hint`); dinosaurs their distance; expansion species the Market's lock (distance and badge) and where they run wild; cards which wild dinosaur drops them, where and how often, or which chests hold them; items, zones and power-ups as before.

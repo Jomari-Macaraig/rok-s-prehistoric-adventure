@@ -821,7 +821,10 @@ func _show_tab(i: int) -> void:
 				if it.has("seen") and not seen.has(it.seen):
 					_card(icon, "???", it.hint, "", true, false)
 					continue
-				_card(icon, it.name, it.text, "", false, false)
+				var itext: String = it.text
+				if it.name == "Milestone Chest":
+					itext += "\n\n" + Drops.for_chests()
+				_card(icon, it.name, itext, "", false, false)
 		3:
 			_powerup_cards()
 		4:
@@ -861,7 +864,8 @@ func _cards_tab() -> void:
 		var have := int(Gear.cards.get(id, 0))
 		var found := have > 0 or seen.has("card_" + id)
 		var bonus := Gear.bonus_text(Gear.CARD_PREFIX + id)
-		var where := "Dropped by a wild %s: bonk one with ATTACK." % Herd.name_of(id) if Critters.DATA.has(id) else "Found in rare, ultra rare and legendary chests."
+		var where := ("Dropped by a wild %s in %s: bonk one with ATTACK (%s the first time, %s after). Also in chests." % [Herd.name_of(id), Drops.wild_zones(id), Drops.pct(Drops.card_chance(id, true)), Drops.pct(Drops.card_chance(id, false))]) \
+				if Critters.DATA.has(id) else "Found in rare, ultra rare and legendary chests%s." % ("" if Dinos.tier(id) <= 2 else " (ultra rare and legendary only)")
 		if found:
 			_card(CardView.icon(id), Herd.name_of(id) + " Card", "Use it on a weapon at the Dinosaur Camp: it gives the weapon %s." % bonus,
 					"You have x%d  ·  %s" % [have, where], false, false, Color(0.55, 0.32, 0.12))
@@ -1150,6 +1154,8 @@ func _dino_card(f: int) -> void:
 		Forms.SPINOSAURUS: "Huge and tough. Tramples fences and logs, and each transformation gives a shield that survives one hit.",
 		Forms.PTERANODON: "Takes to the sky. Hold JUMP to climb, let go to glide. Flies over pits and walls.",
 	}[f]
+	if Critters.DATA.has(d.id):
+		how += "\n\nIt also runs wild in %s.\n%s" % [Drops.wild_zones(d.id), Drops.for_wild(d.id)]
 	_card(tex, d.name, how, "  ·  ".join(meta), false,
 			_new_ids.has("dino_%d" % f), d.color, dino_stats(f), d.id)
 
@@ -1179,14 +1185,17 @@ func _species_card(id: String) -> void:
 	var tex := Dinos.icon(id)
 	var cat: Dictionary = Dinos.CATEGORIES[Dinos.category_of(id)]
 	if not species_owned.has(id):
-		_card(tex, "???", "A %s for the %s button. Buy it in the Market once you %s." % [
-				String(cat.name).to_lower(), cat.name, Market.lock_text(id, best_m).replace(" ✓", "").replace(" · ", " and ")], "", true, false)
+		var wild := (" You may meet it running wild in %s." % Drops.wild_zones(id)) if Critters.DATA.has(id) else ""
+		_card(tex, "???", "A %s for the %s button. To unlock it: buy it in the Market once you %s.%s" % [
+				String(cat.name).to_lower(), cat.name, Market.lock_text(id, best_m).replace(" ✓", "").replace(" · ", " and "), wild], "", true, false)
 		return
 	var rows := []
 	for a in Dinos.ATTRS:
 		var sv := Dinos.stat(id, a)
 		rows.append([Dinos.ATTR_NAMES[a], int(roundf(sv)), ("%s/10, its speciality" if a == cat.lean else "%s/10") % Dinos.fmt(sv), Dinos.ATTR_MAX])
 	var how := "%s %s. Equip it at the Dinosaur Camp to play as it on the %s button." % [Dinos.desc(id), cat.role, cat.name]
+	if Critters.DATA.has(id):
+		how += "\n\nIt also runs wild in %s.\n%s" % [Drops.wild_zones(id), Drops.for_wild(id)]
 	_card(tex, Dinos.name_of(id), how, "%s · %s · Lv %d★  ·  %s" % [cat.name, Dinos.tier_label(id), Dinos.level(id), Dinos.tradeoff(id)], false,
 			_new_ids.has("dino_" + id), Forms.DATA[cat.form].color, rows, id)
 
@@ -1274,11 +1283,36 @@ func _hazard_card(h: Dictionary, is_hazard: bool) -> void:
 	var first_m := Progression.intro_m(h.key)
 	var tex := HazardIcons.icon(h.key, "" if is_inf(first_m) else String(Zones.zone_at(first_m).id))
 	if not h.get("always", false) and not Progression.taught(h.key, best_m, seen):
-		_card(tex, "???", "Discovered at %d m." % int(Progression.intro_m(h.key)), "", true, false)
+		_card(tex, "???", unlock_hint(h.key), "", true, false)
 		return
 	var counter: String = h.get("counter", "")
 	var accent := Color(0.75, 0.3, 0.15) if h.get("gate", false) else Color(0.45, 0.25, 0.1)
-	_card(tex, h.name, h.text, counter, false, _new_ids.has(h.key), accent, [], h.get("facts", ""), _zone_looks(h.key))
+	var body: String = h.text
+	var dr := Drops.for_hazard(h.key)
+	if h.key == "small":   # its mushrooms have their own table
+		var mm := Drops.break_mats("mushroom")
+		if mm != "":
+			dr += "\n• mushrooms: %s materials (%s)" % [Drops.pct(float(Crafting.num("break_drops", "chance"))), mm]
+	if dr != "":
+		body += "\n\n" + dr
+	_card(tex, h.name, body, counter, false, _new_ids.has(h.key), accent, [], h.get("facts", ""), _zone_looks(h.key))
+
+
+## How to meet a hazard not met yet (the user's rule: say how to unlock
+## things): the distance, the zone it lives in and what it waits for.
+func unlock_hint(key: String) -> String:
+	var m := Progression.intro_m(key)
+	if is_inf(m):
+		return "Keep running: it turns up in long runs."
+	var zone_only: Array = HazardIcons.ZONE_ICONS.get(key, {}).keys()
+	var where := ""
+	if zone_only.size() == 1:
+		where = " in the %s" % String(Zones.ZONES[maxi(Zones.ZONES.map(func(z): return z.id).find(zone_only[0]), 0)].name)
+	var t := "Run past %d m in one run to meet it%s." % [int(m), where]
+	var need := ", ".join(Requires.missing("hazard." + key))
+	if need != "":
+		t += " It also needs: %s." % need
+	return t
 
 
 ## A row with a hazard's look in each zone it differs in (nothing if it

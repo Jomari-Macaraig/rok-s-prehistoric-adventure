@@ -1302,6 +1302,8 @@ func _feedback_checks() -> void:
 	main._refresh_hud()
 	check(main.state == main.State.OVER and main.summary.visible and not main.hud.market_button.visible and not main.hud.combo_meter.visible,
 			"the summary card has the screen to itself (no side buttons or combo meter over it)")
+	if not main.seen.has("craft_tour"):
+		main.seen.append("craft_tour")   # (the Crafting tour has its own checks)
 	main._touch_pressed("")
 	main._refresh_hud()
 	check(main.state == main.State.TITLE and not main.summary.visible and main.hud.market_button.visible and main.hud.herd_button.visible
@@ -1621,6 +1623,11 @@ func _feedback_checks() -> void:
 	main.herd.close_herd()
 	Crafting.set_value("card_slots", "stone_axe", 0)
 	check(Gear.card_slots(axe) == 0 and not main.slot_card(axe, main.last_card), "a weapon without a card slot takes no card")
+	for z in Zones.ZONES:
+		var zrock := Obstacle.new()
+		zrock.kind = "rock"
+		check(Crafting.num("break_drops", Crafting.break_table(zrock, String(z.id))) is Dictionary, "a broken rock in the %s has a drop table" % z.id)
+		zrock.free()
 	Crafting.set_value("card_slots", "stone_axe", 1)
 	check(Chest.rewards("rare").has("card") and Chest.rewards("ultra_rare").has("card"), "rare and ultra rare chests can hold cards")
 	main.equip_gear("rok", "weapon", "")
@@ -1639,6 +1646,46 @@ func _feedback_checks() -> void:
 	h.close_herd()
 	check(main.herd.find_child("Backdrop", true, false) != null and main.market.find_child("Backdrop", true, false) != null and main.codex.find_child("Backdrop", true, false) != null,
 			"the Camp, Market and Field Guide are their own full screens")
+	# the Encyclopedia says what things drop, from the same config (the user's rule: in sync)
+	var bd := Drops.for_hazard("boulder")
+	check(bd.contains(Crafting.mat_name("stone")) and bd.contains(Drops.pct(float(Crafting.num("break_drops", "chance")))) and bd.contains(Drops.pct(float(Loot.num("break_loot", "chance")))),
+			"a hazard's page lists what breaking it drops, with the config's chances")
+	var ch0: float = Crafting.num("break_drops", "chance")
+	Crafting.set_value("break_drops", "chance", 0.42)
+	check(Drops.for_hazard("log").contains("42%"), "...and follows the config when it changes")
+	Crafting.set_value("break_drops", "chance", ch0)
+	check(Drops.for_wild("gallimimus").contains(Crafting.mat_name("hide")) and Drops.for_wild("gallimimus").contains("card") and Drops.wild_zones("gallimimus").contains("Desert"),
+			"a wild dinosaur's page lists its materials, its card's chance and where it runs wild")
+	check(Drops.for_hazard("trex").contains(Crafting.mat_name(Crafting.trophy("trex"))) and Drops.for_chests().contains("legendary"), "hunters list their trophy, and chests their odds and rewards")
+	main.codex.unlocked = [Forms.ROK]
+	main.codex.best_m = 0.0
+	check(main.codex.unlock_hint("boulder").begins_with("Run past %d m" % int(Progression.intro_m("boulder"))) and main.codex.unlock_hint("quicksand").contains("Desert"),
+			"a locked hazard says how to meet it: the distance and its zone")
+	# the Crafting tour: back on the main menu after the run that opened the bench (once)
+	main.start_run(false)
+	main.seen.erase("bench_open")
+	main.seen.erase("craft_tour")
+	var bm0: float = main.best_m
+	main.best_m = maxf(main.best_m, float(Crafting.bench_m()))
+	main._bank_meat()
+	main.state = main.State.OVER
+	main._to_title()
+	check(main.menu_tour != null and main.menu_tour.steps == MenuTour.CRAFT_STEPS and main.menu_tour.want() == "herd", "after the run that opened the Crafting Bench, a tour points at the Camp")
+	main.open_herd("rok")
+	main.menu_tour.step(0.1)
+	main.menu_tour.step(0.1)
+	check(main.menu_tour.phase == "inside" and main.menu_tour.i == 0, "...inside the Camp it points at Crafting")
+	main.open_bench("weapon")
+	main.menu_tour.step(0.1)
+	check(main.menu_tour.i == 1, "...on the bench it explains the recipes and CRAFT")
+	main.bench.close_screen()
+	main.herd.close_herd()
+	main.menu_tour.step(0.1)
+	check(main.menu_tour == null and main.seen.has("craft_tour"), "...and Back ends it, for good")
+	main.state = main.State.OVER
+	main._to_title()
+	check(main.menu_tour == null, "the Crafting tour doesn't come back")
+	main.best_m = bm0
 	# the loading screen preloads what a run draws (the user's request)
 	check(main.loader == null, "test scripts skip the loading screen (only a normal launch shows it)")
 	var plc := Preloader.collect()
@@ -1973,7 +2020,7 @@ func _variety_checks() -> void:
 	ms.refresh("2026-11-21", 500.0, [Forms.ROK])
 	var same := Missions.new()
 	same.refresh("2026-11-21", 500.0, [Forms.ROK])
-	check(ms.ids.size() == Missions.PER_DAY and ms.ids == same.ids, "three missions a day, the same all day")
+	check(ms.ids.size() == ms.per() and ms.per() == 3 and ms.ids == same.ids, "three missions a day, the same all day")
 	var other := Missions.new()
 	var differ := false
 	for d in ["2026-11-22", "2026-11-23", "2026-11-24", "2026-11-25"]:
@@ -1998,9 +2045,9 @@ func _variety_checks() -> void:
 	ms.last_full = "2026-11-20"
 	ms.streak = 2
 	var bonus := ms.complete_day("2026-11-20")
-	check(ms.all_done() and ms.streak == 3 and bonus == Tuning.MISSION_ALL_MEAT + 2 * Tuning.MISSION_STREAK_MEAT, "all three done pays a streak bonus")
+	check(ms.all_done() and ms.streak == 3 and bonus == int(Missions.num("daily", "all_meat")) + 2 * int(Missions.num("daily", "streak_meat")), "all three done pays a streak bonus")
 	ms.last_full = "2026-11-10"
-	check(ms.complete_day("2026-11-20") == Tuning.MISSION_ALL_MEAT and ms.streak == 1, "a missed day restarts the streak")
+	check(ms.complete_day("2026-11-20") == int(Missions.num("daily", "all_meat")) and ms.streak == 1, "a missed day restarts the streak")
 	# in the game
 	main.start_run(false)
 	main.missions.ids = ["meat", "amber", "ledges"]
@@ -2010,12 +2057,45 @@ func _variety_checks() -> void:
 	main.missions.date = Time.get_date_string_from_system()
 	var bank0: int = main.meat_bank
 	main.badge_event("meat", 3)
-	check(main.missions.done[0] and main.meat_bank == bank0 + Tuning.MISSION_MEAT and main.new_this_run.any(func(x): return String(x).begins_with("Mission")),
+	check(main.missions.done[0] and main.meat_bank == bank0 + main.missions.meat() and main.new_this_run.any(func(x): return String(x).begins_with("Mission")),
 			"completing a mission mid-run banks its meat and is news")
+	# weekly missions (config/missions.cfg [weekly])
+	var wk := Missions.new("weekly")
+	wk.refresh("2026-11-25", 500.0, [Forms.ROK])
+	var wk2 := Missions.new("weekly")
+	wk2.refresh("2026-11-29", 500.0, [Forms.ROK])
+	check(Missions.week_key("2026-11-25") == "2026-11-23" and Missions.week_key("2026-11-23") == "2026-11-23" and Missions.week_key("2026-11-29") == "2026-11-23"
+			and wk.date == "2026-11-23" and wk.ids == wk2.ids and not wk2.refresh("2026-11-27", 500.0, [Forms.ROK]), "weekly missions are the same all week (from Monday)")
+	check(Missions.target_for("meat", 500.0, "weekly") > Missions.target_for("meat", 500.0) and Missions.target_for("run_m", 3000.0, "weekly") > Missions.target_for("run_m", 3000.0)
+			and wk.meat() > ms.meat(), "weekly missions have bigger targets and pay more")
+	main.missions_week.ids = ["meat", "amber", "ledges"]
+	main.missions_week.targets = [5, 999, 999]
+	main.missions_week.progress = [0.0, 0.0, 0.0]
+	main.missions_week.done = [false, false, false]
+	main.missions_week.date = Missions.week_key(Time.get_date_string_from_system())
+	var bank1: int = main.meat_bank
+	main.badge_event("meat", 5)
+	check(main.missions_week.done[0] and main.meat_bank >= bank1 + main.missions_week.meat() and SaveData.load_missions("weekly").get("done", [false])[0],
+			"a weekly mission counts the same stats, pays its meat and is saved")
+	# its own button on the main menu (the user's call), not a panel by itself
 	main._to_title()
-	check(main.hud.missions_panel.visible and main.hud.missions_label.text.contains("DAILY MISSIONS"), "the title screen lists today's missions")
+	main._refresh_hud()
+	var hm: Hud = main.hud
+	check(hm.missions_button.visible and not hm.missions_panel.visible, "the main menu has a Missions button and no missions panel of its own")
+	var side := [hm.codex_button, hm.herd_button, hm.market_button, hm.missions_button, hm.tutorial_button]
+	var side_clash := false
+	for i in side.size():
+		for j in range(i + 1, side.size()):
+			side_clash = side_clash or Rect2(side[i].position, side[i].size).intersects(Rect2(side[j].position, side[j].size))
+	check(not side_clash, "the main menu's side buttons don't overlap")
+	main._touch_pressed("missions")
+	check(hm.missions_open and hm.missions_panel.visible and hm.missions_label.text.contains("DAILY MISSIONS") and hm.missions_label.text.contains("WEEKLY MISSIONS") and not hm.center_panel.visible,
+			"Missions opens the daily and weekly lists")
+	main._touch_pressed("")
+	check(not hm.missions_open and main.state == main.State.TITLE and hm.center_panel.visible, "a tap closes it without starting a run")
 	main.start_run(false)
-	check(not main.hud.missions_panel.visible, "...and hides them in a run")
+	main._refresh_hud()
+	check(not main.hud.missions_panel.visible and not main.hud.missions_button.visible, "...and nothing of it shows in a run")
 
 
 ## The user's Hunters, Crouches and Best Distance pack

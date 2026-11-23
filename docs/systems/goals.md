@@ -67,7 +67,9 @@ Examples: Marathon 2000 / 4000 / 7000 m, Untouchable 800 / 2000 / 4000 m, Explor
 - Progress comes from `badge_event` (`mission_event`), `badge_best`, the combo tier, chests and frenzies.
 - Each one done pays `MISSION_MEAT` into the bank, with a banner and a news line.
 - All three pay `MISSION_ALL_MEAT` + `MISSION_STREAK_MEAT` per streak day (`complete_day`); a missed day restarts the streak.
-- Listed on the main menu (`Hud.set_missions`, bottom centre; hidden in runs).
+- **Its own button** (the user's call, 2026-11-23): the main menu's **Missions** button (`Hud.missions_button`, under the Marketplace; a code-drawn scroll until the user's square art `assets/ui/square_missions.png` exists; key O) opens a panel in the middle of the screen with the daily and weekly lists (`Hud.open_missions`, `set_missions(daily, head, weekly, head)`); any tap closes it without starting a run. Its red dot means a new day's or week's missions haven't been looked at (`main.missions_badge`, `seen` key `missions_<day>_<week>`).
+- **Weekly missions** (`main.missions_week`, `Missions.new("weekly")`): three more, the same all week (keyed by the week's Monday, `Missions.week_key`), with bigger targets and rewards and no streak. Every stat feeds both sets (`mission_event`, `badge_best`). Saved apart (`SaveData.save_missions(d, "weekly")`).
+- **Numbers**: **`config/missions.cfg`** `[daily]` and `[weekly]` (count, meat per mission, all-done bonus, streak meat and cap, `target_mult` for "total" targets, `run_m_share` for the distance mission, `combo_plus`), read by `Missions.num`.
 
 ## Best-distance flag
 

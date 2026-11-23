@@ -8,7 +8,8 @@ var _menu_t := 0.0             # main menu: taps wait this long after the summar
 var played_once := false       # a run has ended this session (the menu says "run again")
 var tutorial: Tutorial         # coach hints (tutorial.gd, _coach_step)
 var tutorial_run: TutorialRun  # the training run while it plays (tutorial_run.gd), else null
-var menu_tour: MenuTour     # the menu tour after a finished training run (menu_tour.gd), else null
+var menu_tour: MenuTour     # the menu tour after a finished training run, or the crafting tour (menu_tour.gd), else null
+var bench_just_opened := false   # the run that just ended opened the Crafting Bench (its tour comes next)
 var tutorial_run_done := true  # the training run has been played (or skipped); it plays once, on a fresh save
 var lent_raptor := false       # the training run lent the Raptor (end_tutorial takes it back)
 var _slot_wait := 0.0          # seconds a ready power-up has sat in a slot unused (the booster lesson)
@@ -101,7 +102,8 @@ var _bonus_wave := 0.0
 var bonus_tint: ColorRect    # the golden-violet wash over the world in a bonus zone
 var weather: Weather         # lap twists: storm, fog, eclipse (weather.gd)
 var lap := 1                 # which lap of the zones Rok is on
-var missions := Missions.new()   # daily missions (missions.gd)
+var missions := Missions.new("daily")         # daily missions (missions.gd)
+var missions_week := Missions.new("weekly")   # weekly missions (config/missions.cfg [weekly])
 var gear_owned: Array = []         # crafted weapon and armor copies (gear.gd: "stone_axe#3")
 var gear_wear: Dictionary = {}     # weapon copy -> uses left (missing = new; Gear.wear)
 var gear_rarity: Dictionary = {}   # copy -> rarity 0-4 (missing = Common; Gear.rarity)
@@ -135,6 +137,7 @@ var _touches := {}   # touch index -> action it started
 
 
 func _ready() -> void:
+	SpriteLib.apply_game_font()   # one font for the whole game, before any UI is built
 	randomize()
 	_setup_input()
 	best = SaveData.load_best()
@@ -149,6 +152,7 @@ func _ready() -> void:
 	unlocked = SaveData.load_unlocked()
 	seen = SaveData.load_seen()
 	missions.from_dict(SaveData.load_missions())
+	missions_week.from_dict(SaveData.load_missions("weekly"))
 	var g := SaveData.load_gear()
 	gear_owned = Array(g.get("owned", []))
 	gear_equipped = Dictionary(g.get("equipped", {}))
@@ -322,6 +326,7 @@ func _setup_input() -> void:
 		"market": [KEY_M, KEY_K],
 		"herd": [KEY_H],
 		"tutorial": [KEY_U],
+		"missions": [KEY_O],
 		"note_back": [KEY_LEFT, KEY_BACKSPACE],
 		"booster_1": [KEY_B],
 		"booster_2": [KEY_N],
@@ -350,6 +355,12 @@ func _to_title() -> void:
 	speed = 0.0
 	if after_run:
 		_reset_status()
+		# the run that opened the Crafting Bench: a tour of it (once ever)
+		if bench_just_opened and not seen.has("craft_tour") and menu_tour == null and tutorial_run_done:
+			seen.append("craft_tour")
+			SaveData.save_seen(seen)
+			menu_tour = MenuTour.new(self, MenuTour.CRAFT_STEPS)
+		bench_just_opened = false
 	player.idle()
 	hud.show_title(best, best_m, unlocked, meat_bank, played_once)
 	_show_missions()
@@ -472,9 +483,8 @@ func start_run(intro := true) -> void:
 	bonus_zones = 0
 	lap = 1
 	_lap_banner_t = 0.0
-	hud.set_missions([])
-	if missions.refresh(Time.get_date_string_from_system(), best_m, unlocked):
-		SaveData.save_missions(missions.to_dict())
+	hud.close_missions()
+	_refresh_missions()
 	weather.set_twist("", "")
 	next_bonus_m = Tuning.BONUS_FROM_M + randf_range(0.0, 500.0)
 	zone_index = 0
@@ -826,7 +836,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			if event.is_action_pressed("jump") or event.is_action_pressed("pause"):
 				_dismiss_info()
 		State.TITLE:
-			if (event.is_action_pressed("jump") or event.is_action_pressed("restart")) and _menu_t <= 0.0:
+			if hud.missions_open and event.is_action_pressed("jump"):
+				hud.close_missions()
+			elif (event.is_action_pressed("jump") or event.is_action_pressed("restart")) and _menu_t <= 0.0:
 				_start_from_menu()
 		State.OVER:   # the summary card: on to the main menu (R still restarts straight away)
 			if event.is_action_pressed("restart"):
@@ -936,6 +948,19 @@ func _touch_pressed(a: String) -> void:
 		if state == State.TITLE:
 			replay_tutorial()
 		return
+	if a == "missions":
+		if state == State.TITLE:
+			audio.play("click", 0.0)
+			if hud.missions_open:
+				hud.close_missions()
+			else:
+				_show_missions()
+				hud.open_missions()
+				if not seen.has(_missions_seen_key()):
+					seen.append(_missions_seen_key())
+					SaveData.save_seen(seen)
+			_refresh_hud()
+		return
 	if a == "stop":
 		_press_stop()
 		return
@@ -950,6 +975,9 @@ func _touch_pressed(a: String) -> void:
 		return
 	match state:
 		State.TITLE:
+			if hud.missions_open:
+				hud.close_missions()   # a tap closes the missions panel, it doesn't start a run
+				return
 			if a != "pause" and _menu_t <= 0.0:
 				_start_from_menu()
 		State.PLAYING:
@@ -1808,6 +1836,7 @@ func badge_event(stat: String, amount := 1.0) -> void:
 ## A "best" badge stat: keep the highest value (one run's distance, owned dinos).
 func badge_best(stat: String, value: float) -> void:
 	_missions_done(missions.best(stat, value))
+	_missions_done(missions_week.best(stat, value), missions_week)
 	if value > float(badge_stats.get(stat, 0.0)):
 		badge_stats[stat] = value
 		_award_badges(stat)
@@ -2225,11 +2254,13 @@ func _bank_meat() -> void:
 		seen.append("bench_open")
 		SaveData.save_seen(seen)
 		new_this_run.append("Crafting Bench open: craft gear at the Dinosaur Camp")
+		bench_just_opened = true   # the main menu then gives a tour of it
 	if not run_materials.is_empty():   # (already in the bank; just the news)
 		new_this_run.append("Found " + Crafting.cost_text(run_materials))
 		run_materials.clear()
 	SaveData.save_badges(badge_stats, badge_tiers)   # running totals, once per run
 	SaveData.save_missions(missions.to_dict())   # today's progress
+	SaveData.save_missions(missions_week.to_dict(), "weekly")
 	_apply_rank()
 	SaveData.save_dino_xp(dino_xp)
 	if run_meat <= 0:
@@ -3091,39 +3122,63 @@ func _slash(at: Vector2, reach: float) -> void:
 
 # ------------------------------------------------------------ daily missions
 
-## A "total" stat went up (also every badge_event): mission progress.
+## A "total" stat went up (also every badge_event): mission progress, daily and weekly.
 func mission_event(stat: String, amount := 1.0) -> void:
 	if state == State.PLAYING:
 		_missions_done(missions.add(stat, amount))
+		_missions_done(missions_week.add(stat, amount), missions_week)
 
 
-## Missions just completed: meat straight into the bank, a banner, a line in
-## the run's news; all three done pays the day's bonus (plus the streak).
-func _missions_done(idx: Array) -> void:
+## Missions just completed (of the daily set, or `ms`): meat straight into
+## the bank, a banner, a line in the run's news; all of a set done pays its
+## bonus (the daily one plus the streak). Rewards: config/missions.cfg.
+func _missions_done(idx: Array, ms: Missions = null) -> void:
+	if ms == null:
+		ms = missions
 	if idx.is_empty() or state != State.PLAYING:
 		return
+	var weekly := ms.period == "weekly"
 	for i in idx:
-		meat_bank += Tuning.MISSION_MEAT
-		new_this_run.append("Mission: " + missions.text(i))
-		hud.show_banner("MISSION COMPLETE!", "%s  +%d meat" % [missions.text(i), Tuning.MISSION_MEAT], Color(0.55, 1.0, 0.6), 2.6)
+		meat_bank += ms.meat()
+		new_this_run.append(("Weekly mission: " if weekly else "Mission: ") + ms.text(i))
+		hud.show_banner("WEEKLY MISSION COMPLETE!" if weekly else "MISSION COMPLETE!", "%s  +%d meat" % [ms.text(i), ms.meat()], Color(0.55, 1.0, 0.6), 2.6)
 	audio.play("unlock", 0.0, 1.1)
-	if missions.all_done() and missions.last_full != missions.date:
-		var yesterday := Time.get_date_string_from_unix_time(int(Time.get_unix_time_from_system()) - 86400)
-		var bonus := missions.complete_day(yesterday)
+	if ms.all_done() and ms.last_full != ms.date:
+		var before := Time.get_date_string_from_unix_time(int(Time.get_unix_time_from_system()) - (7 if weekly else 1) * 86400)
+		var bonus := ms.complete_day(Missions.week_key(before) if weekly else before)
 		meat_bank += bonus
-		new_this_run.append("All missions done: +%d meat" % bonus)
-		hud.show_banner("ALL MISSIONS DONE!", "+%d meat%s" % [bonus, " · %d-day streak!" % missions.streak if missions.streak > 1 else ""], Color(0.55, 1.0, 0.6), 3.0)
+		new_this_run.append("All %s missions done: +%d meat" % ["weekly" if weekly else "daily", bonus])
+		hud.show_banner("ALL WEEKLY MISSIONS DONE!" if weekly else "ALL MISSIONS DONE!", "+%d meat%s" % [bonus, " · %d-day streak!" % ms.streak if ms.streak > 1 and not weekly else ""], Color(0.55, 1.0, 0.6), 3.0)
 	SaveData.save_meat(meat_bank)
-	SaveData.save_missions(missions.to_dict())
+	SaveData.save_missions(ms.to_dict(), ms.period)
 
 
-func _show_missions() -> void:
-	if missions.refresh(Time.get_date_string_from_system(), best_m, unlocked):
+## Today's and this week's missions (new ones when the day or week turned).
+func _refresh_missions() -> void:
+	var today := Time.get_date_string_from_system()
+	if missions.refresh(today, best_m, unlocked):
 		SaveData.save_missions(missions.to_dict())
+	if missions_week.refresh(today, best_m, unlocked):
+		SaveData.save_missions(missions_week.to_dict(), "weekly")
+
+
+## The Missions button's panel: daily and weekly, with progress (it's no
+## longer shown on the main menu by itself: the user's call).
+func _show_missions() -> void:
+	_refresh_missions()
 	var head := "DAILY MISSIONS"
 	if missions.streak > 1 and missions.last_full >= Time.get_date_string_from_unix_time(int(Time.get_unix_time_from_system()) - 86400):
 		head += "  ·  %d-day streak" % missions.streak
-	hud.set_missions(missions.lines(), head)
+	hud.set_missions(missions.lines(), head, missions_week.lines(), "WEEKLY MISSIONS  ·  new every Monday")
+
+
+## Red dot on the Missions button: a new day's or week's missions not looked at yet.
+func missions_badge() -> bool:
+	return not seen.has(_missions_seen_key())
+
+
+func _missions_seen_key() -> String:
+	return "missions_%s_%s" % [missions.date, missions_week.date]
 
 
 ## The chance a milestone has a chest ([chests] appear; tests pin it).
@@ -3279,6 +3334,7 @@ func _frenzy_smash(o: Obstacle) -> void:
 
 func _on_combo_tier(t: int) -> void:
 	_missions_done(missions.best("combo", combo.mult()))
+	_missions_done(missions_week.best("combo", combo.mult()), missions_week)
 	var col := hud.combo_meter.tier_color(t)
 	hud.combo_meter.pop()
 	fx.float_text(player.position + Vector2(-70, -250), "x%s COMBO!" % hud.combo_meter._mult_text(combo.mult()), col, 30 + t * 3)
@@ -3498,6 +3554,10 @@ func _refresh_hud() -> void:
 	hud.set_market(state == State.TITLE and not overlay, market_badge())
 	hud.set_herd(state == State.TITLE and not overlay, not level_ready().is_empty() or gear_ready())
 	hud.set_tutorial(state == State.TITLE and not overlay and menu_tour == null)   # (the tour's bubble sits there)
+	hud.set_missions_button(state == State.TITLE and not overlay, missions_badge())
+	hud.set_run_controls(state != State.TITLE and state != State.OVER)
+	if hud.missions_open and (state != State.TITLE or overlay):
+		hud.close_missions()
 	hud.set_hearts(health, max_health())
 	hud.update_play(int(score), int(metres()), energy, player.form, player.armor, state == State.PLAYING, unlocked,
 			Zones.zone_at(metres()).name, _meat_count())

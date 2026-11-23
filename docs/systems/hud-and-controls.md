@@ -77,3 +77,11 @@ Keyboard bindings remain for desktop testing (`main._setup_input`):
 | U | Tutorial (main menu) |
 | R | restart |
 | T | Tips on/off (paused) |
+
+## One font
+
+The whole game uses one font (the user's rule, 2026-11-23): **Baloo 2** from the user's tutorial kit (`assets/fonts/Baloo2-Variable.ttf`, OFL), semi-bold for body text (`SpriteLib.GAME_FONT_WEIGHT` 600) and extra-bold for headings (800). `SpriteLib.apply_game_font()` (first thing in `main._ready`) makes it `ThemeDB.fallback_font`, so every Label, Button and drawn string without its own override uses it; `SpriteLib.ui_font("heading"/"body")` gives the two weights for explicit overrides. Nunito Sans is no longer used.
+
+## Run controls only in runs
+
+The run controls (Rok and the four dinosaur buttons, JUMP, SLIDE, ATTACK and the booster slots) are hidden on the main menu and the summary card (the user's call, 2026-11-23; `Hud.set_run_controls`, from `main._refresh_hud`). The Missions button sits under the Dinosaur Camp in the space they leave; the title panel sits below the score panel (`cc.offset_top` 132).

@@ -349,10 +349,15 @@ static func break_table(o: Obstacle, zone: String) -> String:
 	elif o.kind in ["wood", "fence"]:
 		t = "wood"
 	else:
-		return "rock_" + zone
+		t = "rock"
 	var zoned := "%s_%s" % [t, zone]   # a zone's own table when there is one (fiber_desert: cactus spines)
 	var v: Variant = num("break_drops", zoned)
-	return zoned if v is Dictionary and not (v as Dictionary).is_empty() else t
+	if v is Dictionary and not (v as Dictionary).is_empty():
+		return zoned
+	if t == "rock":   # a zone without its own rock table (rocks have no plain one): its kin's, else the Forest's
+		var kin := "rock_" + Zones.kin(zone)
+		return kin if num("break_drops", kin) is Dictionary else "rock_forest"
+	return t
 
 
 ## The table a material reward spot rolls at `metres` in `zone`.

@@ -43,6 +43,7 @@ Each system is documented on its own in [docs/systems/](../docs/systems/README.m
 | `crafting.gd` | [crafting](../docs/systems/crafting.md) |
 | `critters.gd` | [wild-dinosaurs](../docs/systems/wild-dinosaurs.md) |
 | `dino_facts.gd` | [field-guide](../docs/systems/field-guide.md) |
+| `drops.gd` | [field-guide](../docs/systems/field-guide.md) (what things drop, from the config) |
 | `dinos.gd` | [attributes](../docs/systems/attributes.md), [leveling](../docs/systems/leveling.md), [dinosaurs](../docs/systems/dinosaurs.md) |
 | `forms.gd` | [movement-and-forms](../docs/systems/movement-and-forms.md), [attributes](../docs/systems/attributes.md) |
 | `fx.gd` | [rendering-and-fx](../docs/systems/rendering-and-fx.md) |

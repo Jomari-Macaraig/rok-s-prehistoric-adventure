@@ -19,21 +19,38 @@ const STEPS := [
 		"text": "The ENCYCLOPEDIA: everything you meet,\nexplained. Tap it!",
 		"inside": "Dinosaurs, hazards, items and badges.\nTap Back to finish the tour."},
 ]
+## The Crafting tour (the user's request): back on the main menu after the
+## run that opened the Crafting Bench, the coach shows the way in: the Camp
+## button, the Camp's Crafting button, then on the bench a recipe and CRAFT.
+## A step's "target" is the control inside its screen the note points at
+## (default Back) and "advance_on" the screen whose opening moves on (default:
+## closing its own screen); a step without a "button" starts inside.
+const CRAFT_STEPS := [
+	{"button": "herd", "screen": "herd",
+		"text": "The CRAFTING BENCH is open! Kora makes gear\nfrom the materials you find. Tap the Camp!",
+		"target": "BenchButton", "inside": "Tap CRAFTING to visit Kora's bench.", "advance_on": "bench"},
+	{"button": "", "screen": "bench", "target": "Craft",
+		"inside": "Pick a recipe on the shelf. With its materials,\ntap CRAFT twice: every craft rolls a rarity.\nEquip it at the Camp. Tap Back when done."},
+]
 const SKIP_TIME := 3.0   # s a second stray tap has to skip the tour
 
 var game                 # main.gd
+var steps: Array = STEPS
 var i := 0
 var phase := "point"     # point (ring on the menu button), inside (note on Back), done
 var _skip_t := 0.0
 var _shown := ""         # what the coach shows now (so it's only set once)
 
 
-func _init(main_node) -> void:
+func _init(main_node, p_steps: Array = STEPS) -> void:
 	game = main_node
+	steps = p_steps
+	if String(steps[0].button) == "":
+		phase = "inside"
 
 
 func step_data() -> Dictionary:
-	return STEPS[i]
+	return steps[i]
 
 
 ## The menu button the tour wants tapped now ("" while inside a screen).
@@ -42,7 +59,11 @@ func want() -> String:
 
 
 func _screen() -> CanvasLayer:
-	return {"market": game.market, "herd": game.herd, "codex": game.codex}[String(step_data().screen)]
+	return _named_screen(String(step_data().screen))
+
+
+func _named_screen(n: String) -> CanvasLayer:
+	return {"market": game.market, "herd": game.herd, "codex": game.codex, "bench": game.bench, "items": game.items}[n]
 
 
 func step(delta: float) -> void:
@@ -62,16 +83,18 @@ func step(delta: float) -> void:
 				if game.hud.coach(String(s.button), String(s.text)):
 					_shown = "point%d" % i
 		"inside":
-			if not open:   # Back: on to the next screen
+			var nxt: String = s.get("advance_on", "")
+			if (nxt != "" and _named_screen(nxt).visible) or (nxt == "" and not open):
+				# its screen closed (Back), or the screen it leads to opened: the next step
 				game.hud.hide_coach()
 				i += 1
 				_shown = ""
-				if i >= STEPS.size():
+				if i >= steps.size():
 					finish(false)
 				else:
-					phase = "point"
-			elif _shown != "inside%d" % i:
-				var back: Control = _screen().find_child("Back", true, false)
+					phase = "point" if String(steps[i].button) != "" else "inside"
+			elif _shown != "inside%d" % i and open:
+				var back: Control = _screen().find_child(String(s.get("target", "Back")), true, false)
 				if back != null and back.is_visible_in_tree() and game.hud.coach_control(back, String(s.inside), true):
 					_shown = "inside%d" % i
 
@@ -94,6 +117,6 @@ func finish(skipped: bool) -> void:
 	if skipped:
 		game._show_menu_text()   # the title panel back
 		return
-	game.hud.show_banner("YOU'RE ALL SET!", "Tap anywhere to start running.", Color(1.0, 0.85, 0.45), 3.0)
+	game.hud.show_banner("YOU'RE ALL SET!", "Tap anywhere to start running." if steps == STEPS else "Happy crafting! Tap anywhere to run.", Color(1.0, 0.85, 0.45), 3.0)
 	# the title panel comes back once the banner has gone (it sat on top of it)
 	game.get_tree().create_timer(3.2).timeout.connect(game._show_menu_text)

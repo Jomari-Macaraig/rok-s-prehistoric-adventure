@@ -1,5 +1,9 @@
 class_name Missions
 extends RefCounted
+## Daily and weekly missions (config/missions.cfg; a Missions instance is one
+## period, "daily" or "weekly": main.missions and main.missions_week). The
+## weekly set is keyed by the week's Monday (`week_key`), has bigger targets
+## (`target_mult`, `run_m_share`, `combo_plus`) and pays more, without a streak.
 ## Daily missions (the user's pick for long runs): three small goals a day,
 ## picked from POOL by the date (the same three all day), only from what the
 ## player can already do. Progress counts across every run that day ("total")
@@ -27,14 +31,52 @@ const POOL := {
 	"frenzy": {"text": "Start %d Primal Frenzy", "kind": "total", "stat": "frenzy", "targets": [1, 2], "need_m": 1500},
 }
 const PER_DAY := 3
+const PATH := "res://config/missions.cfg"
+const DEFAULTS := {
+	"daily": {"count": 3, "meat": 25, "all_meat": 50, "streak_meat": 15, "streak_max": 6, "target_mult": 1.0, "run_m_share": 0.6, "combo_plus": 0},
+	"weekly": {"count": 3, "meat": 120, "all_meat": 300, "streak_meat": 0, "streak_max": 0, "target_mult": 6.0, "run_m_share": 0.9, "combo_plus": 1},
+}
+static var _cfg := {}
 
-var date := ""
+var period := "daily"     # "daily" or "weekly"
+var date := ""            # the day (daily) or the week's Monday (weekly) these are for
 var ids: Array = []
 var targets: Array = []
 var progress: Array = []
 var done: Array = []
 var streak := 0           # days in a row with all three done
 var last_full := ""       # the last date all three were done
+
+
+func _init(p := "daily") -> void:
+	period = p
+
+
+## A setting for a period from config/missions.cfg (DEFAULTS when missing).
+static func num(p: String, key: String) -> Variant:
+	if _cfg.is_empty():
+		_cfg = DEFAULTS.duplicate(true)
+		var c := ConfigFile.new()
+		if c.load(PATH) == OK:
+			for sec in c.get_sections():
+				for k in c.get_section_keys(sec):
+					_cfg[sec][k] = c.get_value(sec, k)
+	return _cfg.get(p, {}).get(key, DEFAULTS.get(p, {}).get(key, 0))
+
+
+func per() -> int:
+	return int(num(period, "count"))
+
+
+func meat() -> int:
+	return int(num(period, "meat"))
+
+
+## The week a date (YYYY-MM-DD) falls in, as its Monday's date.
+static func week_key(day: String) -> String:
+	var unix := Time.get_unix_time_from_datetime_string(day + "T00:00:00")
+	var wd := int(Time.get_datetime_dict_from_unix_time(unix).weekday)   # 0 Sunday .. 6 Saturday
+	return Time.get_date_string_from_unix_time(unix - ((wd + 6) % 7) * 86400)
 
 
 ## Missions the player can do now (best distance and unlocked forms).
@@ -50,27 +92,33 @@ static func eligible(best_m: float, unlocked: Array) -> Array:
 	return out
 
 
-## The target for a mission: harder once the player is further along.
-static func target_for(id: String, best_m: float) -> int:
+## The target for a mission: harder once the player is further along, and
+## bigger for the weekly set (config/missions.cfg).
+static func target_for(id: String, best_m: float, p := "daily") -> int:
 	if id == "run_m":
-		return int(clampf(roundf(best_m * 0.6 / 100.0) * 100.0, 300.0, 6000.0))
+		return int(clampf(roundf(best_m * float(num(p, "run_m_share")) / 100.0) * 100.0, 300.0, 9000.0))
 	var t: Array = POOL[id].targets
-	return int(t[1] if best_m >= 4000.0 else t[0])
+	var base := int(t[1] if best_m >= 4000.0 else t[0])
+	if POOL[id].kind == "best":
+		return base + int(num(p, "combo_plus")) if id == "combo" else base
+	return int(ceil(base * float(num(p, "target_mult"))))
 
 
-## Today's three (keeps the saved ones if they're from today).
+## This period's missions (keeps the saved ones if they're from today, or
+## this week for the weekly set).
 func refresh(today: String, best_m: float, unlocked: Array) -> bool:
-	if date == today and ids.size() == PER_DAY:
+	var key := week_key(today) if period == "weekly" else today
+	if date == key and ids.size() == per():
 		return false
-	date = today
+	date = key
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(today)
+	rng.seed = hash(period + key)
 	var pool := eligible(best_m, unlocked)
 	pool.sort()
 	ids.clear()
-	while ids.size() < PER_DAY and not pool.is_empty():
+	while ids.size() < per() and not pool.is_empty():
 		ids.append(pool.pop_at(rng.randi() % pool.size()))
-	targets = ids.map(func(id): return target_for(id, best_m))
+	targets = ids.map(func(id): return target_for(id, best_m, period))
 	progress = ids.map(func(_id): return 0.0)
 	done = ids.map(func(_id): return false)
 	return true
@@ -101,15 +149,15 @@ func _update(stat: String, v: float, is_best: bool) -> Array:
 
 
 func all_done() -> bool:
-	return ids.size() == PER_DAY and done.all(func(d): return d)
+	return ids.size() == per() and done.all(func(d): return d)
 
 
-## All three done today: count the streak (consecutive days) and return the
-## bonus meat. `yesterday` is the date before `date`.
+## All of them done: count the streak (consecutive days; weeks have none)
+## and return the bonus meat. `yesterday` is the date before `date`.
 func complete_day(yesterday: String) -> int:
 	streak = streak + 1 if last_full == yesterday else 1
 	last_full = date
-	return Tuning.MISSION_ALL_MEAT + Tuning.MISSION_STREAK_MEAT * mini(streak - 1, Tuning.MISSION_STREAK_MAX)
+	return int(num(period, "all_meat")) + int(num(period, "streak_meat")) * mini(streak - 1, int(num(period, "streak_max")))
 
 
 func text(i: int) -> String:

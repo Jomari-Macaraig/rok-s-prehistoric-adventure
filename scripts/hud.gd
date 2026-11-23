@@ -48,8 +48,10 @@ var danger_rect: TextureRect
 var chase_meter: ChaseMeter
 var combo_meter: ComboMeter   # combo streak + Primal Frenzy, under the meat pill
 var event_label: Label        # a mid-run event and its countdown, under the combo meter
-var missions_panel: PanelContainer   # today's missions, on the title screen
+var missions_panel: PanelContainer   # daily and weekly missions, opened by missions_button
 var missions_label: Label
+var missions_button: TouchButton     # the main menu's Missions button (the user's call: its own button)
+var missions_open := false
 var banner: PanelContainer
 var info_card: Control
 var info_icon: TextureRect
@@ -131,6 +133,11 @@ func _ready() -> void:
 	herd_button.caption = "DINO CAMP"
 	herd_button.visible = false
 	# the training run again (main.start_tutorial), on the main menu
+	missions_button = _button("missions", Tuning.TUTORIAL_BUTTON_SIZE)
+	missions_button.icon = _icon_from(func(img: Image): _scroll(img))
+	missions_button.caption = "Missions"
+	missions_button.caption_below = true
+	missions_button.visible = false
 	tutorial_button = _button("tutorial", Tuning.TUTORIAL_BUTTON_SIZE)
 	tutorial_button.icon = SpriteLib.tex("res://assets/portraits/rok.png")
 	tutorial_button.caption = "Tutorial"
@@ -376,8 +383,8 @@ func _ready() -> void:
 	# --- centre messages
 	var cc := CenterContainer.new()
 	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
-	cc.offset_top = 84.0
-	cc.offset_bottom = -230.0
+	cc.offset_top = 132.0   # below the score panel (they overlapped at its corner)
+	cc.offset_bottom = -196.0
 	cc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(cc)
 	center_panel = PanelContainer.new()
@@ -411,7 +418,8 @@ func _ready() -> void:
 	help_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help_label.custom_minimum_size = Vector2(Tuning.VIEW_W - 2.0 * (Tuning.SIDE_BUTTON_SIZE + 30.0 + Tuning.UI_MARGIN) - 120.0, 0)
 
-	# --- daily missions (title screen), bottom centre between the thumb clusters
+	# --- daily and weekly missions: a panel in the middle of the main menu,
+	# opened by the Missions button (any tap closes it)
 	missions_panel = PanelContainer.new()
 	missions_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var mp := cp.duplicate() as StyleBoxFlat
@@ -421,10 +429,10 @@ func _ready() -> void:
 	mp.content_margin_bottom = 12
 	mp.set_corner_radius_all(16)
 	missions_panel.add_theme_stylebox_override("panel", mp)
-	missions_panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	missions_panel.set_anchors_preset(Control.PRESET_CENTER)
 	missions_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	missions_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	missions_panel.offset_bottom = -16
+	missions_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	missions_panel.offset_top = -60
 	missions_label = _label(20, Color(1, 0.93, 0.8))
 	missions_label.add_theme_constant_override("line_spacing", 2)
 	missions_panel.add_child(missions_label)
@@ -546,6 +554,9 @@ func _layout() -> void:
 	codex_button.position = Vector2(m, mid - codex_button.size.y - 22.0)   # room for its name below
 	herd_button.position = Vector2(m, mid + 14.0)
 	market_button.position = Vector2(vw - m - market_button.size.x, mid - market_button.size.y * 0.5)
+	# Missions under the Dinosaur Camp (the run controls there are hidden on the main menu)
+	missions_button.position = Vector2(herd_button.position.x + (herd_button.size.x - missions_button.size.x) * 0.5,
+			herd_button.position.y + herd_button.size.y + Tuning.TUTORIAL_GAP)
 	# Tutorial above the Marketplace (room for its name below), under the score panel
 	tutorial_button.position = Vector2(market_button.position.x + (market_button.size.x - tutorial_button.size.x) * 0.5,
 			market_button.position.y - Tuning.TUTORIAL_GAP - tutorial_button.size.y)
@@ -656,6 +667,20 @@ func _bag(img: Image) -> void:
 
 
 ## A three-toed dinosaur footprint: the Herd.
+## A rolled scroll with tick marks (the Missions button until the user's art).
+func _scroll(img: Image) -> void:
+	var c := Color(0.45, 0.24, 0.1)
+	var paper := Color(0.96, 0.88, 0.68)
+	img.fill_rect(Rect2i(14, 10, 36, 44), c)
+	img.fill_rect(Rect2i(17, 13, 30, 38), paper)
+	img.fill_rect(Rect2i(10, 6, 44, 7), c)
+	img.fill_rect(Rect2i(10, 51, 44, 7), c)
+	for i in 3:
+		var y := 20 + i * 10
+		img.fill_rect(Rect2i(21, y, 5, 5), Color(0.3, 0.65, 0.25))
+		img.fill_rect(Rect2i(30, y + 1, 13, 3), c)
+
+
 func _footprint(img: Image) -> void:
 	var c := Color(0.45, 0.24, 0.1)
 	var fill := Color(0.62, 0.78, 0.35)
@@ -895,9 +920,38 @@ func pulse_slot(i: int) -> void:
 ## The run's meat counter; -1 hides it (title screen, which shows the bank).
 ## It pops when the number goes up.
 ## Today's missions on the title screen (an empty list hides them).
-func set_missions(lines: Array, header := "DAILY MISSIONS") -> void:
-	missions_panel.visible = not lines.is_empty()
-	missions_label.text = header + "\n" + "\n".join(lines)
+## The missions panel's text: the daily set and the weekly set. It only
+## shows while open (open_missions); [] for both empties and closes it.
+func set_missions(lines: Array, header := "DAILY MISSIONS", week: Array = [], week_header := "WEEKLY MISSIONS") -> void:
+	var t := header + "\n" + "\n".join(lines)
+	if not week.is_empty():
+		t += "\n\n" + week_header + "\n" + "\n".join(week)
+	missions_label.text = t
+	if lines.is_empty() and week.is_empty():
+		close_missions()
+
+
+func open_missions() -> void:
+	missions_open = true
+	missions_panel.visible = true
+	center_panel.visible = false   # the panel takes the title's place
+
+
+func close_missions() -> void:
+	if not missions_open:
+		missions_panel.visible = false
+		return
+	missions_open = false
+	missions_panel.visible = false
+	center_panel.visible = true
+
+
+## The Missions button shows on the main menu; its dot means something to look at.
+func set_missions_button(visible_now: bool, dot := false) -> void:
+	missions_button.visible = visible_now
+	if missions_button.badge != dot:
+		missions_button.badge = dot
+		missions_button.queue_redraw()
 
 
 ## The running mid-run event ("" hides it).
@@ -1026,6 +1080,14 @@ func update_play(score: int, metres: int, energy: float, form: int, armor: int, 
 			b.queue_redraw()
 	for b in form_buttons.values() + [jump_button, slide_button, attack_button] + slot_buttons:
 		b.modulate.a = 1.0 if playing else 0.55
+
+
+## The run controls (dinosaur buttons, JUMP, SLIDE, ATTACK, booster slots)
+## show only in a run, never on the main menu or the summary (the user's call).
+func set_run_controls(visible_now: bool) -> void:
+	for b in form_buttons.values() + [jump_button, slide_button, attack_button] + slot_buttons:
+		if b.visible != visible_now:
+			b.visible = visible_now
 
 
 func _progress_line(best_m: int, unlocked: Array) -> String:

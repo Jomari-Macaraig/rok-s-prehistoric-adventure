@@ -132,19 +132,43 @@ static func tutorial_box(name: String) -> StyleBoxTexture:
 	return sb
 
 
-## The kit's fonts: "heading" (Baloo 2, weight 800) or "body" (Nunito Sans,
-## weight 600); the default font without them.
+## The game's ONE font (the user's rule: the same font everywhere): Baloo 2
+## from the user's tutorial kit, "heading" at weight 800 and "body" at
+## GAME_FONT_WEIGHT; Godot's own font only if the file is missing.
+## apply_game_font() makes it the default for every Label, Button and
+## drawn string (ThemeDB.fallback_font), so nothing falls back to another.
+const GAME_FONT := "res://assets/fonts/Baloo2-Variable.ttf"
+const GAME_FONT_WEIGHT := 600.0
+const GAME_FONT_TRIM := 3   # px taken off the top and bottom of every line
+static var _engine_font: Font
+
+
+static func apply_game_font() -> void:
+	if _engine_font == null:
+		_engine_font = ThemeDB.fallback_font
+	var f := ui_font("body")
+	ThemeDB.fallback_font = f
+	# the default theme carries its own font, which wins over the fallback: replace it too
+	ThemeDB.get_default_theme().default_font = f
+	if ThemeDB.get_project_theme() != null:
+		ThemeDB.get_project_theme().default_font = f
+
+
 static func ui_font(kind: String) -> Font:
 	var key := "font_" + kind
 	if _cache.has(key):
 		return _cache[key]
-	var path := "res://assets/fonts/%s.ttf" % ("Baloo2-Variable" if kind == "heading" else "NunitoSans-Variable")
-	var f: Font = ThemeDB.fallback_font
+	var path := GAME_FONT
+	var f: Font = _engine_font if _engine_font != null else ThemeDB.fallback_font
 	if ResourceLoader.exists(path):
 		var fv := FontVariation.new()
 		fv.base_font = load(path)
 		# (the axis key must be the OpenType tag as a number, not the string "wght")
-		fv.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): 800.0 if kind == "heading" else 600.0}
+		fv.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): 800.0 if kind == "heading" else GAME_FONT_WEIGHT}
+		# Baloo 2's lines are taller than the engine font's: trim them so
+		# panels laid out for it keep their size
+		fv.spacing_top = -GAME_FONT_TRIM
+		fv.spacing_bottom = -GAME_FONT_TRIM
 		f = fv
 	_cache[key] = f
 	return f

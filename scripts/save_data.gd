@@ -173,14 +173,14 @@ static func save_booster_slots(n: int) -> void:
 	_write("progress", "booster_slots", n)
 
 
-## Daily missions (Missions.to_dict / from_dict).
-static func load_missions() -> Dictionary:
-	var d: Variant = _read("missions", "state", {})
+## Daily (and weekly: period "weekly") missions (Missions.to_dict / from_dict).
+static func load_missions(period := "daily") -> Dictionary:
+	var d: Variant = _read("missions", "state" if period == "daily" else "state_" + period, {})
 	return d if d is Dictionary else {}
 
 
-static func save_missions(d: Dictionary) -> void:
-	_write("missions", "state", d)
+static func save_missions(d: Dictionary, period := "daily") -> void:
+	_write("missions", "state" if period == "daily" else "state_" + period, d)
 
 
 ## Hero gear: {"owned": [gear ids], "equipped": {hero: {"weapon", "armor"}}, "cards": {dino: count},

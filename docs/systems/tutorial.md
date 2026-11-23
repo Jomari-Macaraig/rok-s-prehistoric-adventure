@@ -205,3 +205,7 @@ lesson.
 ## Open items
 
 - Possible lessons: the chase meter when the hunter gets close, hearts, cooldowns, equipping gear at the Camp.
+
+## Crafting tour
+
+The user's request (2026-11-23): back on the main menu after the run that opened the Crafting Bench (`main.bench_just_opened`, set in `_bank_meat` when `bench_open` is first seen), the coach gives a short tour, once ever (`seen` key `craft_tour`). It's the menu tour (`MenuTour`) with `CRAFT_STEPS`: a ring on the Camp button, then in the Camp a note on its Crafting button (`BenchButton`; the step moves on when the bench opens, `advance_on`), then on the bench a note on CRAFT (`target` "Craft": pick a recipe, tap CRAFT twice, every craft rolls a rarity, equip it at the Camp); Back ends it. Stray taps on the menu ask, a second skips it, as in the menu tour.
