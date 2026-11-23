@@ -9,6 +9,8 @@ Godot 4.7 (GDScript, Compatibility renderer) 2D endless runner with a prehistori
 
 **`config/crafting.cfg`** sets crafting: when the Crafting Bench opens, the 12 materials (rarity, Market bundle price), every weapon and armor recipe, rarity odds and multipliers, catalysts, salvage and repair costs, and what drops materials in runs (broken obstacles, wild dinosaurs, reward spots, chests, fossils). Weapons and armor are crafted, never bought. See [docs/systems/crafting.md](docs/systems/crafting.md).
 
+**`config/hints.cfg`** holds the loading screen's hints, each shown only once the player has reached what it talks about (see [run-loop](docs/systems/run-loop.md#loading-screen-scriptspreloadergd)).
+
 **`config/pickups.cfg`** sets the rules and odds for amber, meat, hearts, power-ups and fossils: what a reward spot holds (`[spots]`, `[counts]`), where spots go (`[placement]`: sky trail, floating islands, staircase, arc, heights), how they get richer deeper in a run (`[escalation]`), what broken obstacles drop (`[break_loot]`) and which power-up turns up (`[power_ups]`). Its header explains the placement order. Read by `scripts/loot.gd`.
 
 ## Layout

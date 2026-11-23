@@ -1480,6 +1480,14 @@ func _feedback_checks() -> void:
 	check(pl._done == pl._total and Preloader.keep.size() >= (plc[0] as Array).size() and SpriteLib._cache.has("attack_raptor"),
 			"...loads everything and builds the run's animation frames")
 	pl.queue_free()
+	var all_h := Preloader.all_hints()
+	check(all_h.size() >= 20, "config/hints.cfg has plenty of loading hints (%d)" % all_h.size())
+	var h_fresh := Preloader.hints_for(0.0)
+	var h_far := Preloader.hints_for(99999.0)
+	check(not h_fresh.is_empty() and h_far.size() == all_h.size() and h_fresh.size() < h_far.size(), "a new player only sees hints for what they've reached")
+	check(not h_fresh.any(func(t): return String(t).contains("Pteranodon") or String(t).contains("Crafting Bench")), "...so nothing is spoiled")
+	check(Preloader.hint_ready("dino:raptor", float(Progression.unlock_m(Forms.RAPTOR))) and not Preloader.hint_ready("dino:raptor", 0.0) and Preloader.hint_ready("bench", float(Crafting.bench_m())),
+			"hint conditions read the configs (dinosaur unlocks, the Crafting Bench)")
 	# the Dinosaur Camp's stage: the chosen one idles and now and then attacks
 	main.unlocked = Forms.ORDER.duplicate()
 	main.open_herd("runner")

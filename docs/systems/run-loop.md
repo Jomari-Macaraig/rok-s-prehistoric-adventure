@@ -100,5 +100,13 @@ The user's request: no hitches in the game itself. On a normal launch, main adds
 2. **Decode:** `SpriteLib.tex` for every character, attack and reaction sheet. It decodes the `@2x` twins on the main thread, `BUDGET_MS` per frame.
 3. **Build:** the run's SpriteFrames (`frame_jobs`): each form's body and death, attacks, reactions, the T-rex and zone hunters, the shapeshift burst and the power-up effects.
 
+**Hints** (the user's request) come from **`config/hints.cfg`**: about 35 hints, each `[text, needs]`. Only hints the player is ready for are shown (`hint_ready`), so nothing is spoiled. "needs" can be:
+- a best distance,
+- `dino:<id>` (that dinosaur is unlocked),
+- `intro:<key>` (that thing has been introduced),
+- `bench`, `slot2` or `charge`.
+
+The shown hint changes every `[settings] seconds`.
+
 Then it fades out and frees itself. It takes about 1.4 s on a Mac, and afterwards the first shapeshift and attack in a run take 0.4 ms instead of about 43 ms. `start_run` calls `Preloader.warm_forms()`, so a dinosaur equipped later is built during the intro. Test and screenshot scripts don't get it: main only adds it when it is the tree's `current_scene`.
 

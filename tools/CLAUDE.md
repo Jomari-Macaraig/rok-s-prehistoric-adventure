@@ -38,6 +38,9 @@ Rerun it after the source art changes:
 
 Run `python3 tools/make_sounds.py`, then `godot --headless --path . --import`.
 
+## Polished course art (`prepare_polished.py`)
+`uv run --no-project --with pillow python tools/prepare_polished.py` copies the user's `../Assets/Rok_Polished_Assets/standard/` over the game's own `assets/props/` and `assets/traps/` files of the same names. That's 69 images: props, every break and collapse sheet, the liquid left/mid/right pieces, steam, rolling boulder, Spinosaurus swim, the forest overhead and the fossil arch. They're redrawn at exactly the same sizes, grids and baselines, and the script checks each size, so hitboxes and `traps.json` are unchanged. **Run it after `prepare_assets.py`**, whose `props()` and `traps()` write the old art. The pack's HD versions and its three tutorial vine pieces (`tutorial_vine_arch/branch/support`) aren't used yet. Then `--import`.
+
 ## Traps (`traps()`)
 Writes `assets/traps/*.png` + `traps/traps.json` from `Rok_Trap_Expansion/trap_manifest.json`. Trap frames are scaled ×7/16 (512 → 224, same scale as Rok). Existing-prop break frames (stone, boulder, fence, log) are scaled ×0.45 so they line up with the props. Liquids (forest_water, desert_quicksand, volcanic_lava) are split into `_left`, `_mid` (repeatable) and `_right` sheets. `forest_overhead` and `desert_fossil_arch` are trimmed and scaled ×0.62. The Spinosaurus swim sheet goes to `characters/spinosaurus/swim.png`. All of these are used in gameplay (see scripts/CLAUDE.md, "Traps by zone").
 

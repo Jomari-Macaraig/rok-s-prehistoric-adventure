@@ -27,17 +27,11 @@ const BUDGET_MS := 12                 # main-thread work per frame
 const WHOLE := ["fx", "hunters", "characters/trex", "traps", "items", "powerups", "best_flag", "gear", "wind", "props", "terrain", "bg"]
 ## Folders whose sheets go through SpriteLib.tex (the @2x twins).
 const TEX_DIRS := ["characters", "attacks", "reactions"]
-const TIPS := [
-	"Hold JUMP to leap higher.",
-	"Slide under low ledges and vines.",
-	"Shapeshift into a dinosaur to get past what Rok can't.",
-	"Break rocks and logs to find crafting materials.",
-	"Bonk a wild dinosaur and it may drop its card.",
-	"Save a power-up for when the hunter gets close.",
-	"Every 1000 m a treasure chest waits on the trail.",
-	"Craft weapons at the Crafting Bench in the Dinosaur Camp.",
-	"Elder Numa knows a story about everything you meet.",
-]
+## The hints (the user's request): config/hints.cfg, each [text, needs];
+## only hints the player is ready for are shown (hint_ready), one at a time,
+## changing every [settings] seconds.
+const HINTS_PATH := "res://config/hints.cfg"
+const FALLBACK_HINT := "Hold JUMP to leap higher. Tap twice for a double jump."
 
 static var keep: Array = []   # everything loaded, held so it stays cached
 
@@ -97,10 +91,78 @@ func _ready() -> void:
 	box.add_child(bar)
 	label = _label("Loading...", 24, Color(1.0, 0.95, 0.82))
 	box.add_child(label)
-	tip = _label(TIPS.pick_random(), 20, Color(0.85, 0.9, 0.75))
+	tip = _label("", 20, Color(0.85, 0.9, 0.75))
 	tip.name = "Tip"
+	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tip.custom_minimum_size = Vector2(620, 0)
 	box.add_child(tip)
+	_hints = hints_for(float(game.best_m) if game else 0.0)
+	_hint_every = hint_seconds()
+	_next_hint()
 	_plan()
+
+
+var _hints: Array = []
+var _hint_every := 3.5
+var _hint_t := 0.0
+
+
+## Every hint in config/hints.cfg: [[text, needs], ...] (in file order).
+static func all_hints() -> Array:
+	var c := ConfigFile.new()
+	if c.load(HINTS_PATH) != OK or not c.has_section("hints"):
+		return [[FALLBACK_HINT, ""]]
+	var out: Array = []
+	for k in c.get_section_keys("hints"):
+		var v: Variant = c.get_value("hints", k)
+		if v is Array and (v as Array).size() >= 1:
+			out.append([String(v[0]), String(v[1]) if (v as Array).size() > 1 else ""])
+	return out if not out.is_empty() else [[FALLBACK_HINT, ""]]
+
+
+static func hint_seconds() -> float:
+	var c := ConfigFile.new()
+	return float(c.get_value("settings", "seconds", 3.5)) if c.load(HINTS_PATH) == OK else 3.5
+
+
+## Is the player ready for a hint? (its "needs": "", a distance, "dino:<id>",
+## "intro:<key>", "bench", "slot2", "charge"; see config/hints.cfg)
+static func hint_ready(needs: String, best_m: float) -> bool:
+	if needs == "":
+		return true
+	if needs.is_valid_float():
+		return best_m >= float(needs)
+	var arg := needs.get_slice(":", 1)
+	match needs.get_slice(":", 0):
+		"dino":
+			for f in Forms.ORDER:
+				if Forms.DATA[f].id == arg:
+					return best_m >= Progression.unlock_m(f)
+			return false
+		"intro":
+			return best_m >= Progression.intro_m(arg)
+		"bench":
+			return best_m >= Crafting.bench_m()
+		"slot2":
+			return best_m >= Progression.SLOT_UNLOCK_M
+		"charge":
+			return not Progression.TREX_CHARGE_M.is_empty() and best_m >= float(Progression.TREX_CHARGE_M[0])
+	return false
+
+
+## The hints a player with this best distance is ready for (texts).
+static func hints_for(best_m: float) -> Array:
+	return all_hints().filter(func(h): return hint_ready(String(h[1]), best_m)).map(func(h): return String(h[0]))
+
+
+func _next_hint() -> void:
+	if _hints.is_empty():
+		_hints = [FALLBACK_HINT]
+	var pick: String = _hints.pick_random()
+	while _hints.size() > 1 and pick == tip.text:
+		pick = _hints.pick_random()
+	tip.text = pick
+	_hint_t = _hint_every
 
 
 func _label(t: String, size: int, color: Color) -> Label:
@@ -197,7 +259,10 @@ func _plan() -> void:
 	_stage = 0
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_hint_t -= delta
+	if _hint_t <= 0.0:
+		_next_hint()
 	var t0 := Time.get_ticks_msec()
 	while Time.get_ticks_msec() - t0 < BUDGET_MS:
 		if not step():
