@@ -361,8 +361,11 @@ static func spot_table(zone: String, metres: float, roll := -1.0, specials := []
 	var deep := float(num("spots", "deep_max")) * clampf(inverse_lerp(from, full, metres), 0.0, 1.0)
 	if (randf() if roll < 0.0 else roll) < deep:
 		return num("spots", "deep")
-	var t: Variant = num("spots", zone)
-	return t if t is Dictionary and not (t as Dictionary).is_empty() else num("spots", "forest")
+	for z in [zone, Zones.kin(zone), "forest"]:
+		var t: Variant = num("spots", z)
+		if t is Dictionary and not (t as Dictionary).is_empty():
+			return t
+	return {}
 
 
 # ------------------------------------------------------------ icons

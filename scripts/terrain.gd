@@ -48,7 +48,7 @@ const PLANTS := ["Grasses_01", "Grasses_02", "Grasses_03", "Grasses_04",
 func _ready() -> void:
 	meta = JSON.parse_string(FileAccess.open("res://assets/terrain/terrain.json", FileAccess.READ).get_as_text())
 	for n in ["mid_a", "mid_b", "cap_left", "cap_right", "slope_up", "slope_down", "drop", "dirt",
-			"desert_ground", "volcanic_ground", "forest_ground"]:
+			"desert_ground", "canyon_ground", "volcanic_ground", "forest_ground"]:
 		var path := "res://assets/terrain/%s.png" % n
 		if ResourceLoader.exists(path):
 			tex[n] = SpriteLib.tex(path)   # the seamless pack, drawn from its sharp @2x twin
@@ -500,7 +500,7 @@ func _bridge(f: Dictionary, sturdy: bool) -> void:
 	var node := Node2D.new()
 	node.z_index = 0
 	add_child(node)
-	if not sturdy and f.style == "desert":
+	if not sturdy and f.style in ["desert", "canyon"]:
 		# a sandstone bridge (desert_bridge_collapse) that crumbles under weight
 		var xs: float = f.x0 - 30.0
 		var pw: float = SpriteLib.trap_meta().desert_bridge_collapse.frame[0] * 0.92
@@ -511,6 +511,18 @@ func _bridge(f: Dictionary, sturdy: bool) -> void:
 			xs += pw - 18.0
 		f.nodes.append(node)
 		bridges.append({"x0": f.x0, "x1": f.x1, "y": y, "sturdy": false, "node": node, "collapsed": false})
+		return
+	if sturdy and f.style == "canyon" and ResourceLoader.exists(CANYON % "rope_bridge"):
+		# the canyon's rope bridge, stretched across the gap, its planks on the ground line
+		var rb := Sprite2D.new()
+		rb.texture = SpriteLib.tex(CANYON % "rope_bridge")
+		rb.centered = false
+		var k: float = (f.x1 - f.x0 + 40.0) / rb.texture.get_width()
+		rb.scale = Vector2(k, minf(k, 1.0))
+		rb.position = Vector2(f.x0 - 20.0, y - float(canyon_meta().bridge.surface) * rb.scale.y + 6.0)
+		node.add_child(rb)
+		f.nodes.append(node)
+		bridges.append({"x0": f.x0, "x1": f.x1, "y": y, "sturdy": true, "node": node, "collapsed": false})
 		return
 	var x: float = f.x0 - 14.0
 	while x < f.x1 + 14.0:
@@ -628,10 +640,57 @@ func _build_strip(f: Dictionary, cap_l: bool, cap_r: bool) -> void:
 	poly.polygons = quads
 	add_child(poly)
 	f.nodes.append(poly)
+	if f.style == "canyon":
+		_canyon_dressing(f, cap_l, cap_r, pts[0].y + Tuning.FEET_BELOW_GRASS + 4.0, pts[pts.size() - 2].y + Tuning.FEET_BELOW_GRASS + 4.0)
+		return
 	if cap_l:
 		f.nodes.append(_edge(x0 + 2.0, pts[0].y + 4.0))
 	if cap_r:
 		f.nodes.append(_edge(x1 - 2.0, pts[pts.size() - 2].y + 4.0))
+
+
+const CANYON := "res://assets/canyon/%s.png"
+const CANYON_DECOR := ["dry_shrub", "stone_scatter", "dry_shrub", "fossil_outcrop"]
+static var _canyon_meta := {}
+
+
+static func canyon_meta() -> Dictionary:
+	if _canyon_meta.is_empty() and FileAccess.file_exists("res://assets/canyon/canyon.json"):
+		_canyon_meta = JSON.parse_string(FileAccess.get_file_as_string("res://assets/canyon/canyon.json"))
+	return _canyon_meta
+
+
+## The Canyon's ground: the pack's cliff edges where it meets a gap (their
+## lip on the ground line) and a few dry shrubs, stones and fossil outcrops
+## along the top, behind the runner.
+func _canyon_dressing(f: Dictionary, cap_l: bool, cap_r: bool, y_l: float, y_r: float) -> void:
+	var m := canyon_meta()
+	if m.is_empty():
+		return
+	for side in [["left", cap_l, f.x0, y_l], ["right", cap_r, f.x1, y_r]]:
+		if not side[1]:
+			continue
+		# a ground's left end drops away to its left: the pack's "left" edge (open drop on the left)
+		var s := Sprite2D.new()
+		s.texture = SpriteLib.tex(CANYON % ("cliff_" + side[0]))
+		s.centered = false
+		var piv: Array = m["cliff_" + side[0]]
+		s.position = Vector2(float(side[2]) - float(piv[0]), float(side[3]) - float(piv[1]))
+		add_child(s)
+		f.nodes.append(s)
+	var px: float = f.x0 + randf_range(80.0, 260.0)
+	while px < f.x1 - 100.0:
+		var d := Sprite2D.new()
+		d.texture = SpriteLib.tex(CANYON % CANYON_DECOR.pick_random())
+		d.centered = false
+		d.scale = Vector2.ONE * randf_range(0.55, 0.8)
+		var sz := d.texture.get_size() * d.scale
+		d.position = Vector2(px - sz.x * 0.5, _local_height(px) - sz.y + 6.0)
+		d.modulate = Color(0.92, 0.88, 0.84)
+		add_child(d)
+		move_child(d, 0)   # behind the ground's edge pieces and the runner
+		f.nodes.append(d)
+		px += randf_range(260.0, 620.0)
 
 
 ## Feet line at local x (segments only, no pits).

@@ -57,7 +57,7 @@ Examples: Marathon 2000 / 4000 / 7000 m, Untouchable 800 / 2000 / 4000 m, Explor
 - `Market.on_sale` checks distance and badge (`Market.badge_ok`); earning the tier that completes one adds it to the run's Market news. `Badges.unlocks(id)` lists what a badge unlocks.
 
 **Display**
-- `Badges.icon(id, tier)`: the user's medals (0 = not earned, 1–3 = bronze/silver/gold); a placeholder medal for any still missing (`scorer` and `veteran`).
+- `Badges.icon(id, tier)`: the user's medals (0 = not earned, 1–3 = bronze/silver/gold); a placeholder medal for any still missing (none now: Point Hunter and Seasoned arrived with `Rok_Day_Night_Badges`).
 - The Field Guide's **Badges** tab (`Codex._badge_card`): medal, next goal, what each tier unlocks, a progress bar, the three tiers with rewards; perk badges list their bonuses.
 
 ## Daily missions

@@ -37,9 +37,10 @@ const DATA := {
 
 ## The species of a kind that lives in a zone.
 static func for_zone(zid: String, kind: String) -> String:
-	for id in DATA:
-		if DATA[id].zone == zid and DATA[id].kind == kind:
-			return id
+	for z in [zid, Zones.kin(zid)]:   # none of its own: its kin zone's
+		for id in DATA:
+			if DATA[id].zone == z and DATA[id].kind == kind:
+				return id
 	return ""
 
 

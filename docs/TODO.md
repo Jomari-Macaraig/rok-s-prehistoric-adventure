@@ -24,7 +24,6 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
   - Forest: break animations for the small twig and the two mushrooms.
 - [ ] **Rok's other attack styles:** Thrust, Throw, Shoot, Fist (empty-handed, with a guide sheet and landmarks JSON each, like `Rok_Swing_Attack`). Then his five running style attacks.
 - [ ] **Nira and Boro:** five standing and five running style attacks each, with guide sheets.
-- [ ] **Medals:** Point Hunter (`scorer`) and Seasoned (`veteran`), unearned, bronze, silver and gold each (8).
 - [ ] **UI:** an Armor stat icon (kit glyph style); "Crafting Bench", "Items" and "DINOSAUR CAMP" title plaques.
 - [ ] **Card art** for the 12 balanced-pack dinosaurs (Deinonychus … Dsungaripterus).
 - [ ] **Attacks** for those 12 dinosaurs.
@@ -32,10 +31,16 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 - [ ] **Long-run items:** the fossil pickup and the bonus-zone portal (drawn in code today).
 - [ ] **Body-armor patterns** (Hide Vest, Bone Guards, Scale Mail), once the outfit shader is built.
 
+## Canyon follow-ups
+
+- [ ] Canyon break animations (its obstacles vanish in a puff today): boulder, wall block, barricade, rock spikes, pillar, cactus, tumble-thorn (4×2, frame 2 the impact).
+- [ ] Canyon's own hunter, wild dinosaurs and music (it borrows the Desert's for now).
+- [ ] Rerun `tests/timeline_probe.gd -- 9600` and check the new schedule (the Canyon moved Steam to 4650, Rolling Boulders 5250, Lava Crossing 5850, Flooded Crossing 6150 m).
+
 ## Unused art
 
 - The tutorial vine pieces in `Rok_Polished_Assets` (imported, not placed anywhere yet).
 
 ## Done recently
 
-- 2026-11-23: chest rarities; bug-proof tutorial; Kora's lines and name plank; Ugo's name plank; Camp meat counter hidden; Rok's Swing pilot (approved); [NEW_ITEM_ART.md](NEW_ITEM_ART.md).
+- 2026-11-23: the Canyon zone (4th, from the user's canyon pack); Point Hunter and Seasoned medals; day/night icon on the HUD; chest rarities; bug-proof tutorial; Kora's lines and name plank; Ugo's name plank; Camp meat counter hidden; Rok's Swing pilot (approved); [NEW_ITEM_ART.md](NEW_ITEM_ART.md).

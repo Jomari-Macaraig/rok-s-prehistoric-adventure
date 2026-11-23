@@ -719,11 +719,15 @@ func _hill_chase_checks() -> void:
 ## Zones by distance and the day/night cycle.
 func _zone_checks() -> void:
 	var zl := Zones.ZONE_LEN_M   # (config/progression.cfg [zones] length_m)
-	check(Zones.index_at(0.0) == 0 and Zones.index_at(zl * 1.5) == 1 and Zones.index_at(zl * 2.5) == 2, "Forest, Desert, Volcanic by distance")
-	check(Zones.index_at(zl * 3.2) == 0, "zones repeat after the Volcanic Badlands")
-	for m in [0.0, zl - 10.0, zl, zl + 10.0, zl * 1.5, zl * 3.0 - 5.0, zl * 3.0 + 5.0]:
+	var nz := Zones.ZONES.size()
+	check(Zones.ZONES.map(func(z): return z.id) == ["forest", "desert", "canyon", "volcanic"], "the zones: Forest, Desert, Canyon, Volcanic")
+	check(Zones.index_at(0.0) == 0 and Zones.index_at(zl * 1.5) == 1 and Zones.index_at(zl * 2.5) == 2 and Zones.index_at(zl * 3.5) == 3, "Forest, Desert, Canyon, Volcanic by distance")
+	check(Zones.index_at(zl * nz + 200.0) == 0, "zones repeat after the Volcanic Badlands")
+	for m in [0.0, zl - 10.0, zl, zl + 10.0, zl * 1.5, zl * 3.0 - 5.0, zl * 3.0 + 5.0, zl * nz - 5.0, zl * nz + 5.0]:
 		var w: Array = Zones.weights(m)
-		check(absf(w[0] + w[1] + w[2] - 1.0) < 0.001, "zone weights sum to 1 at %d m" % int(m))
+		check(w.size() == nz and absf(w.reduce(func(a, b): return a + b, 0.0) - 1.0) < 0.001, "zone weights sum to 1 at %d m" % int(m))
+	check(Zones.kin("canyon") == "desert" and Hunters.for_zone("canyon") == Hunters.for_zone("desert") and Critters.for_zone("canyon", "stampede") != "",
+			"the Canyon borrows the Desert's hunter and wild dinosaurs (its kin)")
 	var w2: Array = Zones.weights(zl)
 	check(w2[0] > 0.0 and w2[1] > 0.0, "looks cross-fade at the border")
 	var saw_day := false
@@ -743,6 +747,9 @@ func _zone_checks() -> void:
 	t._flat(500.0)
 	check(t.features[-1].style == "desert", "ground generated in the Desert is sandstone")
 	t.metres = zl * 2.3
+	t._flat(500.0)
+	check(t.features[-1].style == "canyon", "ground generated in the Canyon is its red sandstone strip")
+	t.metres = zl * 3.3
 	t._flat(500.0)
 	check(t.features[-1].style == "volcanic", "ground generated in the Volcanic Badlands is basalt")
 	t.metres = 100.0
@@ -1662,12 +1669,12 @@ func _feedback_checks() -> void:
 	c = main.course
 	c._ground = Tuning.GROUND_Y
 	var heights := []
-	for m in [150.0, Zones.ZONE_LEN_M * 1.3, Zones.ZONE_LEN_M * 2.3]:
+	for m in [150.0, Zones.ZONE_LEN_M * 1.3, Zones.ZONE_LEN_M * 2.3, Zones.ZONE_LEN_M * 3.3]:
 		c.metres = m
 		var w := c.rock_wall(Tuning.PLAYER_X + 500.0, 3)
 		heights.append(w.hitbox().size.y)
 		c.remove_obstacle(w)
-	check(absf(heights[1] - heights[0]) < 12.0 and absf(heights[2] - heights[0]) < 12.0, "a 3-high wall is as tall in every zone %s" % [heights])
+	check(heights.all(func(hh): return absf(hh - heights[0]) < 12.0), "a 3-high wall is as tall in every zone %s" % [heights])
 	check(Progression.intro_m("stampede") < 3200.0 and Progression.intro_m("swooper") < 3200.0 and Tuning.CRITTER_WEIGHT > 1.5,
 			"wild dinosaurs arrive early and come often")
 	check(Tuning.BONUS_FROM_M <= 1000.0 and Tuning.BONUS_GAP_MAX <= 2000.0, "bonus zones come early and often")
@@ -2119,6 +2126,12 @@ func _trap_checks() -> void:
 	check((dw.get_child(0) as AnimatedSprite2D).sprite_frames == SpriteLib.trap("desert_wall_break"), "desert Triceratops gate is cracked sandstone")
 	check(dw.hitbox().position.y <= 0.0, "the sandstone barricade reaches the top of the screen")
 	c.metres = Zones.ZONE_LEN_M * 2.1
+	var cl := c.ledge(p.position.x + 1500.0)
+	check((cl.get_child(0) as Sprite2D).texture == SpriteLib.tex(Terrain.CANYON % "rock_arch") and cl.hitbox().end.y <= Tuning.GROUND_Y - Tuning.LEDGE_CLEARANCE + 1.0,
+			"canyon ledge is the rock arch, its lintel at the slide clearance")
+	var cfence := c.fence(p.position.x + 1900.0, false)
+	check(cfence.kind == "fence" and (cfence.get_child(0) as Sprite2D).texture == SpriteLib.tex(Terrain.CANYON % "wooden_barricade"), "canyon fence is the wooden barricade")
+	c.metres = Zones.ZONE_LEN_M * 3.1
 	var vl := c.ledge(p.position.x + 1700.0)
 	check((vl.get_child(0) as Sprite2D).texture.resource_path.ends_with("Terrain-variation_03_volcanic.png"), "volcanic ledge is floating basalt rock")
 	c.metres = 0.0
@@ -2142,7 +2155,7 @@ func _trap_checks() -> void:
 	# volcanic Pteranodon gate: lava
 	main.start_run(false)
 	t = main.terrain
-	t.metres = Zones.ZONE_LEN_M * 2.1
+	t.metres = Zones.ZONE_LEN_M * 3.1
 	t.request_gate("gate_ptera")
 	check(t.features.any(func(f): return f.get("liquid", "") == "lava"), "volcanic Pteranodon gate is a lava channel")
 	# quicksand: Rok sinks and is swallowed; the Raptor skims across
@@ -2457,7 +2470,7 @@ func _fun_checks() -> void:
 	check(main.hunter_id == Hunters.for_zone("desert") and main.trex.hunter == main.hunter_id, "entering the Desert, its hunter takes over")
 	check(main.hud.banner_title.text.contains(String(Hunters.DATA[main.hunter_id].name).to_upper()), "...with a banner naming it")
 	check(main.trex.sprite.self_modulate == Hunters.tint(main.hunter_id), "until it has its own art it wears the T-rex's, tinted")
-	main.distance = (2.0 * Zones.ZONE_LEN_M + 5.0) * Tuning.PX_PER_M
+	main.distance = (3.0 * Zones.ZONE_LEN_M + 5.0) * Tuning.PX_PER_M
 	main._hunter_step()
 	main.chase_gap = Tuning.CHASE_GAP_MAX
 	main._update_chase(1.0, 0.0)
@@ -2732,7 +2745,7 @@ func _fun_checks() -> void:
 	check(main._intro_icon("ledge") == HazardIcons.icon("ledge", "desert"), "an info card shows the zone Rok is in")
 	main.distance = dist_keep
 	var looks: Control = main.codex._zone_looks("boulder")
-	check(looks != null and looks.get_child_count() == 3 and main.codex._zone_looks("steam") == null, "the Field Guide shows a hazard's look in each zone (not for one-zone hazards)")
+	check(looks != null and looks.get_child_count() == Zones.ZONES.size() and main.codex._zone_looks("steam") == null, "the Field Guide shows a hazard's look in each zone (not for one-zone hazards)")
 	looks.free()
 	cc.remove_obstacle(dv)
 	main.start_run(false)

@@ -22,9 +22,10 @@ const DATA := {
 
 
 static func for_zone(zid: String) -> String:
-	for id in DATA:
-		if DATA[id].zone == zid:
-			return id
+	for z in [zid, Zones.kin(zid)]:   # a zone without its own hunter: its kin's (the Canyon: the Desert's)
+		for id in DATA:
+			if DATA[id].zone == z:
+				return id
 	return "trex"
 
 

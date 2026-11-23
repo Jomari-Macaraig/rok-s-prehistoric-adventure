@@ -21,7 +21,7 @@ const VOLUME := {"land": -8.0, "click": -6.0, "jump": -4.0, "amber": -5.0, "shif
 const MUSIC_DB := -9.0
 const POOL := 14
 ## Zone id -> music file (in Zones.ZONES order).
-const MUSIC := {"forest": "music", "desert": "music_desert", "volcanic": "music_volcanic"}
+const MUSIC := {"forest": "music", "desert": "music_desert", "volcanic": "music_volcanic"}   # a zone not listed plays its kin's (Zones.kin)
 
 var streams := {}
 var players: Array[AudioStreamPlayer] = []
@@ -45,7 +45,7 @@ func _ready() -> void:
 		players.append(p)
 	for z in Zones.ZONES:
 		var mp := AudioStreamPlayer.new()
-		var m: AudioStreamWAV = load("res://assets/sounds/%s.wav" % MUSIC[z.id])
+		var m: AudioStreamWAV = load("res://assets/sounds/%s.wav" % MUSIC.get(z.id, MUSIC.get(Zones.kin(z.id), "music")))
 		m.loop_mode = AudioStreamWAV.LOOP_FORWARD
 		m.loop_begin = 0
 		m.loop_end = int(m.get_length() * m.mix_rate)

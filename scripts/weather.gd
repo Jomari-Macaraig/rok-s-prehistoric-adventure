@@ -77,7 +77,7 @@ func set_twist(t: String, zone_id: String) -> void:
 				_rain.scale_amount_max = 5.0
 				_rain.color = Color(0.75, 0.85, 1.0, 0.7)
 				_rain.amount = 260
-			"desert":   # sandstorm: sideways ochre grit
+			"desert", "canyon":   # sandstorm: sideways ochre grit
 				_rain.direction = Vector2(-1, 0.25).normalized()
 				_rain.initial_velocity_min = 700.0
 				_rain.initial_velocity_max = 1000.0

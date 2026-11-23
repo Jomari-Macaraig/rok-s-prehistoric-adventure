@@ -1,0 +1,15 @@
+{
+ "arch_lintel": 71.5,
+ "arch_open": 112.8,
+ "bridge": {
+  "surface": 48.0
+ },
+ "cliff_left": [
+  51.0,
+  76.0
+ ],
+ "cliff_right": [
+  194.5,
+  82.5
+ ]
+}

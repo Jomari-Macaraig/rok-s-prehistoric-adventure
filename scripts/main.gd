@@ -1455,7 +1455,7 @@ const STEP_SOUND := {Forms.ROK: "step_rok", Forms.RAPTOR: "step_raptor", Forms.T
 const JUMP_SOUND := {Forms.ROK: "jump", Forms.RAPTOR: "jump_raptor", Forms.TRICERATOPS: "jump_heavy",
 		Forms.SPINOSAURUS: "jump_heavy", Forms.PTERANODON: "flap"}
 ## ...and so does the ground in each zone.
-const SURFACE_SOUND := {"forest": "step_grass", "desert": "step_sand", "volcanic": "step_rock"}
+const SURFACE_SOUND := {"forest": "step_grass", "desert": "step_sand", "canyon": "step_rock", "volcanic": "step_rock"}
 
 
 func _heavy() -> bool:
@@ -3335,10 +3335,11 @@ func _update_environment() -> void:
 			last_new_m = m
 			new_this_run.append(z.name)
 			if pause_for_info:
-				var icons := {"forest": "res://assets/bg/bg_2.png", "desert": "res://assets/bg/desert_far.png", "volcanic": "res://assets/bg/volcanic_far.png"}
+				var icons := {"forest": "res://assets/bg/bg_2.png", "desert": "res://assets/bg/desert_far.png", "canyon": "res://assets/bg/canyon_mid.png", "volcanic": "res://assets/bg/volcanic_far.png"}
 				queue_info("NEW ZONE: " + z.name.to_upper(), z.blurb, load(icons[z.id]), Color(1.0, 0.75, 0.35))
 				return
 		hud.show_banner(("ZONE: " if lap == 0 else "ZONE (lap %d): " % (lap + 1)) + z.name.to_upper(), z.blurb, Color(1.0, 0.86, 0.5), 2.8)
+	hud.set_daylight(Zones.daylight(m))
 	var night := Zones.is_night(m)
 	if night != _was_night:
 		_was_night = night

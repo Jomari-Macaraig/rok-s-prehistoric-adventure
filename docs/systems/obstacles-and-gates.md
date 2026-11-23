@@ -52,13 +52,21 @@ Part of the [system docs](README.md).
 
 `Course.small/log_/boulder/rock_wall/fence/thorn_bush` check `zone_at_x()`. Tints sit on the obstacle node, so rubble keeps them.
 
-| | Forest | Desert | Volcanic |
-|---|---|---|---|
-| Rocks | as drawn, plus mushrooms | sandstone tint, no mushrooms | basalt tint |
-| Wood (logs, fences) | as drawn | sun-bleached (`WOOD_TINT`) | charred |
-| Boulders, walls | as drawn | desert barricade art (`_zone_rock`) | basalt chunks and walls |
-| Thorn bushes | yes | dry tumble-thorns | none (a rock instead) |
-| Low ledge | vine branch (snags) | fossil arch | floating rock |
+| | Forest | Desert | Canyon (`Course._canyon`, `assets/canyon/`) | Volcanic |
+|---|---|---|---|---|
+| Rocks | as drawn, plus mushrooms | sandstone tint, no mushrooms | loose canyon stones (60%) or a sandstone-tinted rock | basalt tint |
+| Logs | as drawn | sun-bleached (`WOOD_TINT`) | a row of canyon rock spikes (same rules as a log) | charred |
+| Fences | as drawn | sun-bleached | wooden canyon barricade; tall: a rock pillar or a cactus cluster | charred |
+| Boulders | as drawn | desert barricade art (`_zone_rock`) | low sandstone boulder | basalt chunk |
+| Walls | stacked tiles | desert barricade art | stacked cracked sandstone blocks | basalt walls |
+| Thorn bushes | yes | dry tumble-thorns (tinted) | the pack's dry tumble-thorn | none (a rock instead) |
+| Low ledge | vine branch (snags) | fossil arch | rock arch on sandstone legs (`setup_overhead_arch`: only the lintel collides, its underside at `LEDGE_CLEARANCE`) | floating rock |
+| Floating islands | grass island | sandstone island | the raised sandstone ledge | basalt island |
+| Sturdy pit bridges | logs | logs | the rope bridge, stretched over the gap | logs |
+| Gap edges | outline | outline | the pack's cliff edges | outline |
+| Dino gates | | sandstone bridge / wall | the Desert's (kin) | lava / basalt |
+
+The Canyon pack has no break animations, so its obstacles vanish in a puff of particles when smashed.
 
 Desert and Volcanic logs, fences, small rocks and thorn bushes are the Forest props tinted until the user's zone art arrives; the art list is in [tools/CLAUDE.md](../../tools/CLAUDE.md) ("Zone obstacles that don't fit their zone").
 

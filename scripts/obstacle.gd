@@ -160,6 +160,24 @@ func setup_overhead_static(name: String, scale_factor: float) -> Obstacle:
 	return self
 
 
+## A slide-under arch whose legs reach the ground (the Canyon's rock arch):
+## the node sits at the lintel's underside like any ledge, the picture hangs
+## `lintel_h` (texture px) above it and its legs below, and only the lintel
+## collides.
+func setup_overhead_arch(path: String, scale_factor: float, lintel_h: float) -> Obstacle:
+	kind = "overhead"
+	var s := Sprite2D.new()
+	s.texture = SpriteLib.tex(path)
+	s.centered = false
+	s.scale = Vector2.ONE * scale_factor
+	var sz := s.texture.get_size() * scale_factor
+	s.position = Vector2(-sz.x * 0.5, -lintel_h * scale_factor)
+	add_child(s)
+	size = Vector2(sz.x, lintel_h * scale_factor)
+	shrink = Vector2(0.9, 0.8)
+	return self
+
+
 ## Thorny bushes (wind-animated) stacked `layers` high; one layer is a
 ## jumpable thorn bush, a full stack is the Spinosaurus bramble gate.
 func setup_thorns(layers: int, scale_factor: float) -> Obstacle:

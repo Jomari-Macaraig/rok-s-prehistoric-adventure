@@ -332,8 +332,23 @@ func _tinted(o: Obstacle, table: Dictionary, zid: String) -> Obstacle:
 	return o
 
 
+## A Canyon obstacle (the user's canyon pack, assets/canyon/<name>.png)
+## standing on the ground, stacked `n` high.
+func _canyon(kind: String, name: String, s: float, x: float, n := 1) -> Obstacle:
+	var parts := []
+	for i in n:
+		parts.append(Terrain.CANYON % name)
+	var o := Obstacle.new().setup(kind, parts, s)
+	o.position = Vector2(x, _ground + 6.0)
+	add_child(o)
+	obstacles.append(o)
+	return o
+
+
 func small(x: float) -> Obstacle:
 	var zid := _zid(x)
+	if zid == "canyon" and randf() < 0.6:
+		return _canyon("small", "stone_scatter", 1.1, x)   # loose canyon stones (else a tinted rock)
 	if zid != "forest":
 		var stone: Array = [["Stones_02", 1.3], ["Stones_03", 1.0], ["Stones_01", 1.4]].pick_random()
 		return _tinted(_obstacle("small", [stone[0]], stone[1], x), STONE_TINT, zid)
@@ -345,12 +360,14 @@ func small(x: float) -> Obstacle:
 
 
 func log_(x: float) -> Obstacle:
+	if _zid(x) == "canyon":
+		return _canyon("wood", "sandstone_spikes", 1.3, x)   # a row of rock spikes, the canyon's log
 	var pick: Array = [["Logs_03", 1.05], ["Logs_04", 1.0], ["Logs_01", 1.0], ["Logs_02", 1.0]].pick_random()
 	return _tinted(_obstacle("wood", [pick[0]], pick[1], x), WOOD_TINT, _zid(x))
 
 
 func _zone_rock(x: float, scale_f: float, min_h: float) -> Obstacle:
-	var anim := "desert_wall_break" if _zid(x) == "desert" else "volcanic_wall_break"
+	var anim := "desert_wall_break" if _zid(x) in ["desert", "canyon"] else "volcanic_wall_break"
 	var o := Obstacle.new().setup_anim_stack(anim, scale_f, min_h)
 	o.position = Vector2(x, _ground + 6.0)
 	o.shrink = Vector2(0.8, 0.88)
@@ -360,6 +377,8 @@ func _zone_rock(x: float, scale_f: float, min_h: float) -> Obstacle:
 
 
 func boulder(x: float) -> Obstacle:
+	if _zid(x) == "canyon":
+		return _canyon("rock", "sandstone_boulder", 1.9, x)
 	if _zid(x) != "forest":
 		return _zone_rock(x, 0.62, 1.0)   # a single sandstone / basalt chunk
 	var pick: Array = [["Stones_04", 1.15], ["Stones_05", 1.25], ["Other_02", 1.2], ["Other_05", 0.95]].pick_random()
@@ -367,10 +386,15 @@ func boulder(x: float) -> Obstacle:
 
 
 func rock_wall(x: float, h: int) -> Obstacle:
+	if _zid(x) == "canyon":
+		# h cracked sandstone blocks: an h-high wall as tall as the Forest's
+		var cw := _canyon("rock", "cracked_sandstone_wall", 0.77, x, h)
+		cw.shrink = Vector2(0.85, 0.94)
+		return cw
 	if _zid(x) != "forest":
 		# exactly h pieces, each ZONE_WALL_PIECE_H tall, so an h-high wall is
 		# as tall as the Forest's (the sandstone and basalt art differ in size)
-		var anim := "desert_wall_break" if _zid(x) == "desert" else "volcanic_wall_break"
+		var anim := "desert_wall_break" if _zid(x) in ["desert", "canyon"] else "volcanic_wall_break"
 		var b: Array = SpriteLib.trap_meta()[anim].bounds0
 		return _zone_rock(x, Tuning.ZONE_WALL_PIECE_H / float(b[3] - b[1]), (h - 0.5) * 0.82 * Tuning.ZONE_WALL_PIECE_H)
 	var parts := []
@@ -382,6 +406,13 @@ func rock_wall(x: float, h: int) -> Obstacle:
 
 
 func fence(x: float, tall: bool) -> Obstacle:
+	if _zid(x) == "canyon":
+		if not tall:
+			return _canyon("fence", "wooden_barricade", 1.7, x)
+		var pick: Array = [["tall_rock_pillar", 0.9], ["cactus_cluster", 1.03]].pick_random()
+		var t := _canyon("fence", pick[0], pick[1], x)   # a rock pillar or a cactus, as tall as the tall fence
+		t.shrink = Vector2(0.75, 0.9)
+		return t
 	var o: Obstacle
 	if tall:
 		o = _obstacle("fence", ["Fences_03"], 1.5, x)
@@ -397,7 +428,8 @@ func zone_at_x(x: float) -> Dictionary:
 
 
 ## The low ledge you slide under, in the zone's look: a branch with hanging
-## vines (forest), a fossil rib arch (desert), floating rock (volcanic).
+## vines (forest), a fossil rib arch (desert), a rock arch (canyon),
+## floating rock (volcanic).
 func ledge(x: float) -> Obstacle:
 	var zid: String = zone_at_x(x).id
 	var o: Obstacle
@@ -406,6 +438,8 @@ func ledge(x: float) -> Obstacle:
 		o.vine = true
 	elif zid == "desert":
 		o = Obstacle.new().setup_overhead_static("desert_fossil_arch", 1.15)
+	elif zid == "canyon":
+		o = Obstacle.new().setup_overhead_arch(Terrain.CANYON % "rock_arch", 1.0, float(Terrain.canyon_meta().get("arch_lintel", 70.0)))
 	else:
 		o = Obstacle.new().setup_ledge(2 + randi() % 2, 1.15, zid)
 	o.position = Vector2(x, _ground - Tuning.LEDGE_CLEARANCE)
@@ -589,7 +623,7 @@ static func gate_x0(m: Node2D) -> float:
 ## the zone's look (logs, cracked sandstone, basalt). It shatters with its
 ## break animation when charged.
 func boulder_wall(x: float) -> Obstacle:
-	var anim: String = {"forest": "forest_log_break", "desert": "desert_wall_break",
+	var anim: String = {"forest": "forest_log_break", "desert": "desert_wall_break", "canyon": "desert_wall_break",
 			"volcanic": "volcanic_wall_break"}[zone_at_x(x).id]
 	var o := Obstacle.new().setup_anim_stack(anim, 1.3, _ground + 60.0)
 	o.position = Vector2(x, _ground + 6.0)
@@ -643,6 +677,8 @@ func thorn_bush(x: float) -> Obstacle:
 	var zid := _zid(x)
 	if zid == "volcanic":
 		return small(x)
+	if zid == "canyon":
+		return _canyon("thorns", "tumble_thorn", 1.0, x)   # a dry tumble-thorn: brushing it is a stumble
 	var o := Obstacle.new().setup_thorns(1, 1.05)
 	o.position = Vector2(x, _ground + 6.0)
 	add_child(o)

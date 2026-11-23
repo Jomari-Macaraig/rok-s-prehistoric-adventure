@@ -1,9 +1,12 @@
 class_name Zones
 ## Distance-based zones and the day/night cycle.
 ##
-## Zones repeat every ZONE_LEN_M * 3 metres: Forest (grass, dirt, trees and
-## ferns) -> Desert (sandstone, dunes and mesas) -> Volcanic badlands (basalt,
-## lava fissures, ash-filled sky) -> Forest again. Each has its own background
+## Zones repeat every ZONE_LEN_M * ZONES.size() metres: Forest (grass, dirt,
+## trees and ferns) -> Desert (sandstone, dunes and mesas) -> Canyon (red
+## sandstone strata, hoodoos, rope bridges) -> Volcanic badlands (basalt,
+## lava fissures, ash-filled sky) -> Forest again. A zone without some
+## content of its own (a hunter, wild dinosaurs, music, gate art) borrows
+## its `kin` zone's (`kin()`: the Canyon's is the Desert). Each has its own background
 ## layers, ground style, terrain mix and ambient effect; looks cross-fade over
 ## BLEND_M around each border.
 ##
@@ -12,7 +15,7 @@ class_name Zones
 ## sunset() peaking at dusk and dawn.
 
 ## Metres per zone (config/progression.cfg [zones] length_m; was 1000, the
-## user found the zones changed too fast). A lap is ZONE_LEN_M * 3.
+## user found the zones changed too fast). A lap is ZONE_LEN_M * ZONES.size().
 static var ZONE_LEN_M := 1500.0
 const BLEND_M := 120.0
 const DAY_CYCLE_M := 3600.0
@@ -37,6 +40,15 @@ const ZONES := [
 		"pit": 0.7, "hill": 1.7, "big_hill": 1.5, "drop": 0.6,
 	},
 	{
+		"id": "canyon", "name": "Canyon", "ground": "canyon", "kin": "desert",
+		"blurb": "Red sandstone strata, towering hoodoos and rope bridges over the gaps.",
+		"sky_day": [Color(0.24, 0.66, 0.78), Color(0.72, 0.88, 0.86), Color(0.98, 0.78, 0.56)],
+		"sky_night": [Color(0.04, 0.05, 0.16), Color(0.16, 0.14, 0.32), Color(0.32, 0.16, 0.18)],
+		"light_day": Color(1.0, 0.97, 0.92), "light_night": Color(0.62, 0.6, 0.84),
+		"ambient_day": "dust", "ambient_night": "",
+		"pit": 1.4, "hill": 1.1, "big_hill": 1.2, "drop": 1.2,
+	},
+	{
 		"id": "volcanic", "name": "Volcanic Badlands", "ground": "volcanic",
 		"blurb": "Basalt, lava fissures and an ash-filled sky. Pits and drops everywhere.",
 		"sky_day": [Color(0.3, 0.2, 0.24), Color(0.74, 0.4, 0.28), Color(0.46, 0.22, 0.17)],
@@ -48,6 +60,15 @@ const ZONES := [
 ]
 
 
+## The zone whose content a zone borrows when it has none of its own
+## (hunter, wild dinosaurs, music, gate art); itself if it has no `kin`.
+static func kin(zid: String) -> String:
+	for z in ZONES:
+		if z.id == zid:
+			return String(z.get("kin", zid))
+	return zid
+
+
 static func index_at(metres: float) -> int:
 	return int(floor(maxf(metres, 0.0) / ZONE_LEN_M)) % ZONES.size()
 
@@ -56,25 +77,28 @@ static func zone_at(metres: float) -> Dictionary:
 	return ZONES[index_at(metres)]
 
 
-## How many full Forest-Desert-Volcanic laps came before (0 on the first).
+## How many full laps (every zone once) came before (0 on the first).
 static func lap_at(metres: float) -> int:
 	return int(floor(maxf(metres, 0.0) / (ZONE_LEN_M * ZONES.size())))
 
 
 ## Blend weights of every zone at this distance (they sum to 1).
 static func weights(metres: float) -> Array:
-	var w := [0.0, 0.0, 0.0]
+	var n := ZONES.size()
+	var w := []
+	w.resize(n)
+	w.fill(0.0)
 	var i := index_at(metres)
 	var t := fmod(maxf(metres, 0.0), ZONE_LEN_M)
 	var k := 0.0
 	if t > ZONE_LEN_M - BLEND_M * 0.5:
 		k = (t - (ZONE_LEN_M - BLEND_M * 0.5)) / BLEND_M
 		w[i] = 1.0 - k
-		w[(i + 1) % 3] = k
+		w[(i + 1) % n] = k
 	elif t < BLEND_M * 0.5 and metres >= ZONE_LEN_M:
 		k = 0.5 + t / BLEND_M
 		w[i] = k
-		w[(i + 2) % 3] = 1.0 - k
+		w[(i + n - 1) % n] = 1.0 - k
 	else:
 		w[i] = 1.0
 	return w
@@ -82,7 +106,7 @@ static func weights(metres: float) -> Array:
 
 static func _blend3(colors: Array, w: Array) -> Color:
 	var c := Color(0, 0, 0, 0)
-	for i in 3:
+	for i in colors.size():
 		c += colors[i] * w[i]
 	return c
 
@@ -141,7 +165,7 @@ static func ambient(metres: float) -> Dictionary:
 	var w := weights(metres)
 	var d := daylight(metres)
 	var out := {"fireflies": 0.0, "dust": 0.0, "embers": 0.0}
-	for i in 3:
+	for i in ZONES.size():
 		var z: Dictionary = ZONES[i]
 		if z.ambient_day != "":
 			out[z.ambient_day] += w[i] * d

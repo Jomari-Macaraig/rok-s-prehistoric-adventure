@@ -8,6 +8,7 @@ extends CanvasLayer
 const MEAT_ICON := "res://assets/items/meat.png"   # static icon (tools/prepare_meat.gd)
 var score_label: Label
 var best_label: Label
+var daytime_icon: TextureRect   # sun by day, moon at night, half-and-half at dusk and dawn (set_daylight)
 var meat_label: Label    # meat collected this run (Market currency)
 var meat_pill: PanelContainer   # its own pill under the score panel
 var _meat_shown := -1
@@ -266,7 +267,22 @@ func _ready() -> void:
 	best_label = _label(22, Color(1, 0.85, 0.55))
 	best_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	sbox.add_child(score_label)
-	sbox.add_child(best_label)
+	# the distance line, with the time of day in front of it (the user's sun / moon icons)
+	var drow := HBoxContainer.new()
+	drow.alignment = BoxContainer.ALIGNMENT_END
+	drow.add_theme_constant_override("separation", 6)
+	drow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	daytime_icon = TextureRect.new()
+	daytime_icon.name = "DaytimeIcon"
+	daytime_icon.custom_minimum_size = Vector2(28, 28)
+	daytime_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	daytime_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	daytime_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	daytime_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	drow.add_child(daytime_icon)
+	drow.add_child(best_label)
+	sbox.add_child(drow)
+	set_daylight(1.0)
 
 	# --- meat collected this run: its own pill under the score panel, growing
 	# leftwards from the right edge, with a pop on every pickup
@@ -963,6 +979,22 @@ func hearts_hit() -> void:
 	tw.tween_property(hearts_box, "scale", Vector2(1.3, 1.3), 0.08)
 	tw.tween_property(hearts_box, "scale", Vector2.ONE, 0.16)
 	tw.parallel().tween_property(hearts_box, "modulate", Color.WHITE, 0.4)
+
+
+const DAYTIME_ICON := "res://assets/ui/daynight_%s.png"   # day, night, half (Rok_Day_Night_Badges)
+
+
+## The time-of-day icon by the distance: the sun by day, the moon at night,
+## the half-and-half face at dusk and dawn. Hidden without the art.
+func set_daylight(d: float) -> void:
+	if daytime_icon == null:
+		return
+	var which := "day" if d >= 0.9 else ("night" if d <= 0.1 else "half")
+	var path := DAYTIME_ICON % which
+	daytime_icon.visible = ResourceLoader.exists(path)
+	if daytime_icon.visible and daytime_icon.get_meta("which", "") != which:
+		daytime_icon.set_meta("which", which)
+		daytime_icon.texture = SpriteLib.tex(path)
 
 
 func update_play(score: int, metres: int, energy: float, form: int, armor: int, playing: bool,

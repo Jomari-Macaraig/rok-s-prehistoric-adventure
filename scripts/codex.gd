@@ -807,14 +807,15 @@ func _show_tab(i: int) -> void:
 		3:
 			_powerup_cards()
 		4:
-			var icons := ["res://assets/bg/bg_2.png", "res://assets/bg/desert_far.png", "res://assets/bg/volcanic_far.png"]
+			var icons := {"forest": "res://assets/bg/bg_2.png", "desert": "res://assets/bg/desert_far.png",
+					"canyon": "res://assets/bg/canyon_mid.png", "volcanic": "res://assets/bg/volcanic_far.png"}
 			for zi in Zones.ZONES.size():
 				var z: Dictionary = Zones.ZONES[zi]
 				var start := int(zi * Zones.ZONE_LEN_M)
 				if not zone_known(zi, best_m, seen):
-					_card(load(icons[zi]), "???", "Reach %d m to discover." % start, "", true, false)
+					_card(load(icons[z.id]), "???", "Reach %d m to discover." % start, "", true, false)
 					continue
-				_card(load(icons[zi]), z.name, z.blurb,
+				_card(load(icons[z.id]), z.name, z.blurb,
 						"From %d m, then every %d m after" % [start, int(Zones.ZONE_LEN_M * Zones.ZONES.size())],
 						false, _new_ids.has("zone_" + z.id), Color(0.55, 0.35, 0.15))
 			_card(SpriteLib.tex("res://assets/props/Other_07.png"), "Day & Night",

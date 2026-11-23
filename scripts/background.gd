@@ -6,7 +6,7 @@ extends Node2D
 ##
 ## Forest group: bg-2 mountains, a darker far copy of bg-1, a forest-floor
 ## shade band, bg-1 jungle and wind-animated trees. Desert group: mesa
-## backdrop and rolling dunes. Volcanic group: the volcanic biome's own far
+## backdrop and rolling dunes. Canyon group: the canyon pack's far mesas (painted sky keyed out), mid mesas and near hoodoos, mirrored repeat. Volcanic group: the volcanic biome's own far
 ## backdrop and mid layer (Rok_Trap_Expansion), ash sky keyed out. The bg-3 fern foreground (forest only) lives on its own node
 ## so main can draw it in front of the player. The ground is drawn by Terrain.
 
@@ -17,22 +17,25 @@ class Layer:
 	var offset := 0.0
 	var copies: Array[Sprite2D] = []
 	var overlap := 1.0
+	var mirror := false   # every other copy flipped (art made for mirrored repeat: the Canyon's)
 
-	func _init(tex: Texture2D, f: float, y: float, n := 4, ov := 1.0) -> void:
+	func _init(tex: Texture2D, f: float, y: float, n := 4, ov := 1.0, mirrored := false) -> void:
 		factor = f
 		overlap = ov
+		mirror = mirrored
 		tile_w = tex.get_width() - ov
 		position.y = y
 		for i in n:
 			var s := Sprite2D.new()
 			s.texture = tex
 			s.centered = false
+			s.flip_h = mirror and i % 2 == 1
 			add_child(s)
 			copies.append(s)
 		scroll(0.0)
 
 	func scroll(dx: float) -> void:
-		offset = fposmod(offset + dx * factor, tile_w)
+		offset = fposmod(offset + dx * factor, tile_w * (2.0 if mirror else 1.0))
 		for i in copies.size():
 			# copies overlap slightly so no seam or gap shows
 			copies[i].position.x = -offset + i * tile_w
@@ -101,11 +104,17 @@ func _ready() -> void:
 	back_decor.modulate = Color(0.7, 0.8, 0.72, 0.92)
 	forest.add_child(back_decor)
 
-	# ---- desert and volcanic badlands: far backdrop + mid dunes
-	for zid in ["desert", "volcanic"]:
+	# ---- desert, canyon and volcanic badlands (in Zones.ZONES order after the forest)
+	for zid in ["desert", "canyon", "volcanic"]:
 		var g := _group()
-		_add(g, Layer.new(load("res://assets/bg/%s_far.png" % zid), Tuning.PARALLAX_MOUNTAINS * 1.5, Tuning.GROUND_Y - 600.0))
-		_add(g, Layer.new(load("res://assets/bg/%s_dunes.png" % zid), Tuning.PARALLAX_TREES, Tuning.GROUND_Y - 560.0))
+		if zid == "canyon":
+			# the canyon pack: far mesas (its sky keyed out), mid mesas, near hoodoos; mirrored repeat
+			_add(g, Layer.new(load("res://assets/bg/canyon_far.png"), Tuning.PARALLAX_MOUNTAINS * 1.5, Tuning.GROUND_Y + 40.0 - 720.0, 4, 1.0, true))
+			_add(g, Layer.new(load("res://assets/bg/canyon_mid.png"), Tuning.PARALLAX_FAR_TREES, Tuning.GROUND_Y + 50.0 - 720.0, 4, 1.0, true))
+			_add(g, Layer.new(load("res://assets/bg/canyon_near.png"), Tuning.PARALLAX_TREES, Tuning.GROUND_Y + 60.0 - 720.0, 4, 1.0, true))
+		else:
+			_add(g, Layer.new(load("res://assets/bg/%s_far.png" % zid), Tuning.PARALLAX_MOUNTAINS * 1.5, Tuning.GROUND_Y - 600.0))
+			_add(g, Layer.new(load("res://assets/bg/%s_dunes.png" % zid), Tuning.PARALLAX_TREES, Tuning.GROUND_Y - 560.0))
 		g.visible = false
 
 	foreground = Layer.new(load("res://assets/bg/bg_3.png"), Tuning.PARALLAX_FOREGROUND, 150.0)

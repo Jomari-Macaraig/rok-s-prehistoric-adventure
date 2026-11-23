@@ -2,10 +2,12 @@ extends SceneTree
 ## Captures each zone at different times of day.
 ##   godot --path . --fixed-fps 60 --resolution 1280x720 -s tests/zone_shots.gd -- <out_dir>
 
-## Distances for 1500 m zones (lap 4500 m) on the 3600 m day cycle; move
-## them if [zones] length_m or Zones.DAY_CYCLE_M changes.
-const STOPS := [[300, "forest_day"], [7300, "desert_day"], [1700, "desert_sunset"],
-		[3200, "volcanic_night"], [5700, "forest_night"], [3750, "volcanic_day"]]
+## Distances for 1500 m zones (lap 6000 m: Forest, Desert, Canyon, Volcanic)
+## on the 3600 m day cycle; move them if [zones] length_m, the zones or
+## Zones.DAY_CYCLE_M change.
+const STOPS := [[300, "forest_day"], [7900, "desert_day"], [1700, "desert_sunset"],
+		[3800, "canyon_day"], [9500, "canyon_night"], [4600, "volcanic_day"],
+		[10900, "volcanic_night"], [6400, "forest_night"]]
 const RUN_FRAMES := 330
 
 var main

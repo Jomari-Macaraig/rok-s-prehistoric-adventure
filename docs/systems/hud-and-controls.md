@@ -33,7 +33,7 @@ Part of the [system docs](README.md).
 2. PRIMAL energy bar (orange → red as dino drain climbs)
 3. the hunter meter (see [chase-and-hunters](chase-and-hunters.md))
 
-**Top-right**: score and distance ("123 m · Desert"), the meat pill below it, then the combo meter (during a run only) and the event countdown.
+**Top-right**: score and distance ("123 m · Desert", led by a time-of-day icon: sun, moon, or the half-and-half face at dusk and dawn; `Hud.set_daylight`), the meat pill below it, then the combo meter (during a run only) and the event countdown.
 
 **Middle**: slide-in banners (`show_banner()`, under the top bar; they queue), info cards (`show_info`), and centre messages on a dark rounded backdrop. All labels have a thick outline and a drop shadow.
 

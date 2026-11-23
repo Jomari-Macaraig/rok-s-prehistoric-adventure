@@ -306,6 +306,7 @@ static func gate_for_form(f: int) -> String:
 const ZONE_GATES := {
 	"forest": ["gate_spino", "gate_tri"],          # flooded crossing, log barricade
 	"desert": ["gate_raptor", "gate_tri"],         # sandstone bridge, sandstone wall
+	"canyon": ["gate_raptor", "gate_tri"],         # crumbling sandstone bridge over a gap, sandstone wall
 	"volcanic": ["gate_ptera", "gate_tri"],        # lava channel, basalt barricade
 }
 
