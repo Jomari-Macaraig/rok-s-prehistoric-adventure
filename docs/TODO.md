@@ -13,6 +13,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Decisions (the user)
 
+- [ ] **Pet system (future):** the user plans pets; design to come. The eggs' new use (to be described) may tie in.
 - [ ] **Eggs:** the user's new idea for the egg art (to be described).
 - [ ] **Cards:** should a dinosaur card add to a weapon instead of replacing it in the weapon slot?
 - [ ] **Stomps:** which wild species are stompable, and does a stomp bounce Rok?
