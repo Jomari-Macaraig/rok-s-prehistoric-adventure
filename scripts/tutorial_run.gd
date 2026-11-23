@@ -172,7 +172,8 @@ func step(delta: float) -> void:
 					thing = mk
 					_freeze(s.button, s.card)
 				return
-			if not _alive(thing):
+			if not _alive(thing) or _ahead(thing) < -20.0:
+				_repeat()   # broken or passed before the hint (a crash, an early jump): set it up again
 				return
 			if _ahead(thing) <= float(s.at) and g.player.on_ground:
 				_freeze(s.button, s.card)
@@ -204,6 +205,22 @@ func step(delta: float) -> void:
 		"done":
 			if g.state == g.State.PLAYING:   # the last card was tapped away
 				g.end_tutorial(false)
+
+
+## Moves a step teaches, by the step that teaches them: before it, the
+## button does nothing (attacking the jump lesson's rock left nothing to
+## jump, the user's bug). Jump is the first lesson, so it's always allowed.
+const TAUGHT_BY := {"slide": "slide", "attack": "attack"}
+
+
+## While the world runs (not frozen): may this action go ahead yet?
+func allows(action: String) -> bool:
+	if not TAUGHT_BY.has(action):
+		return true
+	for k in i + 1:
+		if String(STEPS[k].id) == TAUGHT_BY[action]:
+			return true
+	return false
 
 
 ## main calls this when the player presses a button; true if it was the one

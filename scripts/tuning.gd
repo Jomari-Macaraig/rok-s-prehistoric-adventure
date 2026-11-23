@@ -263,15 +263,12 @@ const MISSION_STREAK_MAX := 6    # (capped)
 
 # Milestone chests (chest.gd): one on the ground every CHEST_EVERY_M of a run
 const CHEST_EVERY_M := 1000.0
-const CHEST_RARE_BASE := 0.22    # rare chance at the first milestone ...
-const CHEST_RARE_STEP := 0.03    # ... + this per milestone after it
-const CHEST_RARE_MAX := 0.45
-const CHEST_EPIC_BASE := 0.04    # epic chance at the first milestone ...
-const CHEST_EPIC_STEP := 0.04    # ... + this per milestone after it
-const CHEST_EPIC_MAX := 0.35
-const CHEST_MEAT := [4, 8, 15]   # common / rare / epic meat (+1 per milestone)
-const CHEST_XP := [150, 400, 1000]   # common / rare / epic XP for the form Rok is in
-const CHEST_SCORE := 500         # points for opening any chest
+# Defaults only: config/pickups.cfg [chests] sets these (Chest reads it).
+# Chance of each rarity: [at the first milestone, + per milestone after, cap]
+const CHEST_ODDS := {"rare": [0.22, 0.03, 0.45], "ultra_rare": [0.04, 0.04, 0.30], "legendary": [0.01, 0.015, 0.12]}
+const CHEST_MEAT := [4, 8, 15, 30]   # common / rare / ultra rare / legendary meat (+1 per milestone)
+const CHEST_XP := [150, 400, 1000, 2500]   # ... XP for the form Rok is in
+const CHEST_SCORE := 500         # points for opening any chest (default; pickups.cfg [chests] score)
 const CHEST_COMBO_WEIGHT := 2    # a chest counts as this many combo feats
 
 # Escalating pickups: the further a run goes, the richer its pickups

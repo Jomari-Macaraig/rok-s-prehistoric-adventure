@@ -22,9 +22,9 @@ const DEFAULTS := {
 		"resin": {"name": "Resin", "rarity": 2, "price": 0, "unlock_m": 0, "from": "Deep reward spots and chests."},
 		"dino_scale": {"name": "Dino Scale", "rarity": 2, "price": 0, "unlock_m": 0, "from": "A rare drop from wild dinosaurs."},
 		"obsidian": {"name": "Obsidian", "rarity": 2, "price": 0, "unlock_m": 0, "from": "Volcanic rocks and meteors."},
-		"shell": {"name": "Shell", "rarity": 3, "price": 0, "unlock_m": 0, "from": "Epic chests."},
+		"shell": {"name": "Shell", "rarity": 3, "price": 0, "unlock_m": 0, "from": "Ultra rare and legendary chests."},
 		"fossil_shard": {"name": "Fossil Shard", "rarity": 3, "price": 0, "unlock_m": 0, "from": "Rare fossils."},
-		"primal_crystal": {"name": "Primal Crystal", "rarity": 4, "price": 0, "unlock_m": 0, "from": "Epic chests."},
+		"primal_crystal": {"name": "Primal Crystal", "rarity": 4, "price": 0, "unlock_m": 0, "from": "Ultra rare and legendary chests."},
 	},
 	"unlock": {"bench_m": 500},
 	"market": {"bundle": 5},
@@ -70,7 +70,8 @@ const DEFAULTS := {
 		"deep": {"resin": 3, "dino_scale": 3, "fossil_shard": 0.6, "primal_crystal": 0.15}},
 	"chests": {"common_count": 4, "common": {"wood": 1, "stone": 1, "fiber": 1, "flint": 1, "hide": 1},
 		"rare_count": 3, "rare": {"bone": 1, "resin": 1, "dino_scale": 1, "obsidian": 1},
-		"epic_count": 2, "epic": {"shell": 1, "fossil_shard": 1, "dino_scale": 1, "primal_crystal": 0.3}},
+		"ultra_rare_count": 2, "ultra_rare": {"shell": 1, "fossil_shard": 1, "dino_scale": 1, "primal_crystal": 0.3},
+		"legendary_count": 3, "legendary": {"fossil_shard": 1, "primal_crystal": 0.6, "shell": 0.5}},
 	"fossils": {"shards": 1},
 }
 ## Rarity frame colours: grey, green, blue, purple, gold.

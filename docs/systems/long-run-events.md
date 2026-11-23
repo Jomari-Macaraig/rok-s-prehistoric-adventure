@@ -12,8 +12,8 @@ Part of the [system docs](README.md).
 | | |
 |---|---|
 | Code | `scripts/chest.gd`, `scripts/run_events.gd` (`main.events`), `scripts/bonus_portal.gd`, `main._chest_step` / `_event_step` / `_bonus_step` |
-| Numbers | `CHEST_*`, `EVENT_*`, `BONUS_*`, `METEOR_*`, `STAMPEDE_RUSH_EVERY` in `tuning.gd` |
-| Art | chest: `assets/items/chest_anim.png` + `chest.json` (`tools/prepare_chest.py`); bonus portal: drawn in code until `assets/items/bonus_portal.png` exists |
+| Numbers | chests: **`config/pickups.cfg` `[chests]`** (odds per tier, meat, XP, score, combo weight, reward lists; defaults `CHEST_*` in `tuning.gd`, `CHEST_EVERY_M` stays there); `EVENT_*`, `BONUS_*`, `METEOR_*`, `STAMPEDE_RUSH_EVERY` in `tuning.gd` |
+| Art | chests: one per rarity, `assets/items/chest_<tier>_anim.png` (+ closed/open stills) and `chest.json` (`tools/prepare_chest.py`); bonus portal: drawn in code until `assets/items/bonus_portal.png` exists |
 
 ## Milestone chests
 
@@ -22,16 +22,18 @@ Part of the [system docs](README.md).
 - Every `CHEST_EVERY_M` (1000 m) of a run, `main._chest_step` puts a chest (`Pickup` kind `chest`, meta `milestone` = n) on flat ground as the milestone comes into view (later if the ground isn't flat; never over a pit or liquid).
 - Touching it at any height opens it (`main._open_chest`). It stays, open, as scrolling debris.
 
-**Rarity**: `Chest.rarity(n, roll)`; rare and epic chances grow per milestone up to `CHEST_RARE_MAX` / `CHEST_EPIC_MAX`. Rarer and later chests hold more.
+**Rarity**: four tiers, common, rare, ultra rare and legendary (`Chest.RARITY`). It's rolled when the chest is **placed** (`Chest.rarity(n, roll)`, `Pickup.set_rarity`), so the chest wears its tier's art and the player can see what's coming. Each rarer tier's chance is `[at the first milestone, + per milestone, cap]` in `[chests]` and they're checked rarest first; common takes what's left. Rarer and later chests hold more, and the opening's text, sparkles, shake and sound grow with the tier.
 
-**Rewards** (`Chest.REWARDS[rarity]`), plus `CHEST_SCORE` points and `CHEST_COMBO_WEIGHT` combo feats:
-- meat (`CHEST_MEAT` + milestone)
-- XP for the form Rok is in (`CHEST_XP`)
+**Rewards** (`Chest.rewards(rarity)`, the `rewards_<tier>` lists), plus `score` points and `combo_weight` combo feats:
+- meat (`meat[tier]` + milestone)
+- XP for the form Rok is in (`xp[tier]`)
+- crafting materials (`config/crafting.cfg` `[chests]`, a table per tier)
+- a dinosaur card (ultra rare and legendary favour the higher-tier species)
 - a power-up into a free slot (else meat)
 - a heart, or full hearts
 - an instant Primal Frenzy
 
-**Art**: closed until opened, then the lid-opening clip once and a sparkle loop (`Pickup._chest_frames`); without it the still `chest_closed/open.png`, else drawn in code.
+**Art**: the user's four chests (red-brown common, teal rare, purple-obsidian ultra rare, amber-gold legendary): closed until opened, then the lid-opening clip once and a glint loop (`Pickup._chest_frames(meta, tier)`, one SpriteFrames per tier, all built by `Pickup.warm` on the loading screen); without the sheet the tier's still `chest_<tier>_closed/open.png`, else drawn in code.
 
 The first chest ever shows a banner (`seen` "chest"); `main.chests_opened` goes in the run's news.
 

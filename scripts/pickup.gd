@@ -6,8 +6,8 @@ extends Node2D
 ## art at BIG_MEAT_SCALE, worth BIG_MEAT_VALUE) and rare fossils (FOSSIL_MEAT
 ## meat + FOSSIL_SCORE). A milestone chest ("chest") sits still on the ground
 ## and opens when Rok runs into it (`open()`). Fossils and chests use the
-## user's art (`assets/items/fossil.png`, `chest_closed.png` /
-## `chest_open.png`) once it exists; until then they're drawn in code.
+## user's art (`assets/items/fossil.png`; one chest per rarity,
+## `chest_<tier>_anim.png`) once it exists; until then they're drawn in code.
 
 var kind := "amber"
 var radius := 34.0
@@ -15,44 +15,53 @@ var _t := 0.0
 var _base_y := 0.0
 var sprite: Node2D
 var opened := false   # a chest, once opened
-var rarity := ""      # a chest's rarity (Chest.RARITY), set when it opens
+var rarity := ""      # a chest's rarity (Chest.RARITY), rolled when it's placed (set_rarity)
 
 
 const ART := {"fossil": "res://assets/items/fossil.png",
-		"chest": "res://assets/items/chest_closed.png"}
-const CHEST_OPEN := "res://assets/items/chest_open.png"
-const CHEST_META := "res://assets/items/chest.json"   # the animated chest (tools/prepare_chest.py)
-static var _chest_sf: SpriteFrames
+		"chest": "res://assets/items/chest_common_closed.png"}
+const CHEST_META := "res://assets/items/chest.json"   # the animated chests, one per tier (tools/prepare_chest.py)
+static var _chest_sf := {}   # tier -> SpriteFrames
+
+
+static func chest_art(tier: String, part: String) -> String:
+	return "res://assets/items/chest_%s_%s.png" % [tier, part]
 
 
 ## Build the chest's and meat's frames ahead of time (the loading screen:
 ## the chest decodes its @2x sheet, a stutter the first time one appears).
 static func warm() -> void:
 	if FileAccess.file_exists(CHEST_META):
-		_chest_frames(JSON.parse_string(FileAccess.get_file_as_string(CHEST_META)))
+		var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CHEST_META))
+		for t in Chest.RARITY:
+			_chest_frames(meta, t)
 	if ResourceLoader.exists(MEAT_IDLE):
 		_meat_frames()
 
 
-## The chest's clips from chest_anim.png (4 across): closed, open (once), sparkle (loop).
-static func _chest_frames(meta: Dictionary) -> SpriteFrames:
-	if _chest_sf:
-		return _chest_sf
-	var tex := SpriteLib.tex("res://assets/items/chest_anim.png")
+## A tier's clips from chest_<tier>_anim.png (4 across): closed, open (once), sparkle (loop).
+static func _chest_frames(meta: Dictionary, tier := "common") -> SpriteFrames:
+	if _chest_sf.has(tier):
+		return _chest_sf[tier]
+	var path := chest_art(tier, "anim")
+	if not ResourceLoader.exists(path):
+		path = chest_art("common", "anim")
+	var tex := SpriteLib.tex(path)
 	var fs := Vector2(meta.frame[0], meta.frame[1])
-	_chest_sf = SpriteFrames.new()
-	_chest_sf.remove_animation("default")
+	var sf := SpriteFrames.new()
+	_chest_sf[tier] = sf
+	sf.remove_animation("default")
 	for clip in [["closed", [0], [1000], true], ["open", meta.open, meta.open_ms, false], ["sparkle", meta.sparkle, meta.sparkle_ms, true]]:
-		_chest_sf.add_animation(clip[0])
-		_chest_sf.set_animation_speed(clip[0], 1000.0)
-		_chest_sf.set_animation_loop(clip[0], clip[3])
+		sf.add_animation(clip[0])
+		sf.set_animation_speed(clip[0], 1000.0)
+		sf.set_animation_loop(clip[0], clip[3])
 		for j in (clip[1] as Array).size():
 			var i: int = clip[1][j]
 			var at := AtlasTexture.new()
 			at.atlas = tex
 			at.region = Rect2(Vector2(i % 4, i / 4) * fs, fs)
-			_chest_sf.add_frame(clip[0], at, float(clip[2][j]))
-	return _chest_sf
+			sf.add_frame(clip[0], at, float(clip[2][j]))
+	return sf
 
 
 ## True when the chest or fossil is drawn from the user's art (not in code).
@@ -78,7 +87,7 @@ func setup(k: String) -> Pickup:
 			var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(CHEST_META))
 			var fs := Vector2(meta.frame[0], meta.frame[1])
 			var a := AnimatedSprite2D.new()
-			a.sprite_frames = _chest_frames(meta)
+			a.sprite_frames = _chest_frames(meta, "common")
 			a.centered = false
 			a.offset = Vector2(-fs.x * 0.5, -fs.y)
 			a.play("closed")
@@ -162,14 +171,27 @@ func pull_toward(target: Vector2, step: float) -> void:
 	_base_y = p.y
 
 
+## A chest's rarity, rolled when it's placed: it wears that tier's art.
+func set_rarity(r: String) -> void:
+	rarity = r
+	if sprite is AnimatedSprite2D and FileAccess.file_exists(CHEST_META):
+		var a := sprite as AnimatedSprite2D
+		a.sprite_frames = _chest_frames(JSON.parse_string(FileAccess.get_file_as_string(CHEST_META)), r)
+		a.play("closed")
+	elif sprite is Sprite2D and ResourceLoader.exists(chest_art(r, "closed")):
+		(sprite as Sprite2D).texture = load(chest_art(r, "closed"))
+	queue_redraw()
+
+
 ## A chest opens (it stays, open, scrolling away).
 func open(r: String) -> void:
+	if r != rarity:
+		set_rarity(r)
 	opened = true
-	rarity = r
 	if sprite is AnimatedSprite2D and (sprite as AnimatedSprite2D).sprite_frames.has_animation("open"):
 		(sprite as AnimatedSprite2D).play("open")   # then it sparkles
-	elif sprite is Sprite2D and ResourceLoader.exists(CHEST_OPEN):
-		(sprite as Sprite2D).texture = load(CHEST_OPEN)
+	elif sprite is Sprite2D and ResourceLoader.exists(chest_art(r, "open")):
+		(sprite as Sprite2D).texture = load(chest_art(r, "open"))
 	var t := create_tween()
 	scale = Vector2(1.25, 0.8)
 	t.tween_property(self, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

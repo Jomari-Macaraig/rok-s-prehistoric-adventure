@@ -100,9 +100,9 @@ static var ITEMS := [
 	{"name": "Rare Fossil", "icon": "Other_07", "art": "res://assets/items/fossil.png", "seen": "fossil",
 		"hint": "Run past %d m in one go to find one." % int(Tuning.FOSSIL_FROM_M),
 		"text": "An ancient ammonite, found only deep into long runs: %d meat and %d points." % [Tuning.FOSSIL_MEAT, Tuning.FOSSIL_SCORE]},
-	{"name": "Milestone Chest", "icon": "res://assets/items/meat.png", "art": "res://assets/items/chest_closed.png", "seen": "chest",
+	{"name": "Milestone Chest", "icon": "res://assets/items/meat.png", "art": "res://assets/items/chest_common_closed.png", "seen": "chest",
 		"hint": "Run %d m in one go to find one." % int(Tuning.CHEST_EVERY_M),
-		"text": "One waits on the ground every %d m of a run (and an early one near the start): run into it. Common chests hold meat or XP, rare ones can hold a power-up or a heart, and epic ones a Primal Frenzy or full hearts. The further you get, the rarer they are." % int(Tuning.CHEST_EVERY_M)},
+		"text": "One waits on the ground every %d m of a run (and an early one near the start): run into it. You can tell its rarity from afar: red-brown common chests hold meat, XP or materials; teal rare ones can hold a power-up, a heart or a card; purple ultra rare and golden legendary ones a Primal Frenzy, full hearts or a strong dinosaur card, and far more meat and XP. The further you get, the rarer they are." % int(Tuning.CHEST_EVERY_M)},
 	{"name": "Combo & Primal Frenzy", "icon": "Other_07", "seen": "combo",
 		"hint": "Clear a few hazards in a row without a stumble.",
 		"text": "Every hazard cleared without a stumble builds your combo: x1.5 points after 5, up to x5 after 60, and from x2 every meat counts double or more. A stumble or a long gap ends it. The streak also fills the gold meter: full, Rok goes into a Primal Frenzy and smashes through everything for a few seconds (pits still bite!)."}

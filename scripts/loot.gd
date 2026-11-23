@@ -48,6 +48,14 @@ const DEFAULTS := {
 		"amber_count": Tuning.LOOT_AMBER,
 		"in_frenzy": false,
 	},
+	"chests": {
+		"rare": Tuning.CHEST_ODDS.rare, "ultra_rare": Tuning.CHEST_ODDS.ultra_rare, "legendary": Tuning.CHEST_ODDS.legendary,
+		"meat": Tuning.CHEST_MEAT, "xp": Tuning.CHEST_XP, "score": Tuning.CHEST_SCORE, "combo_weight": Tuning.CHEST_COMBO_WEIGHT,
+		"rewards_common": ["meat", "xp", "materials"],
+		"rewards_rare": ["meat", "xp", "booster", "heart", "card", "materials"],
+		"rewards_ultra_rare": ["meat", "xp", "frenzy", "full_heal", "card", "materials"],
+		"rewards_legendary": ["meat", "xp", "frenzy", "full_heal", "card", "materials"],
+	},
 	"power_ups": {
 		"egg_share": 0.5,
 	},

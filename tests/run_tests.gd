@@ -884,15 +884,18 @@ func _combo_checks() -> void:
 ## Milestone chests and escalating pickups (chest.gd, main._chest_step /
 ## _open_chest, Course.big_meat_chance / fossil_chance).
 func _milestone_checks() -> void:
-	check(Chest.rarity(1, 0.0) == "epic" and Chest.rarity(1, 0.99) == "common", "chest rarity follows the roll")
+	check(Chest.rarity(1, 0.0) == "legendary" and Chest.rarity(1, 0.99) == "common", "chest rarity follows the roll")
 	var c1 := Chest.chances(1)
 	var c5 := Chest.chances(5)
 	var c50 := Chest.chances(50)
-	check(c5.x > c1.x and c5.y > c1.y and is_equal_approx(c50.y, Tuning.CHEST_EPIC_MAX) and is_equal_approx(c50.x, Tuning.CHEST_RARE_MAX) and c50.x + c50.y < 1.0,
-			"later milestones give rarer chests, up to a cap")
-	check(Chest.meat("epic", 1) > Chest.meat("rare", 1) and Chest.meat("rare", 1) > Chest.meat("common", 1) and Chest.meat("common", 5) > Chest.meat("common", 1),
-			"rarer and later chests hold more meat")
-	check(Chest.xp("epic", 1) > Chest.xp("common", 1), "rarer chests hold more XP")
+	var cap: Array = Loot.num("chests", "legendary")
+	check(c5.rare > c1.rare and c5.ultra_rare > c1.ultra_rare and c5.legendary > c1.legendary and is_equal_approx(c50.legendary, float(cap[2]))
+			and c50.rare + c50.ultra_rare + c50.legendary < 1.0, "chests get rarer at later milestones, up to a cap (config/pickups.cfg [chests])")
+	check(Chest.meat("legendary", 1) > Chest.meat("ultra_rare", 1) and Chest.meat("ultra_rare", 1) > Chest.meat("rare", 1) and Chest.meat("rare", 1) > Chest.meat("common", 1) and Chest.meat("common", 5) > Chest.meat("common", 1),
+			"rarer chests and later milestones hold more meat")
+	check(Chest.xp("legendary", 1) > Chest.xp("ultra_rare", 1) and Chest.xp("ultra_rare", 1) > Chest.xp("common", 1), "rarer chests hold more XP")
+	for ct in Chest.RARITY:
+		check(ResourceLoader.exists(Pickup.chest_art(ct, "anim")) and not Chest.rewards(ct).is_empty(), "the %s chest has its art and rewards" % ct)
 	# a chest is placed on flat ground at the milestone
 	main.start_run(false)
 	main.distance = (Tuning.CHEST_EVERY_M - 20.0) * Tuning.PX_PER_M
@@ -903,6 +906,8 @@ func _milestone_checks() -> void:
 		var k: Pickup = chests[0]
 		check(absf(k.position.y - main.terrain.height_at(k.position.x)) < 1.0, "...sitting on the ground")
 		check(main.next_chest_m == 2.0 * Tuning.CHEST_EVERY_M, "...and the next one waits for 2000 m")
+		check(Chest.RARITY.has(k.rarity) and (not k.sprite is AnimatedSprite2D or (k.sprite as AnimatedSprite2D).sprite_frames == Pickup._chest_sf[k.rarity]),
+				"...its rarity is rolled when it's placed and it wears that tier's chest")
 		# running into it opens it
 		k.place(Vector2(main.player.position.x + 10.0, main.player.position.y))
 		main._collide()
@@ -931,7 +936,7 @@ func _milestone_checks() -> void:
 			"booster": rewards[r] = main.slots.has("egg")
 			"frenzy": rewards[r] = main.combo.in_frenzy() and main.frenzies == 1
 	check(rewards.values().all(func(v): return v), "every chest reward works: %s" % rewards)
-	check(main.combo.count >= Tuning.CHEST_COMBO_WEIGHT, "a chest adds to the combo")
+	check(main.combo.count >= Chest.combo_weight(), "a chest adds to the combo")
 	# escalating pickups
 	check(Course.big_meat_chance(Tuning.BIG_MEAT_FROM_M - 1.0) == 0.0 and Course.big_meat_chance(Tuning.BIG_MEAT_FULL_M) == Tuning.BIG_MEAT_MAX_CHANCE
 			and Course.big_meat_chance(4000.0) > 0.0 and Course.big_meat_chance(4000.0) < Tuning.BIG_MEAT_MAX_CHANCE, "big meat grows more common as a run goes on")
@@ -1423,7 +1428,7 @@ func _feedback_checks() -> void:
 	var rw := Crafting.rarity_weighted({"wood": 1.0, "resin": 1.0, "primal_crystal": 1.0})
 	check(float(rw.wood) > float(rw.resin) * 3.0 and float(rw.resin) > float(rw.primal_crystal) * 3.0, "drop rarity: rarer materials drop far less often (config [drop_rarity])")
 	check(float(Crafting.num("break_drops", "chance")) <= 0.25 and float(Crafting.num("spots", "chance")) <= 0.1, "materials are rare in runs")
-	check(Chest.REWARDS.common.has("materials") and Chest.REWARDS.epic.has("materials"), "chests can hold materials")
+	check(Chest.rewards("common").has("materials") and Chest.rewards("legendary").has("materials") and Crafting.num("chests", "legendary_count") > 0, "chests can hold materials")
 	var c_cm := Crafting.have("shell") + Crafting.have("fossil_shard") + Crafting.have("dino_scale") + Crafting.have("primal_crystal")
 	var c_chest := Pickup.new().setup("chest")
 	main.course.add_child(c_chest)
@@ -1498,7 +1503,7 @@ func _feedback_checks() -> void:
 	var before := Dinos.stat("rok", lean)
 	main.equip_gear("rok", "weapon", card)
 	check(Dinos.stat("rok", lean) > before - 2.0 + 0.001 or Dinos.stat("rok", lean) >= 10.0, "a card adds its dinosaur's best attribute (%s)" % lean)
-	check(Chest.REWARDS.rare.has("card") and Chest.REWARDS.epic.has("card"), "rare and epic chests can hold cards")
+	check(Chest.rewards("rare").has("card") and Chest.rewards("ultra_rare").has("card"), "rare and ultra rare chests can hold cards")
 	main.equip_gear("rok", "weapon", "")
 	main.equip_gear("rok", "armor", "")
 	check(not Gear.has_any("rok") and is_equal_approx(Dinos.stat("rok", "power"), power0), "emptying the slots takes the bonuses away")
@@ -1523,7 +1528,7 @@ func _feedback_checks() -> void:
 	var pl := Preloader.new()
 	main.add_child(pl)
 	pl.run_all()
-	check(Pickup._chest_sf != null and SpriteLib._tex_cache.has("res://assets/items/chest_anim.png"), "...including the milestone chest's opening")
+	check(Pickup._chest_sf.size() == Chest.RARITY.size() and SpriteLib._tex_cache.has(Pickup.chest_art("legendary", "anim")), "...including every milestone chest tier's opening")
 	check(pl._done == pl._total and Preloader.keep.size() >= (plc[0] as Array).size() and SpriteLib._cache.has("attack_raptor"),
 			"...loads everything and builds the run's animation frames")
 	pl.queue_free()
@@ -2585,6 +2590,26 @@ func _fun_checks() -> void:
 	check(main.tutorial_run != null, "tapping Tutorial plays the training run again")
 	main._refresh_hud()
 	check(not main.hud.tutorial_button.visible, "...and the button hides during it")
+	# bug-proofing: the jump lesson's rock can't be attacked, and if it's lost
+	# before the hint (a crash broke it) the step sets up again instead of
+	# leaving Rok running forever
+	main.state = main.State.PLAYING   # past the intro roar
+	var tg: TutorialRun = main.tutorial_run
+	tg.i = TutorialRun.STEPS.map(func(st): return st.id).find("jump")
+	tg.phase = "start"
+	tg._wait = 0.0
+	main._process(1.0 / 60.0)
+	var rock = tg.thing
+	main._touch_pressed("attack")
+	check(tg.phase == "approach" and tg._alive(rock) and main.attack_cd == 0.0,
+			"in the training run ATTACK does nothing before its lesson (the jump rock stays)")
+	check(not tg.allows("slide") and not tg.allows("attack") and tg.allows("jump"), "...nor SLIDE")
+	main.course.remove_obstacle(rock)
+	main._process(1.0 / 60.0)
+	check(tg.phase == "start" and tg.thing == null, "a lesson's obstacle lost before its hint sets the step up again")
+	tg._wait = 0.0
+	main._process(1.0 / 60.0)
+	check(tg.phase == "approach" and tg._alive(tg.thing) and tg.thing != rock, "...with a fresh rock")
 	main.end_tutorial(true)
 	check(main.state == main.State.TITLE and main.tutorial_run == null and main.tutorial_run_done, "skipping it goes back to the main menu")
 	main.start_run(false)

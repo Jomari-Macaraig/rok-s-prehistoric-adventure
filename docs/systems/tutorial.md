@@ -71,6 +71,13 @@ used (the game keeps its own HUD).
 4. If Rok gets hit anyway, the step repeats ("TRY AGAIN!"), even when the
    crash broke the obstacle (that used to count as passed). A fall restarts
    the run at that step (`start_tutorial(step)`).
+5. **Bug-proofing** (the user's report: attacking the jump lesson's rock left
+   Rok running forever). While the world runs, a move isn't usable before
+   the step that teaches it (`TutorialRun.TAUGHT_BY`: SLIDE, ATTACK;
+   `allows()`, checked by `_tutorial_allows` and the keyboard path). And if a
+   lesson's obstacle is gone or already behind Rok before its hint froze the
+   world (a crash broke it, an early jump), the step sets up again with a
+   fresh one instead of waiting forever.
 
 **The steps**
 

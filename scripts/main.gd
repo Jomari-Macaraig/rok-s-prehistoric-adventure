@@ -807,6 +807,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				var pressed_key: bool = (event is InputEventKey or event is InputEventJoypadButton) and event.is_pressed() and not event.is_echo()
 				if not pressed_key or not _tutorial_allows(_key_action(event)):
 					return
+			elif tutorial_run != null and event is InputEventKey and event.is_pressed() and not tutorial_run.allows(_key_action(event)):
+				return   # a move not taught yet (slide, attack) does nothing
 			if event.is_action_pressed("jump"):
 				player.press_jump()
 			elif event.is_action_released("jump"):
@@ -2482,7 +2484,7 @@ func _enter_bonus() -> void:
 	bonus_zones += 1
 	_bonus_drop = 0.0
 	_bonus_wave = 0.0
-	combo.feat(Tuning.CHEST_COMBO_WEIGHT)
+	combo.feat(Chest.combo_weight())
 	fx.add_shake(5.0)
 	for i in 10:
 		fx.sparkle(player.position + Vector2(randf_range(-60, 120), randf_range(-200, -20)), Color(1.0, 0.85, 0.45))
@@ -3038,7 +3040,9 @@ func _chest_step() -> void:
 		next_chest_m += 2.0   # try a little further on
 		return
 	course._pickup("chest", Vector2(x, gy))
-	course.pickups[-1].set_meta("milestone", maxi(1, int(roundf(next_chest_m / Tuning.CHEST_EVERY_M))))
+	var n := maxi(1, int(roundf(next_chest_m / Tuning.CHEST_EVERY_M)))
+	course.pickups[-1].set_meta("milestone", n)
+	(course.pickups[-1] as Pickup).set_rarity(Chest.rarity(n, randf()))   # its art shows the tier from afar
 	next_chest_m = (floorf(next_chest_m / Tuning.CHEST_EVERY_M) + 1.0) * Tuning.CHEST_EVERY_M
 
 
@@ -3061,12 +3065,14 @@ func _preview_step() -> void:
 	hud.show_banner("WILD DINOSAUR!", "Jump over it, then look behind you!", Color(1.0, 0.8, 0.45), 3.0)
 
 
-## Running into a chest opens it: its rarity (better at later milestones,
-## Chest.rarity) and a reward from that rarity's list (Chest.REWARDS).
+## Running into a chest opens it: its rarity (rolled when it was placed,
+## better at later milestones, Chest.rarity; a test can pass a roll) and a
+## reward from that rarity's list (Chest.rewards).
 func _open_chest(k: Pickup, roll := -1.0, pick := "") -> void:
 	var n: int = k.get_meta("milestone", 1)
-	var r := Chest.rarity(n, randf() if roll < 0.0 else roll)
-	var reward: String = pick if pick != "" else Chest.REWARDS[r].pick_random()
+	var r := Chest.rarity(n, roll) if roll >= 0.0 else (k.rarity if k.rarity != "" else Chest.rarity(n, randf()))
+	var t := Chest.tier(r)
+	var reward: String = pick if pick != "" else Chest.rewards(r).pick_random()
 	var col: Color = Chest.RARITY_COLOR[r]
 	var text := ""
 	match reward:
@@ -3110,7 +3116,7 @@ func _open_chest(k: Pickup, roll := -1.0, pick := "") -> void:
 			grant_materials(got)
 			text = Crafting.cost_text(got)
 		"card":
-			var d := Gear.random_card(r == "epic")
+			var d := Gear.random_card(t >= 2)
 			grant_card(d)
 			new_this_run.append("Card: " + Herd.name_of(d))
 			text = "%s Card!" % Herd.name_of(d)
@@ -3119,21 +3125,23 @@ func _open_chest(k: Pickup, roll := -1.0, pick := "") -> void:
 			combo.frenzy_t = Tuning.FRENZY_TIME
 			combo.frenzy_started.emit()
 			text = "PRIMAL FRENZY!"
-	score += Tuning.CHEST_SCORE * points_mult()
+	score += Chest.score() * points_mult()
 	chests_opened += 1
 	mission_event("chests")
-	combo.feat(Tuning.CHEST_COMBO_WEIGHT)
+	combo.feat(Chest.combo_weight())
 	k.open(r)
 	course.pickups.erase(k)
 	course.debris.append(k)   # stays, open, scrolling away
-	fx.float_text(k.position + Vector2(-90, -150), Chest.RARITY_NAME[r] + "!", col, 34 if r == "common" else 40)
+	fx.float_text(k.position + Vector2(-90 - 12 * t, -150), Chest.RARITY_NAME[r] + "!", col, 34 + 3 * t)
 	fx.float_text(k.position + Vector2(-80, -110), text, Color(1, 0.95, 0.8), 28)
-	for i in (4 if r == "common" else 8):
+	for i in 4 + 4 * t:
 		fx.sparkle(k.position + Vector2(randf_range(-50, 50), randf_range(-110, -30)), col)
-	fx.add_shake(3.0 if r == "common" else 6.0)
-	audio.play("unlock", 0.0, 1.0 if r == "common" else 1.2)
-	if r != "common":
-		audio.play("amber", 0.0, 1.5, 2.0)
+	fx.add_shake(3.0 + 2.0 * t)
+	audio.play("unlock", 0.0, 1.0 + 0.1 * t)
+	if t > 0:
+		audio.play("amber", 0.0, 1.4 + 0.1 * t, 2.0)
+	if t >= 3:
+		audio.play("powerup_activate", 0.0, 1.2)
 
 
 ## Primal Frenzy: whatever Rok runs into breaks (dino gate walls too) and wild
@@ -3534,10 +3542,13 @@ func start_tutorial(step := 0) -> void:
 
 
 ## While the training run is frozen on a hint, only the button it asks for
-## (and pause / stop) does anything. True if `action` may go ahead.
+## (and pause / stop) does anything; while it runs, moves not taught yet
+## (slide, attack) do nothing. True if `action` may go ahead.
 func _tutorial_allows(action: String) -> bool:
-	if tutorial_run == null or not tutorial_run.frozen:
+	if tutorial_run == null:
 		return true
+	if not tutorial_run.frozen:
+		return tutorial_run.allows(action)   # a move isn't usable before its lesson
 	if action in ["pause", "stop", "sound"]:
 		return true
 	if tutorial_run.phase == "note":

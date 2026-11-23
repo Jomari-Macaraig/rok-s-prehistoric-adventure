@@ -3,6 +3,12 @@
   99,
   102
  ],
+ "tiers": [
+  "common",
+  "rare",
+  "ultra_rare",
+  "legendary"
+ ],
  "open": [
   0,
   1,

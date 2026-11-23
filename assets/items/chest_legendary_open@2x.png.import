@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://vhcck0jio1ic"
-path="res://.godot/imported/chest_open.png-fcbebf3752413c40bc476a7632c41a9e.ctex"
+uid="uid://c2pyw5aqijknc"
+path="res://.godot/imported/chest_legendary_open@2x.png-9603a0ce23602911f3e9b65bc45f44b3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/items/chest_open.png"
-dest_files=["res://.godot/imported/chest_open.png-fcbebf3752413c40bc476a7632c41a9e.ctex"]
+source_file="res://assets/items/chest_legendary_open@2x.png"
+dest_files=["res://.godot/imported/chest_legendary_open@2x.png-9603a0ce23602911f3e9b65bc45f44b3.ctex"]
 
 [params]
 
