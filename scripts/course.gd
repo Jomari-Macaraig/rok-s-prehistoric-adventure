@@ -887,15 +887,15 @@ func _spawn_key(key: String, x: float) -> float:
 			obstacles.append(c)
 			return c.size.x + 300.0
 		"log":
-			return log_(x).size.x
+			return _named(log_(x), key).size.x
 		"boulder":
-			return boulder(x).size.x
+			return _named(boulder(x), key).size.x
 		"fence":
-			return fence(x, false).size.x
+			return _named(fence(x, false), key).size.x
 		"tall_fence":
-			return fence(x, true).size.x
+			return _named(fence(x, true), key).size.x
 		"wall":
-			return rock_wall(x, 2 if randf() > difficulty * 0.6 else 3).size.x
+			return _named(rock_wall(x, 2 if randf() > difficulty * 0.6 else 3), key).size.x
 		"ledge":
 			# slide under (amber beneath rewards it) or hop on top; pushed out
 			# so there is run-up time after the previous hazard
@@ -931,16 +931,23 @@ func _spawn_single(k: String, x: float) -> Obstacle:
 		"thorn_bush":
 			return thorn_bush(x)
 		"log":
-			return log_(x)
+			return _named(log_(x), k)
 		"boulder":
-			return boulder(x)
+			return _named(boulder(x), k)
 		"fence":
-			return fence(x, false)
+			return _named(fence(x, false), k)
 		"tall_fence":
-			return fence(x, true)
+			return _named(fence(x, true), k)
 		"wall":
-			return rock_wall(x, 2)
+			return _named(rock_wall(x, 2), k)
 	return small(x)
+
+
+## Tags an obstacle with the hazard it was spawned as, for its damage tier
+## (config/damage.cfg; Obstacle.hit_key).
+func _named(o: Obstacle, key: String) -> Obstacle:
+	o.hazard = key
+	return o
 
 
 ## Pickups that reward the pattern just spawned. Floating islands only go

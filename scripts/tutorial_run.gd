@@ -63,7 +63,7 @@ const STEPS := [
 		"card": ["BECOME THE RAPTOR", "Tap the [RAPTOR] to cross the crumbling bridge."],
 		"back": ["BACK TO ROK", "Tap [ROK] to save your PRIMAL energy."]},
 	{"id": "amber", "intro": true, "spawn": "amber", "title": "GRAB THE AMBER", "hint": "Dinosaurs use PRIMAL energy. Amber fills it back up.",
-		"notes": [["primal", "[PRIMAL] energy. Dinosaurs use it up and\namber fills it. Empty means back to Rok."]]},
+		"notes": [["primal", "[PRIMAL] energy powers the dinosaurs. It drains\nwhile you're one, faster the longer you stay.\nAmber refills it. Empty means back to Rok."]]},
 	{"id": "finish"},
 ]
 

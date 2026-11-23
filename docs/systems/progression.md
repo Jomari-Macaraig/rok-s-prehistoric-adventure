@@ -59,6 +59,7 @@ All set from `[pacing]`:
 
 **First sight** (the user's rule: nothing new appears before it's been mentioned)
 - `main._first_sight_step` introduces big meat, rare fossils, milestone chests, the bonus portal and any power-up besides the starter pepper the first time one comes on screen (`FIRST_SIGHT`, `_introduce_thing`): an info card, and the `seen` key (`power_<kind>`) reveals its Field Guide card.
+- **Obstacle looks** (the user's rule, 2026-11-23: rocks and mushrooms aren't grouped, and a zone's look-alikes mustn't surprise): `main._looks_step` gives each look of a hazard its own NEW banner (not a card) the first time one is on screen, `seen` key `look_<id>`. The looks are in **`config/obstacle_looks.cfg`** (`ObstacleLooks`: per look its art names, banner name and hint, and an optional `lesson` whose own banner already teaches it, so rocks ride on the "small" lesson, now titled "Rocks"). Today: rocks, mushrooms, twigs, the Canyon's loose stones, the Desert's raptor skulls, bone piles and sandstone shards, the Volcanic ember rocks, obsidian shards and pumice lumps. `Obstacle.art` is the first part's file name or its animation; any hazard's look can be added the same way.
 - Hazards already work this way (Course `introduced`).
 
 ## Unlock news

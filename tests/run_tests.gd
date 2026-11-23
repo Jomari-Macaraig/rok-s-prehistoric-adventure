@@ -430,12 +430,18 @@ func _gate_checks() -> void:
 	var gap_h: float = main.chase_gap
 	main.course.boulder(p.position.x)
 	main._collide()
-	check(main.state == main.State.PLAYING and main.health == full_h - Hearts.damage("crash", Dinos.stat("rok", "armor")) and main.chase_gap < gap_h, "crashing into a boulder as Rok costs a heart and lets the hunter gain, not the run")
+	check(main.state == main.State.PLAYING and main.health == full_h - Hearts.damage("boulder", Dinos.stat("rok", "armor")) and main.chase_gap < gap_h, "crashing into a boulder as Rok costs a heart and lets the hunter gain, not the run")
 	check(p.invuln >= Tuning.CRASH_INVULN - 0.01 and main.course.obstacles.all(func(o): return o.kind != "rock" or o.position.x > p.position.x + 200.0), "...then a moment of invulnerability, and the boulder breaks")
 	main._refresh_hud()
 	check(main.hud.hearts_box.get_child_count() == Tuning.MAX_HEARTS and int((main.hud.hearts_box.get_child(Tuning.MAX_HEARTS - 1) as TextureRect).get_meta("fill", -1)) == 0, "the HUD shows the lost heart (draining to empty)")
-	check(Hearts.damage("crash", 1) == 4 and Hearts.damage("crash", 10) == 2 and Hearts.damage("snag", 10) == 1 and Hearts.damage("trip", 10) == 1 and Hearts.damage("trip", 1) == 1, "hearts split in quarters: a crash costs a whole heart, halved at Armor 10; small hits always a quarter")
-	check(Hearts.damage("crash", 6) == 3 and Hearts.text(3) == "¾ heart" and Hearts.text(6) == "1½ hearts", "Armor between softens a crash to three quarters")
+	check(Hearts.damage("boulder", 1) == 4 and Hearts.damage("boulder", 10) == 2 and Hearts.damage("vine", 10) == 1 and Hearts.damage("small", 10) == 1 and Hearts.damage("small", 1) == 1, "hearts split in quarters: a crash costs a whole heart, halved at Armor 10; small hits always a quarter")
+	# damage tiers (config/damage.cfg, the user's design): each obstacle its own tier
+	check(FileAccess.file_exists(Hearts.PATH) and Hearts.tier("small") == "light" and Hearts.tier("mushroom") == "light" and Hearts.tier("log") == "medium"
+			and Hearts.tier("fence") == "medium" and Hearts.tier("wall") == "heavy" and Hearts.tier("tall_fence") == "heavy" and Hearts.damage("log", 1) == 2, "damage tiers come from config/damage.cfg: a log or low fence costs half a heart, a wall or tall fence a whole one")
+	check(Hearts.DEFAULT_OBSTACLES.keys().all(func(k): return Hearts.TIER_ORDER.has(Hearts.tier(k))), "every obstacle has a damage tier")
+	var lg: Obstacle = main.course._named(main.course.log_(p.position.x + 2000.0), "log")
+	check(lg.hit_key() == "log" and main.course._named(main.course.rock_wall(p.position.x + 2400.0, 2), "wall").hit_key() == "wall" and main.course.boulder(p.position.x + 2800.0).hit_key() == "boulder", "obstacles know their damage key")
+	check(Hearts.damage("boulder", 6) == 3 and Hearts.text(3) == "¾ heart" and Hearts.text(6) == "1½ hearts", "Armor between softens a crash to three quarters")
 	main.course._pickup("heart", p.position + Vector2(0, -60))
 	main._collide()
 	check(main.health == full_h, "a heart pickup heals a heart")
@@ -446,10 +452,10 @@ func _gate_checks() -> void:
 	# trips, snags and dizzy mushrooms cost hearts too
 	p.invuln = 0.0
 	main._trip()
-	check(main.health == full_h - Hearts.damage("trip", Dinos.stat("rok", "armor")), "a trip costs a quarter heart")
+	check(main.health == full_h - Hearts.damage("small", Dinos.stat("rok", "armor")), "a trip costs a quarter heart")
 	p.invuln = 0.0
-	main._hurt("snag", "test")
-	check(main.health == full_h - 1 - Hearts.damage("snag", Dinos.stat("rok", "armor")), "a snag costs half a heart (as Rok)")
+	main._hurt("vine", "test")
+	check(main.health == full_h - 1 - Hearts.damage("vine", Dinos.stat("rok", "armor")), "a snag costs half a heart (as Rok)")
 	main.health = 1
 	p.invuln = 0.0
 	main._trip()
@@ -457,6 +463,26 @@ func _gate_checks() -> void:
 	main.start_run(false)
 	p = main.player
 	check(main.health == full_h, "a new run starts with full hearts (counted in quarters)")
+	# each look of a small hazard has its own NEW banner (config/obstacle_looks.cfg); two show at once
+	main.hud.clear_banner()
+	main.seen.erase("look_mushroom")
+	if not main.seen.has("small"):
+		main.seen.append("small")
+	var mush: Obstacle = main.course._obstacle("small", ["Mushrooms_02"], 1.0, p.position.x + 500.0)
+	mush.mushroom = true
+	main._first_sight_step()
+	check(ObstacleLooks.for_art("Mushrooms_02") == "mushroom" and main.seen.has("look_mushroom") and main.hud.banner_titles().has("NEW: MUSHROOMS"), "a mushroom gets its own NEW banner the first time it's on screen")
+	main.seen.erase("look_raptor_skull")
+	main.hud.clear_banner()
+	main.hud.show_banner("TEST ONE", "", Color.WHITE)
+	var sk: Obstacle = main.course._obstacle("small", ["Stones_03"], 1.0, p.position.x + 600.0)
+	sk.art = "biome_raptor_skull"
+	main._first_sight_step()
+	check(main.hud.banner_titles().size() == 2 and main.hud.banner_titles().has("NEW: RAPTOR SKULLS"), "a zone's look (a raptor skull) gets its own banner too, and two banners show at once")
+	check(ObstacleLooks.get_look("rock").lesson == "small" and not main.hud.banner_titles().has("NEW: ROCKS"), "rocks are taught by their lesson's banner, not a second one")
+	main.course.remove_obstacle(mush)
+	main.course.remove_obstacle(sk)
+	main.hud.clear_banner()
 	# a Power roll that wins smashes a rock (no trip, no heart lost); one that loses trips
 	var hp_r: int = main.health
 	main.roll_override = 0.0
@@ -1662,7 +1688,7 @@ func _feedback_checks() -> void:
 	main.hud.clear_banner()
 	c._pickup("fossil", Vector2(main.get_viewport().get_visible_rect().size.x - 200.0, Tuning.GROUND_Y - 100.0))
 	main._first_sight_step()
-	check(main.seen.has("fossil") and main.hud.banner_title.text.contains("RARE FOSSIL"), "a rare fossil is introduced as soon as it comes on screen")
+	check(main.seen.has("fossil") and main.hud.banner_titles().any(func(t): return t.contains("RARE FOSSIL")), "a rare fossil is introduced as soon as it comes on screen")
 	main.seen.erase("power_time_crystal")
 	main.boosters_owned.append("time_crystal")
 	c._pickup("time_crystal", Vector2(900.0, Tuning.GROUND_Y - 100.0))
@@ -2442,7 +2468,7 @@ func _fun_checks() -> void:
 	main.hud.clear_banner()
 	main.distance = 121.0 * Tuning.PX_PER_M
 	main._best_flag_step()
-	check(main.best_flag.passed and main.hud.banner_title.text == "NEW BEST!", "running past it celebrates the new record")
+	check(main.best_flag.passed and main.hud.banner_titles().has("NEW BEST!"), "running past it celebrates the new record")
 	main.best_m = 0
 	main.start_run(false)
 	check(main.best_flag == null, "no flag without a record")
@@ -2454,7 +2480,7 @@ func _fun_checks() -> void:
 	main.hud.clear_banner()
 	main.distance = (Progression.TREX_CHARGE_M[0] + 1.0) * Tuning.PX_PER_M
 	main._charge_step(1.0 / 60.0)
-	check(main.charge_state == "warn" and main.hud.banner_title.text == "THE T-REX CHARGES!", "at its distance the T-rex roars a warning")
+	check(main.charge_state == "warn" and main.hud.banner_titles().has("THE T-REX CHARGES!"), "at its distance the T-rex roars a warning")
 	main._charge_step(Tuning.CHARGE_WARN + 0.01)
 	check(main.charge_state == "charge", "...then charges")
 	main.chase_gap = Tuning.CHASE_GAP_MAX
@@ -2479,7 +2505,7 @@ func _fun_checks() -> void:
 	main.distance = (Zones.ZONE_LEN_M + 5.0) * Tuning.PX_PER_M
 	main._hunter_step()
 	check(main.hunter_id == Hunters.for_zone("desert") and main.trex.hunter == main.hunter_id, "entering the Desert, its hunter takes over")
-	check(main.hud.banner_title.text.contains(String(Hunters.DATA[main.hunter_id].name).to_upper()), "...with a banner naming it")
+	check(main.hud.banner_titles().any(func(t): return t.contains(String(Hunters.DATA[main.hunter_id].name).to_upper())), "...with a banner naming it")
 	check(main.trex.sprite.self_modulate == Hunters.tint(main.hunter_id), "until it has its own art it wears the T-rex's, tinted")
 	main.distance = (3.0 * Zones.ZONE_LEN_M + 5.0) * Tuning.PX_PER_M
 	main._hunter_step()
@@ -2776,7 +2802,7 @@ func _fun_checks() -> void:
 	main.hud.clear_banner()
 	main.badge_event("smashed")
 	check(main.badge_tiers.smasher == 1 and main.meat_bank == Badges.TIER_REWARD[0], "reaching it earns Bronze and its meat")
-	check(main.hud.banner_title.text.begins_with("BADGE:") and main.new_badges.size() == 1, "a badge earned mid-run shows a banner and joins the run's news")
+	check(main.hud.banner_titles().any(func(t): return t.begins_with("BADGE:")) and main.new_badges.size() == 1, "a badge earned mid-run shows a banner and joins the run's news")
 	check(SaveData.load_badges()[1].get("smasher", 0) == 1 and SaveData.load_meat() == Badges.TIER_REWARD[0], "badges and their meat are saved")
 	main.badge_best("run_m", Badges.DATA.marathon.tiers[2] + 1.0)
 	check(main.badge_tiers.marathon == 3 and main.meat_bank == Badges.TIER_REWARD[0] + Badges.TIER_REWARD[0] + Badges.TIER_REWARD[1] + Badges.TIER_REWARD[2], "a big jump earns every tier it passes")
@@ -3439,7 +3465,7 @@ func _market_checks() -> void:
 	var best_keep: float = main.best_m
 	main.hud.show_banner("ZONE: TEST", "", Color.WHITE)
 	main._finish_game_over()
-	check(main.hud.banner.modulate.a == 0.0, "the game-over screen clears any banner covering it")
+	check(main.hud.banner.modulate.a == 0.0 and main.hud.banner_titles().is_empty(), "the game-over screen clears any banner covering it")
 	check(main.hud.help_label.text.contains("Market: " + Market.item_name("time_crystal")), "the game-over screen lists what went on sale")
 	# the summary card: how it ended, the numbers, the rank, the dinosaurs played
 	check(main.summary.visible and not main.hud.center_panel.visible, "the run ends on a summary card instead of the plain game-over text")

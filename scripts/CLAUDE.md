@@ -48,7 +48,7 @@ Each system is documented on its own in [docs/systems/](../docs/systems/README.m
 | `fx.gd` | [rendering-and-fx](../docs/systems/rendering-and-fx.md) |
 | `gear.gd` | [weapons-and-armor](../docs/systems/weapons-and-armor.md) |
 | `gear_layer.gd` | [weapons-and-armor](../docs/systems/weapons-and-armor.md), [combat](../docs/systems/combat.md) (hidden during a carry run) |
-| `hearts.gd` | [health-and-damage](../docs/systems/health-and-damage.md) |
+| `hearts.gd` | [health-and-damage](../docs/systems/health-and-damage.md) (damage tiers from `config/damage.cfg`) |
 | `herd.gd` | [camp](../docs/systems/camp.md) |
 | `hazard_icons.gd` | [field-guide](../docs/systems/field-guide.md#hazard-pictures), [progression](../docs/systems/progression.md) |
 | `heroes.gd` | [heroes](../docs/systems/heroes.md) |
@@ -61,6 +61,7 @@ Each system is documented on its own in [docs/systems/](../docs/systems/README.m
 | `menu_tour.gd` | [tutorial](../docs/systems/tutorial.md) |
 | `missions.gd` | [goals](../docs/systems/goals.md) |
 | `obstacle.gd` | [obstacles-and-gates](../docs/systems/obstacles-and-gates.md) |
+| `obstacle_looks.gd` | [progression](../docs/systems/progression.md) (a NEW banner per obstacle look) |
 | `pickup.gd` | [pickups-and-loot](../docs/systems/pickups-and-loot.md) |
 | `platform.gd` | [obstacles-and-gates](../docs/systems/obstacles-and-gates.md) |
 | `player.gd` | [health-and-damage](../docs/systems/health-and-damage.md), [movement-and-forms](../docs/systems/movement-and-forms.md), [combat](../docs/systems/combat.md) |

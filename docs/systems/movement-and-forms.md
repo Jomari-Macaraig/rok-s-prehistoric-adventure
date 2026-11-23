@@ -72,7 +72,11 @@ be swapped for another of its category (see [dinosaurs](dinosaurs.md)).
 - **Staying a dino gets tiring**: `main.dino_time` counts seconds as any dino (reset only by going back to Rok; paused by the Primal Berry). Drain = form rate × (1 + dino_time / `DRAIN_DOUBLE_TIME` (8 s)): ×2 after 8 s, ×3 after 16 s. The energy bar turns from orange to red (`Hud.set_drain_heat`).
 - Amber gives `AMBER_ENERGY` (15) as Rok, only `AMBER_ENERGY_DINO` (7) as a dino: Rok is the form for recharging.
 - With no amber a full bar lasts about 11 s as the Raptor, 7.5 s as the Triceratops, 6 s as the Pteranodon.
-- The first dino's unlock card explains this.
+- How the player learns it (the user asked for a proper explanation, 2026-11-23):
+  - the training run's PRIMAL note (`tutorial_run.gd`, after the amber step): it powers the dinosaurs, drains faster the longer you stay one, amber refills it, empty means Rok;
+  - the first dino's unlock card: the orange bar, the `SHIFT_MIN_ENERGY` needed to change, the tiring drain (red bar), empty → Rok, rest as Rok and refill with amber (most as Rok);
+  - the first time the drain reaches ×2 in a run, a banner "YOUR DINO IS TIRING!" (once ever, `seen` key `primal_tired`);
+  - the Field Guide's Items tab: a **PRIMAL Energy** page with every number from `Tuning` (start, max, minimum, the ×2/×3 times, amber as Rok and as a dinosaur, Primal Amber, Primal Berry), revealed once amber has been met; the Amber page gives the real amounts (+15 as Rok, +7 as a dinosaur).
 
 ## Shapeshift burst
 

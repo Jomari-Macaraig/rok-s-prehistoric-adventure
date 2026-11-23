@@ -708,7 +708,7 @@ func _check_unlocks() -> void:
 			if pause_for_info:
 				queue_info("NEW DINO: " + d.name.to_upper() + "!",
 						"%s.\nTap its button to transform.%s\n\nDid you know? %s" % [d.desc,
-							"\nDinos tire fast: the longer you stay one, the faster energy drains. Change back to Rok to recharge with amber." if unlocked.size() == 2 else "",
+							("\nDinosaurs run on PRIMAL energy (the orange bar): you need %d to change, and it drains while you're one, faster the longer you stay (the bar turns red). Empty, you're Rok again. Turn back into Rok to rest, and grab amber to refill it (it gives most as Rok)." % int(Tuning.SHIFT_MIN_ENERGY)) if unlocked.size() == 2 else "",
 							DinoFacts.for_id(d.id).get("quiz", "")],
 						SpriteLib.tex("res://assets/portraits/%s.png" % d.id), d.color)
 			else:
@@ -1411,6 +1411,11 @@ func _play_step(delta: float) -> void:
 		dino_time = 0.0
 	elif not power_on("primal_berry"):
 		dino_time += delta
+		if drain_mult() >= 2.0 and not seen.has("primal_tired") and tutorial_run == null:
+			# the first time the bar turns red: what's happening and what to do
+			seen.append("primal_tired")
+			SaveData.save_seen(seen)
+			hud.show_banner("YOUR DINO IS TIRING!", "PRIMAL energy now drains twice as fast. Turn back into Rok to reset it, then grab amber to refill.", Color(1.0, 0.45, 0.3), 4.0)
 		energy -= d.drain * drain_mult() * delta
 		if energy <= 0.0:
 			energy = 0.0
@@ -1565,6 +1570,7 @@ func _collide() -> void:
 			if _crash(o):
 				return
 		else:
+			# a dino gate's wall with the wrong form: instant (the user's rule, like pits and liquids)
 			death_cause = "gate %s (%s, ground=%s)" % [o.kind, Forms.get_data(player.form).id, player.on_ground]
 			_game_over()
 			return
@@ -1656,13 +1662,15 @@ func _check_quicksand(delta: float) -> bool:
 
 
 ## Crashing into a solid obstacle (log, boulder, wall, fence, a hard ledge):
-## it costs hearts (Hearts.damage "crash", by the form's Armor) instead of ending
-## the run, the hunter gains, Rok gets a moment of invulnerability and the
-## obstacle breaks (no smash points). Out of hearts, the run ends. Returns
-## true if it did.
+## it costs hearts by the obstacle's damage tier
+## (config/damage.cfg, Obstacle.hit_key, softened by the form's Armor) instead
+## of ending the run, the hunter gains, Rok gets a moment of invulnerability
+## and the obstacle breaks (no smash points). Out of hearts, the run ends.
+## Returns true if it did.
 func _crash(o: Obstacle) -> bool:
-	var cost := Hearts.damage("crash", Hearts.armor_of(player.data()))
-	if _hurt("crash", "%s (%s, ground=%s)" % [o.kind, Forms.get_data(player.form).id, player.on_ground]):
+	var key := o.hit_key()
+	var cost := Hearts.damage(key, Hearts.armor_of(player.data()))
+	if _hurt(key, "%s (%s, ground=%s)" % [o.kind, Forms.get_data(player.form).id, player.on_ground], false):
 		return true
 	var pos := o.position + Vector2(0, -o.size.y * 0.5)
 	fx.smash(pos, Color(0.55, 0.5, 0.45) if o.kind == "rock" else Color(0.6, 0.38, 0.2))
@@ -1682,13 +1690,14 @@ func max_health() -> int:
 	return (Tuning.MAX_HEARTS + heart_containers) * Hearts.QUARTERS
 
 
-## Any hit costs quarter hearts by its kind and the form's Armor (Hearts.damage).
-## Out of hearts, the run ends with `cause`. Returns true if it did.
-func _hurt(kind: String, cause: String) -> bool:
+## Any hit costs quarter hearts by the obstacle's damage tier
+## (config/damage.cfg) and the form's Armor (Hearts.damage). Out of hearts,
+## the run ends with `cause`. Returns true if it did.
+func _hurt(key: String, cause: String, pop := true) -> bool:
 	if state != State.PLAYING:
 		return false
-	health = maxi(health - Hearts.damage(kind, Hearts.armor_of(player.data())), 0)
-	if kind != "crash":
+	health = maxi(health - Hearts.damage(key, Hearts.armor_of(player.data())), 0)
+	if pop:
 		hud.hearts_hit()
 	if health <= 0:
 		death_cause = cause
@@ -1741,11 +1750,11 @@ func _power_break(o: Obstacle) -> void:
 
 
 ## Small rocks (and twigs) trip Rok up instead of ending the run: he
-## stumbles and the T-rex gains. Big hazards (boulders, walls...) still kill.
+## stumbles and the T-rex gains. Big hazards (boulders, walls...) crash.
 func _trip() -> void:
 	_stumble(Tuning.STUMBLE_ROCK, "Trip!")
 	player.react_play("trip")
-	_hurt("trip", "small")
+	_hurt("small", "small")
 
 
 # ------------------------------------------------------------------ badges
@@ -1963,7 +1972,7 @@ func _bump(o: Obstacle) -> void:
 	o.bumped = true
 	_stumble(Critters.DATA[o.critter].bump, "Bonk!")
 	player.react_play("trip")
-	_hurt("bump", "critter " + o.critter)
+	_hurt(o.hit_key(), "critter " + o.critter)
 
 
 ## Wild dinosaurs that get past Rok run into the T-rex, which eats them: a
@@ -2002,13 +2011,13 @@ func _eat_critters() -> void:
 
 ## A Forest vine branch snags Rok instead of ending the run: he stumbles (the
 ## T-rex gains) and pushes through, so the branch stops being an obstacle and
-## can't snag him twice. The Desert arch and Volcanic rock are solid and kill.
+## can't snag him twice. The Desert arch and Volcanic rock are solid: a crash.
 func _snag(o: Obstacle) -> void:
 	course.obstacles.erase(o)
 	course.debris.append(o)   # still drawn and scrolling, no longer collides
 	_stumble(Tuning.STUMBLE_VINE, "Snagged!", Color(0.45, 0.85, 0.35))
 	player.react_play("snag", Tuning.SNAG_HOLD)
-	_hurt("snag", "overhead vine")
+	_hurt("vine", "overhead vine")
 
 
 ## Running into a mushroom squashes it: no death, but its spores make Rok
@@ -2024,7 +2033,7 @@ func _mushroom(o: Obstacle) -> void:
 	_stumble(Tuning.STUMBLE_MUSHROOM, "Dizzy!", Color(0.62, 0.3, 1.0))
 	player.react_play("dizzy", Tuning.DIZZY_TIME - 0.4)
 	player.invuln = maxf(player.invuln, 0.5)
-	_hurt("dizzy", "small mushroom")
+	_hurt("mushroom", "small mushroom")
 
 
 func _dizzy_step(delta: float) -> void:
@@ -2279,6 +2288,29 @@ func _first_sight_step() -> void:
 			_introduce_thing("power_" + k.kind, k.kind)
 	if portal != null and is_instance_valid(portal) and portal.position.x < view_w - 30.0:
 		_introduce_thing("bonus", "bonus")
+	_looks_step(view_w)
+
+
+## Each look of a hazard (a rock, a mushroom, a raptor skull, an ember
+## rock...) gets its own NEW banner the first time one is on screen (the
+## user's rule: they aren't grouped, so none surprises the player). Banners,
+## not info cards; two can show at once. A look whose lesson banner already
+## teaches it (config/obstacle_looks.cfg `lesson`) is marked seen with it.
+func _looks_step(view_w: float) -> void:
+	for o in course.obstacles:
+		if o.art == "" or o.position.x > view_w - 30.0 or o.position.x < 0.0:
+			continue
+		var id := ObstacleLooks.for_art(o.art)
+		if id == "" or seen.has("look_" + id):
+			continue
+		var L := ObstacleLooks.get_look(id)
+		var lesson: String = L.lesson
+		if lesson != "" and not (seen.has(lesson) or Progression.taught(lesson, best_m, seen)):
+			continue   # its lesson's banner comes first and teaches it
+		seen.append("look_" + id)
+		SaveData.save_seen(seen)
+		if lesson == "":
+			hud.show_banner("NEW: " + String(L.name).to_upper(), L.hint, Color(1.0, 0.8, 0.4), 3.2)
 
 
 func _introduce_thing(key: String, kind: String) -> void:

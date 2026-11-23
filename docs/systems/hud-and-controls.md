@@ -35,7 +35,7 @@ Part of the [system docs](README.md).
 
 **Top-right**: score and distance ("123 m · Desert", led by a time-of-day icon: sun, moon, or the half-and-half face at dusk and dawn; `Hud.set_daylight`), the meat pill below it, then the combo meter (during a run only) and the event countdown.
 
-**Middle**: slide-in banners (`show_banner()`, under the top bar; they queue), info cards (`show_info`), and centre messages on a dark rounded backdrop. All labels have a thick outline and a drop shadow.
+**Middle**: slide-in banners (`show_banner()`, under the top bar): `BANNER_SLOTS` (2) stacked `BANNER_STEP` apart, so two new things can show at once (the user's call); more queue for the next free slot; `banner_titles()` lists those showing, info cards (`show_info`), and centre messages on a dark rounded backdrop. All labels have a thick outline and a drop shadow.
 
 **Pause screen**: the PAUSED panel and the Tips on/off button under it (see [tutorial](tutorial.md)).
 

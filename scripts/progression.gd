@@ -12,7 +12,7 @@ class_name Progression
 ## dinosaur is unlocked. WHEN each one appears is set in
 ## config/progression.cfg ([introductions]).
 const INTRO_TEXT := {
-	"small": ["Rocks & Mushrooms", "Tap JUMP to leap over them. Hit a rock and you trip (the T-rex gains); a mushroom makes you dizzy", -1, ""],
+	"small": ["Rocks", "Tap JUMP to leap over them. Hit a rock and you trip (the T-rex gains)", -1, ""],
 	"pepper": ["Blaze Peppers", "Grab it! It goes in a booster slot: tap the slot for a burst of speed. You start with 1 booster slot; reach %d m for a second, and a third comes from the Market", -1, ""],
 	"hill": ["", "", -1, ""],
 	"log": ["Logs", "Jump over them. Hold JUMP for a higher leap", -1, ""],

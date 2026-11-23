@@ -332,7 +332,7 @@ static func perks(id: String) -> Array:
 	if stat(id, "armor") >= ARMOR_SHIELD and cat != "tank" and cat != "rok":
 		out.append("Armoured: a shield each time Rok turns into it")
 	var a := stat(id, "armor")
-	out.append("A crash costs %s, a trip %s" % [Hearts.text(Hearts.damage("crash", a)), Hearts.text(Hearts.damage("trip", a))])
+	out.append("A crash costs %s, a trip %s" % [Hearts.text(Hearts.damage("boulder", a)), Hearts.text(Hearts.damage("small", a))])
 	out.append("Attack every %.2f s (Power), slide again after %.2f s (Speed)" % [
 			Tuning.ATTACK_COOLDOWN * cooldown_mult(id, "power"), Tuning.SLIDE_COOLDOWN * cooldown_mult(id, "speed")])
 	return out

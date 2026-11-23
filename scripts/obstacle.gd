@@ -17,6 +17,13 @@ var mushroom := false
 ## Wild dinosaurs (Critters): their species id, and the hitbox measured from
 ## the art relative to the node (custom_box) instead of size * shrink.
 var critter := ""
+## Which hazard this is for its damage tier (config/damage.cfg [obstacles]):
+## set where the course spawns it by name ("boulder", "wall", "tall_fence"...);
+## hit_key() falls back on the kind and flags.
+var hazard := ""
+## The art it's drawn with (the first part's file name or its animation), for
+## its look's NEW banner (ObstacleLooks, config/obstacle_looks.cfg).
+var art := ""
 var custom_box := Rect2()
 var bumped := false             # already ran into Rok: no more collisions
 ## Diving flyers (make_diver): start high, dive to their normal height as
@@ -56,6 +63,8 @@ const BREAK_SCALE := {"Stones_01": 0.45, "Stones_02": 0.42, "Stones_03": 0.55,
 func setup(k: String, parts: Array, scale_factor: float) -> Obstacle:
 	## parts: Array of texture paths stacked bottom-up.
 	kind = k
+	if not parts.is_empty():
+		art = String(parts[0]).get_file().get_basename()
 	var y := 0.0
 	var w := 0.0
 	for p in parts:
@@ -82,6 +91,7 @@ func setup(k: String, parts: Array, scale_factor: float) -> Obstacle:
 ## it plays the rest of the sheet (shatter). Origin: its base on the ground.
 func setup_anim(k: String, anim: String, height: float, max_w := 9999.0) -> Obstacle:
 	kind = k
+	art = anim
 	var m: Dictionary = SpriteLib.trap_meta()[anim]
 	var b: Array = m.bounds0
 	var bw := float(b[2]) - float(b[0])
@@ -337,6 +347,25 @@ func setup_rolling(scale_factor: float) -> Obstacle:
 	size = Vector2((b[2] - b[0]) * scale_factor, (b[3] - b[1]) * scale_factor)
 	shrink = Vector2(0.72, 0.8)
 	return self
+
+
+## The damage-tier key for running into this (Hearts.damage).
+func hit_key() -> String:
+	if critter != "":
+		return "stampede" if kind == "stampede" else "swooper"
+	if vine:
+		return "vine"
+	if mushroom:
+		return "mushroom"
+	if hazard != "":
+		return hazard
+	if roll_speed > 0.0:
+		return "rolling_boulder"
+	match kind:
+		"wood": return "log"
+		"rock": return "boulder"
+		"overhead": return "ledge"
+	return kind   # small, fence, thorns, steam
 
 
 func hitbox() -> Rect2:

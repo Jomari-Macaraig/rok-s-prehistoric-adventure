@@ -88,11 +88,14 @@ const TERRAIN := [
 
 static var ITEMS := [
 	{"name": "Amber", "icon": "Other_07",
-		"text": "Fills your PRIMAL energy (+25), which powers the dinosaur forms. Worth +25 points."},
+		"text": "Fills your PRIMAL energy: +%d as Rok, only +%d as a dinosaur, so Rok is the one to collect it. Worth +25 points." % [int(Tuning.AMBER_ENERGY), int(Tuning.AMBER_ENERGY_DINO)]},
+	{"name": "PRIMAL Energy", "icon": "Other_07", "seen": "amber",
+		"hint": "Unlock your first dinosaur to use it.",
+		"text": "The orange bar under your hearts: the fuel for the dinosaur forms (Rok himself uses none). A run starts with %d of %d, and you need %d to change into a dinosaur. While you're one it drains every second, each dinosaur at its own rate (the Raptor slowest, the Pteranodon fastest), and it gets tiring: after %d s as any dinosaur it drains twice as fast, after %d s three times (the bar turns red). Switching dinosaurs doesn't reset that; only turning back into Rok does. When it's empty you turn back into Rok (in mid-air you get a free jump). Refill it with amber (+%d as Rok, +%d as a dinosaur), Primal Amber fills it to the top, and a Primal Berry makes changing free for a while." % [int(Tuning.ENERGY_START), int(Tuning.ENERGY_MAX), int(Tuning.SHIFT_MIN_ENERGY), int(Tuning.DRAIN_DOUBLE_TIME), int(Tuning.DRAIN_DOUBLE_TIME * 2), int(Tuning.AMBER_ENERGY), int(Tuning.AMBER_ENERGY_DINO)]},
 	{"name": "Meat", "icon": "res://assets/items/meat.png",
 		"text": "Rok's Market money. Every piece you grab is banked when the run ends; spend it in the Market on power-ups and a third booster slot. Worth +25 points."},
 	{"name": "Heart", "icon": "heart",
-		"text": "Rok has 3 hearts (up to 6 with Heart Containers from the Market, on sale by best score), each split into quarters. Every hit costs some: a crash a whole heart, a snag or a wild-dinosaur bump half, a trip, a dizzy mushroom, thorns or steam a quarter. Armor softens hits (at Armor 10 a crash costs half a heart). Pits, water, lava, quicksand, dino gates and being caught are still the end. A rare heart in a run heals one."},
+		"text": "Rok has 3 hearts (up to 6 with Heart Containers from the Market, on sale by best score), each split into quarters. Running into a hazard costs hearts by how dangerous it is: " + Codex.damage_tiers_text() + ". Armor softens every hit. The run ends when the hearts run out. Pits, water, lava, quicksand, a dino gate with the wrong dinosaur and being caught by the hunter end it at once. A rare heart in a run heals one."},
 	# found later in runs: revealed once met (`seen` key), else "???" with where to look
 	{"name": "Big Meat", "icon": "res://assets/items/meat.png", "art": "res://assets/items/big_meat.png", "seen": "big_meat",
 		"hint": "Run past %d m in one go to find it." % int(Tuning.BIG_MEAT_FROM_M),
@@ -110,6 +113,21 @@ static var ITEMS := [
 
 var tab := 0
 var unlocked: Array = []
+
+
+## "¼ heart: small rocks, mushrooms...; ½ heart: ..." from config/damage.cfg.
+const TIER_NAMES := {"small": "small rocks", "mushroom": "mushrooms", "thorns": "thorns", "steam": "steam",
+		"vine": "vines", "log": "logs", "fence": "fences", "stampede": "wild dinosaurs", "swooper": "swooping flyers",
+		"boulder": "boulders", "tall_fence": "tall fences", "wall": "walls", "ledge": "solid ledges",
+		"rolling_boulder": "rolling boulders"}
+static func damage_tiers_text() -> String:
+	var parts: Array = []
+	for t in Hearts.TIER_ORDER:
+		var keys := Hearts.in_tier(t)
+		if keys.is_empty():
+			continue
+		parts.append("%s for %s" % [Hearts.text(Hearts.damage(keys[0], 0.0)), ", ".join(keys.map(func(k): return TIER_NAMES.get(k, k)))])
+	return "; ".join(parts)
 var best_m := 0.0
 var seen: Array = []
 var viewed: Array = []      # entry ids already looked at in the guide

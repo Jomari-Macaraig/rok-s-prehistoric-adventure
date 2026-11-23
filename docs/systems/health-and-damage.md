@@ -10,7 +10,7 @@ Part of the [system docs](README.md).
 | | |
 |---|---|
 | Code | `scripts/hearts.gd` (`Hearts`), `main._hurt` / `_stumble` / `_small_hazard` / `_trip` / `_snag` / `_mushroom` / `_crash`, `player.gd` (`react_*`) |
-| Config | Heart Container prices `[market]`, unlock scores `[market_score]`; heart pickup odds `config/pickups.cfg` |
+| Config | **`config/damage.cfg`**: damage tiers and each obstacle's tier; Heart Container prices `[market]`, unlock scores `[market_score]`; heart pickup odds `config/pickups.cfg` |
 | Art | the user's stone heart (`tools/prepare_hearts.py`); per-character hit reactions (`assets/reactions/`, `tools/prepare_reactions.gd`) |
 | Tests | `main.roll_override` pins the Power roll (run_tests sets 0.999 = never breaks) |
 
@@ -33,25 +33,23 @@ Part of the [system docs](README.md).
 
 ## What a hit costs
 
-`main._hurt(kind, cause)` (the user's design):
-cost = `HIT[kind]` × (1 − Armor / `ARMOR_DIVISOR` (20)), rounded up, never below 1 quarter.
+**Damage tiers** (the user's design, 2026-11-23): every obstacle belongs to a tier in **`config/damage.cfg`** (`[tiers]` quarters per tier, `[obstacles]` obstacle → tier, `[armor] armor_divisor`), read by `Hearts` (`Hearts.tier`, `base`, `in_tier`, `damage`; fallbacks `DEFAULT_TIERS` / `DEFAULT_OBSTACLES`). `main._hurt(key, cause, pop)` takes the obstacle's key:
+cost = tier quarters × (1 − Armor / `armor_divisor` (20)), rounded up, never below 1 quarter.
 Armor is that of the form Rok is in (`armor_of`; Rok has attributes too).
 
-| Hit | Base cost (quarters) | At Armor 10 |
+| Tier | Base cost | Obstacles (keys) |
 |---|---|---|
-| Crash (boulder, wall, fence, log, solid ledge) | 4 (1 heart) | ½ heart |
-| Wild-dinosaur bump | 2 | |
-| Vine snag | 2 | ¼ heart |
-| Trip (small rock / twig) | 1 | ¼ |
-| Dizzy mushroom | 1 | ¼ |
-| Thorns | 1 | ¼ |
-| Steam vent | 1 | ¼ |
+| light | ¼ heart | small rock or twig (`small`, also landed meteors), `mushroom`, `thorns`, `steam` |
+| medium | ½ heart | `vine` snag, `log`, low `fence`, `stampede` (wild-dinosaur bump), `swooper` (swooping or diving flyer) |
+| heavy | 1 heart (½ at Armor 10) | `boulder`, `tall_fence`, `wall`, solid `ledge`, `rolling_boulder` |
+
+An obstacle's key is `Obstacle.hit_key()`: `hazard` (set by `Course._named` where the course spawns it as "log", "boulder", "fence", "tall_fence" or "wall"), else from its flags and kind (critters → stampede / swooper, vine, mushroom, a rolling boulder, wood → log, rock → boulder, overhead → ledge). A new obstacle needs a key there and a line in `config/damage.cfg`. The Field Guide's Heart page lists the tiers from the config (`Codex.damage_tiers_text`).
 
 - A **crash** also shatters the obstacle (no smash points), gives `CRASH_INVULN` and the trip reaction.
 - **Shields** (the Spinosaurus's, Armor 10 on a non-Tank) block a crash first. (The Amber Shield power-up is now Primal Amber, an energy refill.)
 - At 0 quarters the run ends with that hit's `death_cause`; `_collide` stops checking once the state isn't PLAYING.
 
-**Still instant** (only where instant death makes sense): pits (and canyon/bridge gates), water, lava, quicksand, dino gate walls, being caught.
+**Still instant** (the user's rule, confirmed 2026-11-23): pits (and canyon/bridge gates), water, lava, quicksand, dino gate walls, being caught.
 
 ## Small hazards
 

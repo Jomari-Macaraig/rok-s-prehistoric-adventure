@@ -1,34 +1,74 @@
 class_name Hearts
 ## Rok's health: Tuning.MAX_HEARTS hearts, each split into QUARTERS
-## (main.health counts quarters). Every hit costs quarters (main._hurt): its
-## base cost (HIT, in quarters) times (1 - Armor / ARMOR_DIVISOR), rounded up,
-## never below one quarter, using the Armor of the form Rok is in (Rok has
-## attributes too). So at Armor 10 a crash costs half a heart and a snag a
-## quarter, while small hits always cost a quarter. A shield (armor 10 on a
-## non-Tank, the Spinosaurus's, or the Amber Shield) blocks a crash first.
-## Out of quarters, the run ends. Pits, water, lava, quicksand, dino gates and
-## being caught are still instant.
+## (main.health counts quarters). Every hit costs quarters (main._hurt) by
+## the obstacle's DAMAGE TIER (config/damage.cfg, the user's design: light,
+## medium, heavy, severe, deadly) times (1 - Armor / armor_divisor), rounded
+## up, never below one quarter, using the Armor of the form Rok is in (Rok
+## has attributes too). A shield (armor 10 on a non-Tank, the Spinosaurus's)
+## blocks a crash first. Out of quarters, the run ends. Pits, water, lava,
+## quicksand, dino gates and being caught stay instant (the user's rule).
 ## Rare heart pickups heal one heart (course.gd; odds in config/pickups.cfg [spots] heart).
 ##
 ## Art: assets/items/heart_<full|three|half|quarter|empty>.png when the user
 ## supplies it, otherwise hearts drawn in code.
 
 const QUARTERS := 4
-const ARMOR_DIVISOR := 20.0
-## Base cost of each kind of hit, in quarter hearts.
-const HIT := {"crash": 4, "bump": 2, "snag": 2, "trip": 1, "dizzy": 1, "thorns": 1, "steam": 1}
+const PATH := "res://config/damage.cfg"
+## Fallbacks for anything config/damage.cfg leaves out.
+const DEFAULT_TIERS := {"light": 1, "medium": 2, "heavy": 4}
+const DEFAULT_OBSTACLES := {
+	"small": "light", "mushroom": "light", "thorns": "light", "steam": "light",
+	"vine": "medium", "log": "medium", "fence": "medium", "stampede": "medium", "swooper": "medium",
+	"boulder": "heavy", "tall_fence": "heavy", "wall": "heavy", "ledge": "heavy", "rolling_boulder": "heavy",
+}
+## The order tiers are listed in (lightest first).
+const TIER_ORDER := ["light", "medium", "heavy"]
 const RED := Color(0.9, 0.18, 0.2)
 const OUTLINE := Color(0.32, 0.08, 0.06)
 const EMPTY := Color(0.2, 0.1, 0.08, 0.55)
 const ART := ["empty", "quarter", "half", "three", "full"]
 
 static var _icons := {}
+static var _cfg := {}
 
 
-## Quarter hearts a hit of `kind` costs at this Armor (1-10).
-static func damage(kind: String, armor: float) -> int:
-	var base := float(HIT.get(kind, 1))
-	return maxi(1, ceili(base * (1.0 - armor / ARMOR_DIVISOR) - 0.001))
+static func _load() -> void:
+	if not _cfg.is_empty():
+		return
+	_cfg = {"tiers": DEFAULT_TIERS.duplicate(), "obstacles": DEFAULT_OBSTACLES.duplicate(),
+			"armor_divisor": 20.0}
+	var c := ConfigFile.new()
+	if c.load(PATH) != OK:
+		return
+	for k in c.get_section_keys("tiers") if c.has_section("tiers") else []:
+		_cfg.tiers[k] = int(c.get_value("tiers", k))
+	for k in c.get_section_keys("obstacles") if c.has_section("obstacles") else []:
+		_cfg.obstacles[k] = String(c.get_value("obstacles", k))
+	_cfg.armor_divisor = float(c.get_value("armor", "armor_divisor", 20.0))
+
+
+## An obstacle's damage tier ("light" ... "deadly"; unknown ones are light).
+static func tier(obstacle: String) -> String:
+	_load()
+	return String(_cfg.obstacles.get(obstacle, "light"))
+
+
+## Base cost of an obstacle in quarter hearts (its tier's, before Armor).
+static func base(obstacle: String) -> int:
+	_load()
+	return int(_cfg.tiers.get(tier(obstacle), 1))
+
+
+## Every obstacle of a tier, in config order.
+static func in_tier(t: String) -> Array:
+	_load()
+	return (_cfg.obstacles as Dictionary).keys().filter(func(k): return _cfg.obstacles[k] == t)
+
+
+## Quarter hearts hitting `obstacle` costs at this Armor (1-10).
+static func damage(obstacle: String, armor: float) -> int:
+	_load()
+	return maxi(1, ceili(base(obstacle) * (1.0 - armor / float(_cfg.armor_divisor)) - 0.001))
 
 
 ## The Armor of a form's data (Rok or a dinosaur, levels included).

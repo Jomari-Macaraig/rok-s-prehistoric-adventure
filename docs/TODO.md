@@ -43,6 +43,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Done recently
 
+- 2026-11-23: damage tiers per obstacle (`config/damage.cfg`; pits, liquids, quicksand and gates stay instant); a NEW banner per obstacle look (`config/obstacle_looks.cfg`), two banners at once; PRIMAL energy explained (Field Guide page, first-dino card, tiring banner, tutorial note).
 - 2026-11-23: Rok's size made consistent: idle, walk, duck, trip, dizzy, snag and the 5 standing styles from the user's consistency update (redrawn at his run's size), his per-weapon clips and gear sockets refitted.
 - 2026-11-23: the Blaze Pepper replaced the Dino Egg as the speed-boost power-up (id `pepper`; old saves renamed on load).
 - 2026-11-23: Desert and Volcanic biome obstacles with breaks, Forest twig and mushroom breaks; all five attack styles for Rok, Nira and Boro, standing and running (bare hands = Fist); the Canyon zone (4th, from the user's canyon pack; timeline probe: every zone lesson lands in its zone); Point Hunter and Seasoned medals; day/night icon on the HUD; chest rarities; bug-proof tutorial; Kora's lines and name plank; Ugo's name plank; Camp meat counter hidden; Rok's Swing pilot (approved); [NEW_ITEM_ART.md](NEW_ITEM_ART.md).

@@ -58,7 +58,9 @@ var info_body: Label
 var info_hint: Label
 var banner_title: Label
 var banner_hint: Label
-var _banner_tween: Tween
+const BANNER_SLOTS := 2       # banners that can show at once, stacked
+const BANNER_STEP := 112      # px between the stacked banners
+var _banners: Array = []      # per slot: {panel, title, hint, tween}
 var _icon_pause: Texture2D
 var _icon_sound_on: Texture2D
 var _icon_sound_off: Texture2D
@@ -429,35 +431,41 @@ func _ready() -> void:
 	missions_panel.visible = false
 	root.add_child(missions_panel)
 
-	# --- banner for new hazards / unlocks (below the top bar)
-	var bc := CenterContainer.new()
-	bc.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	bc.offset_top = 146
-	bc.offset_bottom = 264
-	bc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(bc)
-	banner = PanelContainer.new()
-	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var bsb := StyleBoxFlat.new()
-	bsb.bg_color = Color(0.16, 0.08, 0.03, 0.85)
-	bsb.set_corner_radius_all(18)
-	bsb.set_border_width_all(3)
-	bsb.border_color = Color(1.0, 0.8, 0.35)
-	bsb.content_margin_left = 30
-	bsb.content_margin_right = 30
-	bsb.content_margin_top = 10
-	bsb.content_margin_bottom = 12
-	banner.add_theme_stylebox_override("panel", bsb)
-	bc.add_child(banner)
-	var bv := VBoxContainer.new()
-	bv.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	banner.add_child(bv)
-	banner_title = _label(38, Color(1.0, 0.85, 0.4))
-	banner_hint = _label(24)
-	for l in [banner_title, banner_hint]:
-		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		bv.add_child(l)
-	banner.modulate.a = 0.0
+	# --- banners for new hazards / unlocks (below the top bar): BANNER_SLOTS
+	# of them stacked, so two new things can show at once (the user's call)
+	for i in BANNER_SLOTS:
+		var bc := CenterContainer.new()
+		bc.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		bc.offset_top = 146 + i * BANNER_STEP
+		bc.offset_bottom = 264 + i * BANNER_STEP
+		bc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		root.add_child(bc)
+		var p := PanelContainer.new()
+		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var bsb := StyleBoxFlat.new()
+		bsb.bg_color = Color(0.16, 0.08, 0.03, 0.85)
+		bsb.set_corner_radius_all(18)
+		bsb.set_border_width_all(3)
+		bsb.border_color = Color(1.0, 0.8, 0.35)
+		bsb.content_margin_left = 30
+		bsb.content_margin_right = 30
+		bsb.content_margin_top = 10
+		bsb.content_margin_bottom = 12
+		p.add_theme_stylebox_override("panel", bsb)
+		bc.add_child(p)
+		var bv := VBoxContainer.new()
+		bv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		p.add_child(bv)
+		var t := _label(38 if i == 0 else 32, Color(1.0, 0.85, 0.4))
+		var h := _label(24 if i == 0 else 21)
+		for l in [t, h]:
+			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			bv.add_child(l)
+		p.modulate.a = 0.0
+		_banners.append({"panel": p, "title": t, "hint": h, "tween": null})
+	banner = _banners[0].panel
+	banner_title = _banners[0].title
+	banner_hint = _banners[0].hint
 
 	# --- info card: the game pauses so something new can be read
 	var ic := CenterContainer.new()
@@ -1057,42 +1065,54 @@ var _banner_queue: Array = []
 
 ## Slide-in banner for a newly introduced hazard or an unlock. If one is
 ## already showing, the new one waits its turn.
-## Drop the current banner and any queued ones (the run is over).
+## Drop the current banners and any queued ones (the run is over).
 func clear_banner() -> void:
 	_banner_queue.clear()
-	if _banner_tween:
-		_banner_tween.kill()
-	banner.modulate.a = 0.0
+	for b in _banners:
+		if b.tween:
+			(b.tween as Tween).kill()
+		b.panel.modulate.a = 0.0
 
 
+## Shows a banner in the first free slot (two can show at once, stacked),
+## else queues it for the next slot that frees up.
 func show_banner(title: String, hint: String, color: Color, duration := 2.6) -> void:
-	if _banner_tween and _banner_tween.is_running():
-		_banner_queue.append([title, hint, color, duration])
-		return
-	_show_banner_now(title, hint, color, duration)
+	for i in _banners.size():
+		if _banners[i].tween == null or not (_banners[i].tween as Tween).is_running():
+			_show_banner_now(i, title, hint, color, duration)
+			return
+	_banner_queue.append([title, hint, color, duration])
 
 
-func _show_banner_now(title: String, hint: String, color: Color, duration: float) -> void:
-	banner_title.text = title
-	banner_title.add_theme_color_override("font_color", color)
-	banner_hint.text = hint
-	banner_hint.visible = hint != ""
-	(banner.get_theme_stylebox("panel") as StyleBoxFlat).border_color = color
-	if _banner_tween:
-		_banner_tween.kill()
-	banner.modulate.a = 0.0
-	banner.scale = Vector2(0.85, 0.85)
-	banner.pivot_offset = banner.size * 0.5
-	_banner_tween = create_tween()
-	_banner_tween.set_parallel()
-	_banner_tween.tween_property(banner, "modulate:a", 1.0, 0.2)
-	_banner_tween.tween_property(banner, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_banner_tween.chain().tween_interval(duration)
-	_banner_tween.chain().tween_property(banner, "modulate:a", 0.0, 0.4)
-	_banner_tween.chain().tween_callback(func():
+## The titles on screen right now (tests, and to avoid repeating one).
+func banner_titles() -> Array:
+	return _banners.filter(func(b): return b.panel.modulate.a > 0.0 or (b.tween != null and (b.tween as Tween).is_running())).map(func(b): return b.title.text)
+
+
+func _show_banner_now(i: int, title: String, hint: String, color: Color, duration: float) -> void:
+	var b: Dictionary = _banners[i]
+	var p: PanelContainer = b.panel
+	b.title.text = title
+	b.title.add_theme_color_override("font_color", color)
+	b.hint.text = hint
+	b.hint.visible = hint != ""
+	(p.get_theme_stylebox("panel") as StyleBoxFlat).border_color = color
+	if b.tween:
+		(b.tween as Tween).kill()
+	p.modulate.a = 0.0
+	p.scale = Vector2(0.85, 0.85)
+	p.pivot_offset = p.size * 0.5
+	var tw := create_tween()
+	b.tween = tw
+	tw.set_parallel()
+	tw.tween_property(p, "modulate:a", 1.0, 0.2)
+	tw.tween_property(p, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.chain().tween_interval(duration)
+	tw.chain().tween_property(p, "modulate:a", 0.0, 0.4)
+	tw.chain().tween_callback(func():
 		if not _banner_queue.is_empty():
-			var b: Array = _banner_queue.pop_front()
-			_show_banner_now(b[0], b[1], b[2], b[3] * 0.85))
+			var q: Array = _banner_queue.pop_front()
+			_show_banner_now(i, q[0], q[1], q[2], q[3] * 0.85))
 
 
 ## Show the paused info card. The "tap to continue" line appears once the
