@@ -13,6 +13,8 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Decisions (the user)
 
+- [ ] **Campaign mode** (the user's idea, parked 2026-11-23): a Campaign button beside an Endless Run button on the main menu. Design to come (levels, goals, rewards).
+
 - [ ] **Pet system (future):** the user plans pets; design to come. The eggs' new use (to be described) may tie in.
 - [ ] **Eggs:** the user's new idea for the egg art (to be described).
 - [ ] **Stomps:** which wild species are stompable, and does a stomp bounce Rok?
@@ -46,6 +48,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Done recently
 
+- 2026-11-23: REPAIR on Kora's Items screen too.
 - 2026-11-23: a Crafting button on the main menu (the tour points at it).
 - 2026-11-23: the Encyclopedia's Weapons, Armor and Card Slots pages, and the Crafting tour's equipment step.
 - 2026-11-23: Settings (sound and music volumes); armor durability and repair; selling in the Market at 80% (`config/economy.cfg`).

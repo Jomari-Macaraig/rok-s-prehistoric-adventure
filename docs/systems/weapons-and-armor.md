@@ -64,7 +64,7 @@ The user's design. Weapons and (since 2026-11-23) **armor** wear; cards don't. E
 2. At `WEAR_WARN` (5) hits left, a banner warns.
 3. At 0 the weapon is **broken** (`Gear.broken`): its own 8-frame shatter plays in the hand (`GearLayer.play_break`; frame 0 is the intact weapon), the `weapon_break` sound, "SNAP!", a banner and a news line. Any attack clip stops so the shatter shows.
 4. Broken: no bonus, bare-hand reach, not drawn, no attack clip. It stays owned and equipped.
-5. **Repair** at the Camp (`Herd.press_repair`, two taps, `main.repair_gear`): costs **materials**, `[repair] share` of the recipe × the worn share (`Crafting.repair_cost`). The Camp shows "Durability n/max" (or BROKEN) and the repair cost.
+5. **Repair** at the Camp (`Herd.press_repair`, two taps, `main.repair_gear`) or on Kora's **Items** screen (REPAIR beside SALVAGE for worn gear, the whole width for equipped gear; the first tap has Kora say the cost, or what's missing; `Workshop.press_repair`): costs **materials**, `[repair] share` of the recipe × the worn share (`Crafting.repair_cost`). The Camp shows "Durability n/max" (or BROKEN) and the repair cost.
 
 A crafted weapon starts at full durability (its rarity's `durability_mult` × the base hits).
 

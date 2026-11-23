@@ -751,11 +751,19 @@ func _item_detail() -> void:
 	var eq := _label(("Equipped by %s\nChange it at the Dinosaur Camp." % Heroes.name_of(who)) if who != "" else "Not equipped\nEquip it at the Dinosaur Camp.",
 			Rect2(1074, 552, 366, 52), 16, ENOUGH if who != "" else INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT)
 	eq.name = "Equip"
+	# REPAIR for worn or broken gear (the user's request: Kora mends it here
+	# too, not only at the Camp); beside SALVAGE when it isn't equipped
+	var worn := not Gear.repair_cost(id).is_empty()
+	if worn:
+		var rw := 354.0 if who != "" else 172.0
+		var rb := _button("SURE?" if _confirm == "repair" else "REPAIR", "button_craft_green", Rect2(1077, 618, rw, 60), 25 if who != "" else 22, detail, "Repair", press_repair)
+		rb.tooltip_text = "Repair it to full: " + Crafting.cost_text(Gear.repair_cost(id))
 	if who != "":
 		return
 	var back := Crafting.salvage_return(Gear.base(id), r)
-	var sb := _button("SURE?" if _confirm == "salvage" else "SALVAGE", "button_salvage_amber", Rect2(1077, 618, 354, 60), 25, detail, "Salvage", press_salvage)
-	_img(_tex("icon_salvage"), Rect2(34, 8, 44, 44), sb)
+	var sb := _button("SURE?" if _confirm == "salvage" else "SALVAGE", "button_salvage_amber", Rect2(1259, 618, 172, 60) if worn else Rect2(1077, 618, 354, 60), 22 if worn else 25, detail, "Salvage", press_salvage)
+	if not worn:
+		_img(_tex("icon_salvage"), Rect2(34, 8, 44, 44), sb)
 	_label("RETURNS", Rect2(1055, 696, 385, 27), 19, INK, detail).name = "SalvageReturn"
 	var ks := back.keys()
 	var per := mini(ks.size(), 3)   # at most three across; a fourth (a Rare+ catalyst) starts a second row
@@ -768,6 +776,33 @@ func _item_detail() -> void:
 		var rl := _label("%s ×%d" % [Crafting.mat_name(m), int(back[m])], Rect2(x + 40, ry + 1, cw - 44, 34), 15 if cw < 130.0 else 17, INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT)
 		rl.clip_text = true   # never wider than its column
 		rl.size = Vector2(cw - 44, 34)
+
+
+## REPAIR: the first tap shows the cost in Kora's bubble (or what's missing),
+## the second spends the materials and mends it to full (main.repair_gear).
+func press_repair() -> bool:
+	var cost := Gear.repair_cost(selected)
+	if cost.is_empty():
+		return false
+	if not Crafting.can_afford(cost):
+		_confirm = ""
+		game.audio.play("denied", 0.0)
+		kora_say("repair_short", Crafting.cost_text(cost))
+		refresh()
+		return false
+	if _confirm != "repair":
+		_confirm = "repair"
+		game.audio.play("click", 0.0)
+		kora_say("repair_ask", Crafting.cost_text(cost))
+		refresh()
+		return false
+	_confirm = ""
+	var ok: bool = game.repair_gear(selected)
+	if ok:
+		kora_play("craft")
+		kora_say("repaired")
+	refresh()
+	return ok
 
 
 func press_salvage() -> bool:
@@ -921,6 +956,27 @@ const KORA_LINES := {
 		"Salvaged! Now let's make something better.",
 		"Pieces saved. My mallet thanks you.",
 		"There, all sorted. Every bit has another life.",
+	],
+	"repair_ask": [
+		"I can fix that up for %s. Tap REPAIR again!",
+		"Good as new for %s. Shall I? Tap again.",
+		"That one's seen some action. %s and it's whole again.",
+		"A few knocks, nothing my mallet can't mend: %s.",
+		"%s and I'll have it sturdy again. Tap REPAIR!",
+	],
+	"repair_short": [
+		"I'd need %s to fix that. Go find some!",
+		"Not enough to mend it: %s.",
+		"Bring me %s and I'll patch it right up.",
+		"Short on materials. It takes %s.",
+		"Hmm, %s for this one. Come back with more!",
+	],
+	"repaired": [
+		"Good as new! Go give it another beating.",
+		"Mended! It'll last a good while now.",
+		"There, sturdy again. Take care of it!",
+		"Fixed! My mallet never fails.",
+		"All patched up. Off you go!",
 	],
 }
 

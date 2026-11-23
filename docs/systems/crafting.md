@@ -95,3 +95,5 @@ The Camp still equips gear. Its Change list shows each copy by full name in its 
 ## Where it's opened
 
 The Crafting Bench has its own **Crafting** button on the main menu (the user's call, 2026-11-23; `Hud.crafting_button`, under the Marketplace, key J), shown once the bench is open; its red dot means a learned recipe can be crafted now (`main.crafting_ready`). The Items screen stays inside it (the bench's Items button) and in the Camp's header, beside Crafting. A hammer-and-anvil icon is drawn in code until the user's square art exists.
+
+The Items screen also **repairs** worn or broken gear (the user's request, 2026-11-23): a REPAIR button (`Workshop.press_repair`) beside SALVAGE, or alone for equipped gear; Kora names the cost on the first tap (`repair_ask`, or `repair_short` without the materials) and mends it on the second (`repaired`).
