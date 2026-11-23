@@ -1,5 +1,8 @@
 # Game design: the core loop
 
+**Status: notes only.** The user will discuss these later; nothing here is
+designed or built yet. Don't start on it without them.
+
 The user's vision for Rok Runner (2026-11-23). This is the big picture; each
 system's doc in [systems/](systems/README.md) says how what's built works, and
 [TODO.md](TODO.md) tracks what's left.
@@ -26,6 +29,11 @@ system's doc in [systems/](systems/README.md) says how what's built works, and
 - **Breeding**: two pets can breed. Each pet has **traits** (body parts,
   colours, attributes, attack cards), and an offspring inherits traits from
   both parents, with a chance of something new.
+  - **Only the same type** can breed together (decided 2026-11-23): a
+    Raptor with a Raptor, never two different species.
+  - **Each dinosaur can be bred at most 8 times** (decided 2026-11-23).
+- **More dinosaurs** will be added later, so pets and breeding must not
+  assume a fixed species list.
 - **Battles**: turn-based, card-based battles between teams of dinosaurs.
   Each dinosaur brings its own set of attack cards, decided by its traits.
   Each turn the player plays cards from their hand. For now the opponent is
@@ -43,8 +51,9 @@ system's doc in [systems/](systems/README.md) says how what's built works, and
   win conditions? What are the rewards?
 - **Care and age**: How many real hours or days per age stage? What happens
   when a pet is neglected? Can a pet be saved from dying (and should it)?
-- **Breeding**: How many times can a pet breed? What does breeding cost?
-  How rare are new traits?
+- **Breeding**: What does breeding cost? Does the cost rise with each of
+  the 8 breedings? How rare are new traits? Can offspring of two different
+  colour variants of one species mix them?
 - **Economy**: How do pets, eggs and battle rewards tie into meat and
   materials? Can pets be sold?
 - **PVP later**: This needs online accounts and a server. Design the battle
