@@ -1289,7 +1289,18 @@ func _feedback_checks() -> void:
 	check(main.attack_reach() == Gear.reach("rok") and Gear.reach("rok") > Tuning.ATTACK_REACH_HAND, "a weapon reaches further than bare hands")
 	main.attack_cd = 0.0
 	main._attack()
-	check(main.player.attack_clip == "attack_stone_axe" and main.player.atk.visible, "Rok swings his Stone Axe with its own attack clip")
+	check(main.player.attack_clip == "style_swing" and main.player.atk.visible and main.player.atk_gear._weapon.visible and main.player.atk_gear._weapon.texture == Gear.icon("stone_axe"),
+			"Rok swings his Stone Axe with the empty-handed Swing, the axe drawn at the guide's grip")
+	check(Gear.style("stone_axe") == "swing" and Gear.style("flint_spear") == "thrust" and Gear.style_clip("rok", "flint_spear") == "" and Gear.style_clip("nira", "club") == "",
+			"weapon styles come from config; without that style's clip (the spear, Nira) the old drawn-in clip stays")
+	var sm: Dictionary = SpriteLib.attack_meta("rok")["style_swing"]
+	check((sm.grip as Array).size() == 8 and (sm.angle as Array).size() == 8 and (sm.back as Array).size() == 8 and int(sm.active) == 4,
+			"the Swing's guide gives a grip, an angle and a back point on all 8 frames (strike on 4)")
+	main.player.atk.frame = 4
+	main.player.atk_gear._place()
+	var gw: Sprite2D = main.player.atk_gear._weapon
+	check(gw.position.distance_to(main.player.atk.offset + Vector2(sm.grip[4][0], sm.grip[4][1])) < 0.5 and is_equal_approx(gw.rotation_degrees, float(sm.angle[4]))
+			and main.player.atk_gear._fist.visible, "...on the strike frame the axe sits on the grip, along the stick, with the fist drawn over its handle")
 	main.player.attack_stop()
 	# --- the seamless running attack (the user's Rok_Running_Club)
 	var club: String = main.craft("club", "", 0.0)
@@ -1320,7 +1331,7 @@ func _feedback_checks() -> void:
 	p.sprite.play("jump")
 	main.attack_cd = 0.0
 	main._attack()
-	check(p.attack_clip == "attack_club", "in the air the standing swing plays instead")
+	check(p.attack_clip == "style_swing", "in the air the standing swing plays instead")
 	p.attack_stop()
 	p.on_ground = true
 	main.equip_gear("rok", "weapon", axe)

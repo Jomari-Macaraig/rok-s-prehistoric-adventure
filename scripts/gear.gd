@@ -45,6 +45,32 @@ const ITEMS := {
 		"price": 2000, "unlock_m": 5400, "desc": "A great shell on your back. Crashes barely hurt."},
 }
 ## The Market's Card Pack: a random dinosaur card (can be bought again and again).
+## A weapon's attack style (config/crafting.cfg [weapon_styles]): "swing",
+## "thrust", "throw", "shoot", "fist", or "" for anything else.
+static func style(id: String) -> String:
+	var v: Variant = Crafting.num("weapon_styles", base(id))
+	return v if v is String else ""
+
+
+## How big a weapon draws in a style clip ([weapon_styles] scale, or
+## "<id>_scale" for that weapon).
+static func style_scale(id: String) -> float:
+	var v: Variant = Crafting.num("weapon_styles", base(id) + "_scale")
+	if not (v is float or v is int) or float(v) <= 0.0:
+		v = Crafting.num("weapon_styles", "scale")
+	return float(v) if (v is float or v is int) and float(v) > 0.0 else 1.0
+
+
+## The style clip a hero swings this weapon with ("style_swing"), or "" if
+## styles are off or the hero has no clip for it yet (then the old clip
+## with the weapon drawn in plays).
+static func style_clip(hero: String, id: String) -> String:
+	if not bool(Crafting.num("weapon_styles", "use_styles")):
+		return ""
+	var s := style(id)
+	return ("style_" + s) if s != "" and SpriteLib.attack_meta(hero).has("style_" + s) else ""
+
+
 const CARD_PACK := "card_pack"
 const CARD_PACK_PRICE := 350
 ## Card bonus to the lean attribute, by the dinosaur's tier (0 original, 1-4 Starter..Legend).

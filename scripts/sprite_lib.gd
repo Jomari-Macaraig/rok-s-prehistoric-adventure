@@ -266,6 +266,13 @@ static var _attack_meta := {}
 static func attack_meta(id: String) -> Dictionary:
 	if _attack_meta.is_empty() and FileAccess.file_exists("res://assets/attacks/attacks.json"):
 		_attack_meta = JSON.parse_string(FileAccess.get_file_as_string("res://assets/attacks/attacks.json"))
+		# the empty-handed style clips (tools/prepare_styles.py), with their guide points
+		if FileAccess.file_exists("res://assets/attacks/styles.json"):
+			var st: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/attacks/styles.json"))
+			for cid in st:
+				if not _attack_meta.has(cid):
+					_attack_meta[cid] = {}
+				(_attack_meta[cid] as Dictionary).merge(st[cid], true)
 	return _attack_meta.get(id, {})
 
 

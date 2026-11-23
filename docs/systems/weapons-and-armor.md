@@ -87,6 +87,14 @@ A crafted weapon starts at full durability (its rarity's `durability_mult` × th
 - Hidden outside hero clips (death hop, reactions, attack clips), for cards, and for armor without body art.
 - It notices equipment changes itself.
 
+### Attack styles (the Swing pilot)
+The plan in [ITEM_ART_PLAN.md](../ITEM_ART_PLAN.md): a hero is drawn once per **attack style** with an empty, closed hand, plus a **guide sheet** (grip dot, weapon stick, head, chest and back dots), and the game draws whichever weapon is equipped.
+- Each weapon's style is in **`config/crafting.cfg` `[weapon_styles]`** (`Gear.style`): Club, Stone Axe, Bone Hammer and Torch swing; the Spear thrusts, the Sling throws, the Bow shoots. `use_styles` switches the system off, `scale` (and `<id>_scale`) sets how big a weapon is drawn in a style clip (`Gear.style_scale`).
+- `Gear.style_clip(hero, weapon)` is `"style_<style>"` when that hero has the clip (`SpriteLib.attack_meta` merges `assets/attacks/styles.json`), else "" and the old clip with the weapon drawn in plays. Today only **Rok's Swing** exists (`tools/prepare_styles.py`).
+- `main.attack_clip()` returns the style clip when there is one. Rok's seamless running club attack still plays while he runs on the ground (its legs follow the run); standing and in the air the Swing plays.
+- `Player.atk_gear` is a `GearLayer` on the attack sprite with `front = true`: in a `style_*` clip (`_place_style`) the weapon's grip sits on the guide's grip point, pointing along the stick (its angle, clockwise from up, plus the weapon's own tilt), drawn **in front** of the body with a small patch of the same frame (`_fist`, `FIST_R` around the grip) redrawn on top, so the fist still wraps the handle. The shell rides the guide's back point, behind the body. A frame without a stick shows no weapon.
+- A weapon that breaks mid-swing shatters in that hand (`Player.weapon_break`).
+
 ## Open items
 
 - Hide Vest, Scale Mail and Bone Guards need per-frame overlay sheets fitted to each hero's clips (4×2, the hero's canvas and pivot, armor only on transparent).

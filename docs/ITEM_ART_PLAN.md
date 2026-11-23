@@ -14,7 +14,7 @@ Today every weapon is drawn into the hero's frames, so 3 heroes × 7 weapons is 
 - **Body armor** (vests, wraps, mail) is painted into the hero's clothing area using an **outfit mask**, made once per hero animation.
 - **Accessories** are a small picture on the chest point, or not drawn at all.
 
-**A new item then needs only its own picture.**
+**A new item then needs only its own picture.** The per-item checklist is [NEW_ITEM_ART.md](NEW_ITEM_ART.md).
 
 ---
 
@@ -105,6 +105,7 @@ The Fist style also gives the bare-hands attack that's missing today.
 4. **[Code]** Add the accessory slot: an empty slot at the Dinosaur Camp, an Items tab and the save data.
 
 ### Step 1: Pilot: Rok's Swing, to prove it works before ordering everything
+**Status (2026-11-23): built, waiting for approval.** The art arrived (`../Assets/Rok_Swing_Attack`: the empty-handed sheet, its guide and a landmarks JSON; same format as 4.1 and 4.3). `tools/prepare_styles.py` reads the guide (it matches the pack's landmarks on all 8 frames) into `assets/attacks/styles.json`; weapons have a `style` in `config/crafting.cfg` `[weapon_styles]` (step 0.3; armor `kind` and the accessory slot, step 0.4, are still to do); `GearLayer._place_style` draws the Club, Axe, Hammer or Torch at the grip, in front of the body with the fist redrawn over the handle. Screenshots in `screenshots/swing/` (`swing_contact.png`: new swing above the old drawn-in clip per weapon).
 1. **[Art]** Rok, Swing, standing attack, empty-handed (format in section 4.1).
 2. **[Art]** Rok, Swing, guide sheet for that attack (section 4.3).
 3. **[Code]** Write the guide reader. It finds the green grip dot and the magenta stick's direction on every frame and writes the hand point and angle per frame.

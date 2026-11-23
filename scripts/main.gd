@@ -2601,7 +2601,7 @@ func wear_weapon(id: String) -> void:
 	elif left <= 0:
 		if player.form == Forms.ROK:
 			player.attack_stop()   # back to the body sprite so the shatter shows
-			player.gear.play_break(Gear.base(id))   # its shatter plays in his hand
+			player.weapon_break(Gear.base(id))   # its shatter plays in his hand
 		audio.play("weapon_break", 0.05)
 		fx.float_text(player.position + Vector2(-50, -230), "SNAP!", Color(1.0, 0.55, 0.4), 30)
 		fx.add_shake(4.0)
@@ -2812,7 +2812,7 @@ func _attack() -> Obstacle:
 	var clip := attack_clip()
 	# running on the ground with a seamless running attack for this weapon:
 	# that (it joins the run cycle); otherwise the standing clip
-	var w := clip.trim_prefix("attack_") if player.form == Forms.ROK and clip.begins_with("attack_") else ""
+	var w := Gear.base(Gear.slot_item(String(player.data().id), "weapon")) if player.form == Forms.ROK and clip != "" else ""
 	if not (w != "" and player.run_attack_play(w)) and not player.attack_play(clip):
 		var lunge := player.create_tween()
 		lunge.tween_property(player.body, "position:x", 34.0, 0.08)
@@ -2854,7 +2854,8 @@ func attack_clip() -> String:
 	var w := Gear.slot_item(String(player.data().id), "weapon")
 	if w == "" or not Gear.ITEMS.has(Gear.base(w)) or Gear.slot_of(w) != "weapon" or Gear.broken(w):
 		return ""
-	return "attack_" + Gear.base(w)
+	var sc := Gear.style_clip(String(player.data().id), w)
+	return sc if sc != "" else "attack_" + Gear.base(w)   # the empty-handed style (weapon drawn at the grip), else the drawn-in clip
 
 
 ## The Bow's arrow (or the Sling's stone), from the hero's hand to where the

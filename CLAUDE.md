@@ -36,6 +36,7 @@ Each gameplay system has its own doc in [docs/systems/](docs/systems/README.md);
 
 ## Subsystem Documentation
 - [docs/ITEM_ART_PLAN.md](docs/ITEM_ART_PLAN.md): the step-by-step plan for weapons, armor and accessories without drawing every hero holding every item (attack styles, guide sheets, outfit masks): what exists, what to generate, in order.
+- [docs/NEW_ITEM_ART.md](docs/NEW_ITEM_ART.md): the art to generate for one new weapon, armor or accessory (and what the game already handles), plus the one-time hero art per attack style.
 - [docs/NEW_CONTENT.md](docs/NEW_CONTENT.md): what a new dinosaur, hero, weapon, armor or obstacle needs (animations, card, icons, config entries). Keep it current when a system starts needing something new.
 - [scripts/CLAUDE.md](scripts/CLAUDE.md): the scene tree and which system doc covers each script.
 - [tests/CLAUDE.md](tests/CLAUDE.md): smoke test, autopilot and screenshots.
@@ -53,6 +54,7 @@ Whenever you add or change an **animation, item, material, weapon, armor, access
 - the system doc in `docs/systems/` for what it does,
 - [tools/CLAUDE.md](tools/CLAUDE.md) for its importer and source art (and its "Placeholder art" list for what's still missing),
 - [docs/NEW_CONTENT.md](docs/NEW_CONTENT.md) if it changes what a new dinosaur, hero, weapon, armor or obstacle needs,
+- [docs/NEW_ITEM_ART.md](docs/NEW_ITEM_ART.md) if it changes what art a new weapon, armor or accessory needs (or a hero gets a new style),
 - [docs/ITEM_ART_PLAN.md](docs/ITEM_ART_PLAN.md) for weapon, armor and accessory art (what we have and what's left),
 - [tests/CLAUDE.md](tests/CLAUDE.md) for new checks,
 - `docs/POLISH.md` when it polishes a system.

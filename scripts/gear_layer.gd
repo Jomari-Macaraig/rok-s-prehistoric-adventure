@@ -34,11 +34,26 @@ static var _sockets := {}
 
 
 var baked_run := false   # the hero's run sheet carries the weapon (Player.set_carry): hide ours during "run"
+## A style clip's layer (Player.atk_gear): the weapon draws IN FRONT of the
+## body with the fist redrawn over its handle (`_fist`), the shell behind.
+var front := false
+var _fist := Sprite2D.new()
+const FIST_R := 10.0   # 1x px: the fist patch's half size around the grip
 
 func _ready() -> void:
-	show_behind_parent = true
-	add_child(_back)
+	show_behind_parent = not front
+	if front:
+		var behind := Node2D.new()   # the shell still goes behind the body
+		behind.show_behind_parent = true
+		behind.add_child(_back)
+		get_parent().add_child.call_deferred(behind)
+		_fist.centered = false
+		_fist.region_enabled = true
+	else:
+		add_child(_back)
 	add_child(_weapon)
+	if front:
+		add_child(_fist)
 	_weapon.centered = false
 	_back.centered = false
 	if _art.is_empty() and FileAccess.file_exists("res://assets/gear/gear_art.json"):
@@ -133,6 +148,9 @@ func _place() -> void:
 	var spr := get_parent() as AnimatedSprite2D
 	if spr == null:
 		return
+	if String(spr.animation).begins_with("style_"):
+		_place_style(spr)
+		return
 	var frames: Array = _sock.get(String(spr.animation), [])
 	var ok := hero != "" and not frames.is_empty() and spr.frame < frames.size()
 	# the run sheet has the weapon drawn in (Player.set_carry): no second copy
@@ -154,3 +172,34 @@ func _place() -> void:
 	if _back.visible:
 		_back.position = spr.offset + Vector2(f[2], f[3])
 		_back.rotation_degrees = -8.0 if spr.animation == "run" else 0.0
+
+
+## An empty-handed style clip ("style_swing", tools/prepare_styles.py): the
+## weapon's grip goes on the guide's grip point and it points along the
+## guide's stick (angle clockwise from up, plus the weapon's own tilt); the
+## shell rides on the guide's back point. A frame without a stick (after a
+## throw) shows no weapon.
+func _place_style(spr: AnimatedSprite2D) -> void:
+	var m: Dictionary = SpriteLib.attack_meta(hero).get(String(spr.animation), {}) if hero != "" else {}
+	var i := spr.frame
+	var grips: Array = m.get("grip", [])
+	var angles: Array = m.get("angle", [])
+	var ok := i < grips.size() and grips[i] != null
+	_weapon.visible = ok and _weapon.texture != null and i < angles.size() and angles[i] != null
+	var backs: Array = m.get("back", [])
+	_back.visible = hero != "" and _back.texture != null and i < backs.size() and backs[i] != null
+	_fist.visible = _weapon.visible and front
+	if _weapon.visible:
+		var a: Dictionary = _art[Gear.base(_weapon_id)]
+		var g := Vector2(grips[i][0], grips[i][1])
+		_weapon.position = spr.offset + g
+		_weapon.rotation_degrees = float(angles[i]) + float(a.angle)
+		var k := float(a.length) / float(a.size[1]) * float(m.frame[1]) / 224.0 * Gear.style_scale(_weapon_id)
+		_weapon.scale = Vector2(k, k)
+		if front:   # the fist over the handle: the same frame, just the box around the grip
+			_fist.texture = spr.sprite_frames.get_frame_texture(spr.animation, i)
+			_fist.region_rect = Rect2(g - Vector2(FIST_R, FIST_R), Vector2(FIST_R, FIST_R) * 2.0)
+			_fist.position = spr.offset + g - Vector2(FIST_R, FIST_R)
+	if _back.visible:
+		_back.position = spr.offset + Vector2(backs[i][0], backs[i][1])
+		_back.rotation_degrees = 0.0

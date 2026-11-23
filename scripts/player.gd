@@ -53,6 +53,7 @@ var gear: GearLayer             # equipped hero gear, a layer on the sprite
 var react: AnimatedSprite2D
 var react_kind := ""           # "", "trip", "dizzy" or "snag"
 var atk: AnimatedSprite2D       # the attack clip (its own canvas), shown instead of sprite while it plays
+var atk_gear: GearLayer         # the weapon drawn at the guide's grip during a style clip
 var attack_clip := ""          # the clip playing, or ""
 ## The seamless running attack (SpriteLib.running_attack): the run phase it
 ## started at (-1 when none) and how many run frames have gone by since. Its
@@ -100,6 +101,9 @@ func _ready() -> void:
 	atk.visible = false
 	body.add_child(atk)
 	atk.animation_finished.connect(attack_stop)
+	atk_gear = GearLayer.new()   # the weapon at the grip during an empty-handed style clip ("style_swing")
+	atk_gear.front = true
+	atk.add_child(atk_gear)
 	tfx = AnimatedSprite2D.new()   # (a child of the player, not the body: a slide's squash mustn't bend it)
 	tfx.centered = false
 	tfx.visible = false
@@ -139,6 +143,12 @@ func react_play(kind: String, hold := 0.0, from_hold := false) -> bool:
 	return true
 
 
+## A weapon breaking: its shatter plays in whichever hand shows it (the
+## body's, or the style clip's during an attack).
+func weapon_break(id: String) -> void:
+	(atk_gear if atk.visible and attack_clip.begins_with("style_") else gear).play_break(id)
+
+
 ## Play an attack clip (SpriteLib.attacks: "attack" for a dinosaur,
 ## "attack_<weapon id>" for a hero) once, in place of the body sprite (the
 ## clip has the weapon drawn in it). Not while sliding, swimming or dead.
@@ -158,6 +168,8 @@ func attack_play(clip: String) -> bool:
 	atk.play(clip)
 	atk.visible = true
 	sprite.visible = false
+	if clip.begins_with("style_"):
+		atk_gear.refresh()   # the weapon at the grip from the first frame (no blink)
 	return true
 
 
@@ -375,6 +387,7 @@ func _apply_form(f: int) -> void:
 	sprite.offset = -d.pivot
 	sprite.scale = Vector2.ONE * d.scale
 	gear.hero = String(d.id) if f == Forms.ROK else ""   # gear shows in human form only
+	atk_gear.hero = gear.hero
 	air_jumps_left = mini(air_jumps_left, d.air_jumps) if not on_ground else d.air_jumps
 	if was_flying:
 		air_jumps_left = maxi(d.air_jumps, 1)   # grace jump when flight ends mid-air
