@@ -1480,6 +1480,15 @@ func _feedback_checks() -> void:
 	c_it.select(c_made)
 	check(c_it.detail.find_child("Salvage", true, false) != null and c_it.detail.find_child("Stats", true, false) != null, "an unequipped weapon shows its stats and Salvage")
 	check(_text_inside(c_it), "a weapon's details stay inside the parchment")
+	var c_big := {}
+	for m in Crafting.recipe("flint_spear"):
+		c_big[m] = int(Crafting.recipe("flint_spear")[m]) * 2
+	main.grant_materials(c_big, false)
+	var c_leg: String = main.craft("flint_spear", "", 0.9999)   # a top roll: Legendary, whose salvage adds a catalyst
+	c_it.show_tab("weapon")
+	c_it.select(c_leg)
+	check(c_leg != "" and Gear.rarity_of(c_leg) >= 3 and _text_inside(c_it), "...even a Legendary's long salvage list")
+	c_it.select(c_made)
 	c_it.press_salvage()
 	check(main.gear_owned.has(c_made), "one tap only arms Salvage")
 	c_it.press_salvage()

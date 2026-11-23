@@ -756,12 +756,16 @@ func _item_detail() -> void:
 	_img(_tex("icon_salvage"), Rect2(34, 8, 44, 44), sb)
 	_label("RETURNS", Rect2(1055, 696, 385, 27), 19, INK, detail).name = "SalvageReturn"
 	var ks := back.keys()
-	var cw := 376.0 / maxf(ks.size(), 1)
+	var per := mini(ks.size(), 3)   # at most three across; a fourth (a Rare+ catalyst) starts a second row
+	var cw := 376.0 / maxf(per, 1)
 	for k in ks.size():
 		var m: String = ks[k]
-		var x := 1068.0 + k * cw
-		_img(Crafting.icon(m), Rect2(x, 734, 42, 40), detail)
-		_label("%s ×%d" % [Crafting.mat_name(m), int(back[m])], Rect2(x + 44, 736, cw - 46, 34), 15 if cw < 130.0 else 17, INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT)
+		var x := 1068.0 + (k % 3) * cw
+		var ry := 730.0 + (k / 3) * 40.0
+		_img(Crafting.icon(m), Rect2(x, ry, 38, 36), detail)
+		var rl := _label("%s ×%d" % [Crafting.mat_name(m), int(back[m])], Rect2(x + 40, ry + 1, cw - 44, 34), 15 if cw < 130.0 else 17, INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT)
+		rl.clip_text = true   # never wider than its column
+		rl.size = Vector2(cw - 44, 34)
 
 
 func press_salvage() -> bool:
