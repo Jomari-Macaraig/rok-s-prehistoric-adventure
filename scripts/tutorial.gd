@@ -34,7 +34,7 @@ const LESSONS := {
 	"shift": {"text": "Change into this dinosaur", "target": "", "need": 2},
 	"energy": {"text": "Low energy: back to Rok", "target": "form_0", "need": 1},
 	"market": {"text": "Spend your\nmeat here", "target": "market", "need": 1, "menu": true},
-	"camp": {"text": "Level up\nat the Camp", "target": "herd", "need": 1, "menu": true},
+	"camp": {"text": "Level up at the\nDinosaur Camp", "target": "herd", "need": 1, "menu": true},
 }
 
 var progress := {}       # id -> {"done": n, "shown": n}

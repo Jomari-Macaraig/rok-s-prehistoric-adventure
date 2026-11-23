@@ -10,8 +10,11 @@ pixels) + a half-size <id>.png. cards.json gives each card's size and its
 blank parchment box (where the game writes the card's bonus) as fractions of
 the card, measured as the biggest light parchment area in its lower part.
 
-Separate transparent PNGs per card would replace this cut-out: drop them at
-../Assets/Rok_Dinosaur_Cards/<id>.png and they're used as they are.
+The user's card pack ../Assets/Rok_Dinosaur_Cards/cards/<name>.png (21
+separate transparent 1024x1536 cards: the four originals, the first 16
+expansion species and the T-rex; `pterosaur` is the Pteranodon, `t_rex` the
+pursuer) replaces the cut-out: every card there is trimmed to its frame and
+scaled to the cut-out cards' height (CARD_H at @2x), so all cards match.
 
     uv run --no-project --with pillow python tools/prepare_cards.py
 then godot --headless --path . --import
@@ -25,6 +28,8 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 PREVIEW = ROOT.parent / "Assets" / "Prehistoric Dinosaur Card Collection Preview.png"
 SEPARATE = ROOT.parent / "Assets" / "Rok_Dinosaur_Cards"
+ALIAS = {"pterosaur": "pteranodon", "t_rex": "trex"}   # the pack's file names -> game ids
+CARD_H = 766   # @2x height of every card (the preview's cut-out height)
 OUT = ROOT / "assets" / "cards"
 IDS = ["raptor", "triceratops", "spinosaurus", "pteranodon"]
 
@@ -98,11 +103,15 @@ def parchment_box(card: Image.Image) -> list:
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     cards = {}
-    if SEPARATE.exists():
-        for cid in IDS:
-            f = SEPARATE / f"{cid}.png"
-            if f.exists():
-                cards[cid] = Image.open(f).convert("RGBA")
+    for folder in (SEPARATE / "cards", SEPARATE):
+        if folder.exists():
+            for f in sorted(folder.glob("*.png")):
+                cid = ALIAS.get(f.stem, f.stem)
+                if cid in cards:
+                    continue
+                im = Image.open(f).convert("RGBA")
+                im = im.crop(im.getchannel("A").point(lambda a: 255 if a > 16 else 0).getbbox())
+                cards[cid] = im.resize((round(im.width * CARD_H / im.height), CARD_H), Image.LANCZOS)
     if len(cards) < len(IDS):
         im = Image.open(PREVIEW).convert("RGBA")
         cols = cut_columns(im.convert("RGB"))

@@ -28,7 +28,7 @@ func _initialize() -> void:
 	root.add_child(main)
 	# Encyclopedia: [tab index, entry title to open (or ""), file name]
 	for e in [[0, "Raptor", "dinosaurs"], [1, "Boulders", "hazards_terrain"], [2, "", "items"],
-			[3, "", "power_ups"], [4, "", "zones"], [5, "", "badges"], [6, "Raptor Card", "cards"], [6, "Gallimimus Card", "cards_no_art"]]:
+			[3, "", "power_ups"], [4, "", "zones"], [5, "", "badges"], [6, "Raptor Card", "cards"], [6, "Gallimimus Card", "cards_species"], [6, "Deinonychus Card", "cards_no_art"]]:
 		jobs.append(["enc"] + e)
 	# Camp: [tab, dinosaur to select (or "" = the equipped one), file name]
 	for cat in Herd.tabs():

@@ -146,6 +146,9 @@ var _fling := 0.0        # scroll momentum (px/s) after a drag
 var _kit := false
 var elder: TextureRect
 var elder_plate: Label
+var numa_bubble: PanelContainer   # Elder Numa's speech bubble over her head (her lines: NUMA_LINES)
+var numa_label: Label
+var numa_tail: Polygon2D
 var roster: Panel
 var left_page: VBoxContainer
 var book_prev: TextureButton
@@ -180,6 +183,29 @@ func _ready() -> void:
 		root.add_child(elder)
 		elder_plate = SceneKit.badge("Elder Numa", "button_secondary", 20)
 		root.add_child(elder_plate)
+		numa_tail = Polygon2D.new()
+		numa_tail.color = Color(1.0, 0.96, 0.86)
+		root.add_child(numa_tail)
+		numa_bubble = PanelContainer.new()
+		numa_bubble.name = "NumaBubble"
+		numa_bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var nb := StyleBoxFlat.new()
+		nb.bg_color = Color(1.0, 0.96, 0.86)
+		nb.border_color = Color(0.45, 0.27, 0.12)
+		nb.set_border_width_all(3)
+		nb.set_corner_radius_all(16)
+		nb.content_margin_left = 16
+		nb.content_margin_right = 16
+		nb.content_margin_top = 8
+		nb.content_margin_bottom = 10
+		nb.shadow_color = Color(0, 0, 0, 0.25)
+		nb.shadow_size = 4
+		numa_bubble.add_theme_stylebox_override("panel", nb)
+		numa_label = _text("", 17, Color(0.42, 0.22, 0.08))
+		numa_label.name = "NumaSays"
+		numa_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		numa_bubble.add_child(numa_label)
+		root.add_child(numa_bubble)
 
 	var header := HBoxContainer.new()
 	header.name = "Header"
@@ -366,6 +392,7 @@ func _layout_kit(w: float, h: float) -> void:
 	var ew := maxf(bubble.position.x - ex - 10.0, 200.0)
 	elder.position = Vector2(ex, 150.0 * k)
 	elder.size = Vector2(ew, 520.0 * k)
+	_place_numa()
 	elder_plate.position = Vector2(ex + ew * 0.5 - 90.0, 150.0 * k + 520.0 * k - 30.0)
 	elder_plate.custom_minimum_size = Vector2(180, 0)
 	elder_plate.size = Vector2(180, 0)
@@ -514,6 +541,157 @@ func open_guide(p_unlocked: Array, p_best_m: float, p_seen: Array, p_viewed: Arr
 	hero.play("idle")
 	_layout()
 	_show_tab(tab)
+	numa_say("greet")
+
+
+# ------------------------------------------------------------ Elder Numa's lines
+
+## What Elder Numa says (the user's request; her animations come later). A
+## pool per situation, picked at random without repeating the last line;
+## "%s" is filled with the entry's name. She is the cave's old storyteller:
+## warm, a little mischievous, fond of proverbs and of the old days, and she
+## remembers every creature and every runner who came before.
+## Tab pools are "tab_<index>" in tab order (Dinosaurs, Hazards & Terrain,
+## Items, Power-Ups, Zones, Badges, Cards).
+const NUMA_LINES := {
+	"greet": [
+		"Come, sit by the fire, little runner. What would you know?",
+		"Ah, the runner returns! My old bones knew you would.",
+		"Every creature you meet leaves a story. I keep them all here.",
+		"The fire is warm and the stories are long. Choose one.",
+		"You smell of dust and dinosaur. A good run, then?",
+		"Welcome back. The cave walls have been waiting for news.",
+		"My grandmother kept this book, and hers before her. Now it is yours too.",
+		"Sit, sit. Even the fastest runner must rest the legs.",
+	],
+	"tab_0": [
+		"The great beasts. Learn them well, and they will carry you far.",
+		"Each dinosaur has a gift. Find the one the path needs.",
+		"I rode a Triceratops once. Well... it rode me, mostly.",
+		"Fast, strong, tough or flying. The trail asks for all four.",
+		"Be kind to the beasts you borrow. They remember.",
+	],
+	"tab_1": [
+		"Rocks, logs, pits and worse. The trail is a cruel teacher.",
+		"Every hazard has an answer. Jump, slide, smash or fly.",
+		"Quicksand swallowed my sandal when I was young. Never found it.",
+		"Learn the ground, runner, and the ground will not trip you.",
+		"What you have passed, I have written down. The rest... run further.",
+	],
+	"tab_2": [
+		"Amber for your spirit, meat for the merchant. Gather both.",
+		"Ugo will take every bit of meat you bring. Every bit.",
+		"Little things on the trail add up to big things in the cave.",
+		"A fossil is a story the earth kept for us. Treasure it.",
+		"Pick up what shines. Leave what bites.",
+	],
+	"tab_3": [
+		"Powers from the old earth. Use them at the right moment.",
+		"An egg, a crystal, a berry... small wonders for hard runs.",
+		"Save your power-ups for when the hunter is closest.",
+		"The Time Crystal slows the world. I wish it slowed my aching knees.",
+		"A wise runner carries a power-up. A wiser one uses it.",
+	],
+	"tab_4": [
+		"The forest, the desert, the burning badlands. Each has its own song.",
+		"The land changes as you run. So must you.",
+		"In the desert the sun bleaches everything. Even bad memories.",
+		"The volcanic lands could cook meat. Do not test that on yourself.",
+		"Run far enough and the land comes round again, wilder each time.",
+	],
+	"tab_5": [
+		"Badges for the brave. Bronze, Silver, Gold. Each one earned.",
+		"Every badge is a promise you kept to yourself.",
+		"Gold is heavy, runner. Earn it slowly.",
+		"I had a badge once. A beetle ate it. Long story.",
+		"Your deeds are scratched on these walls. Add more.",
+	],
+	"tab_6": [
+		"Cards of the beasts you have faced. They carry a little of their strength.",
+		"Bonk a wild one and it may leave its card behind. Gently, now.",
+		"A card on a weapon is a dinosaur at your side.",
+		"Collect them all, and the whole herd runs with you.",
+		"Each card shows the land its beast calls home.",
+	],
+	"new": [
+		"Something new! Let me tell you of the %s.",
+		"Ah, you met the %s. I have been waiting to tell you about it.",
+		"The %s! A new story for the book. Listen closely.",
+		"Fresh from the trail: the %s. Sit, sit.",
+		"The %s left its mark on you, I see. Here is what I know.",
+	],
+	"known": [
+		"Ah, the %s. Listen...",
+		"The %s. I remember the first time I saw one.",
+		"Let me tell you again of the %s.",
+		"The %s. A good story, this one.",
+		"Hmm, the %s. The old songs speak of it.",
+		"The %s. Pay attention, it may save your hide.",
+	],
+	"locked": [
+		"That one you have not seen yet. Run further, and you will.",
+		"Patience. That page stays empty until the trail shows you.",
+		"Not yet, little runner. Some stories must be earned.",
+		"I know that one... but you must meet it first.",
+		"Keep running. The trail will fill this page.",
+	],
+}
+var _numa_said := {}   # pool -> its last line (no repeats)
+
+
+## A line from one of Numa's pools (not the same as `last`).
+static func numa_pick(key: String, last := "") -> String:
+	var pool: Array = NUMA_LINES.get(key, [""])
+	var pick: String = pool[randi() % pool.size()]
+	while pool.size() > 1 and pick == last:
+		pick = pool[randi() % pool.size()]
+	return pick
+
+
+## Numa says a line from a pool in her bubble, with a soft murmur (Ugo's
+## mumble sounds, higher and gentler: Tuning.NUMA_PITCH / NUMA_DB).
+func numa_say(key: String, arg := "") -> String:
+	if numa_label == null:
+		return ""
+	var line := numa_pick(key, String(_numa_said.get(key, "")))
+	_numa_said[key] = line
+	var text := (line % arg) if line.contains("%s") else line
+	numa_label.text = text
+	_place_numa()
+	var g = get_parent()
+	if visible and g and g.get("audio"):
+		var n := clampi(text.length() / 18 + randi_range(0, 1), 1, 6)
+		g.audio.play("mumble_%d" % n, 0.05, Tuning.NUMA_PITCH, Tuning.NUMA_DB)
+	return text
+
+
+## Her bubble sits above her head, between the title and her; she stands a
+## little shorter when it's tall (her feet stay at her plate), and its tail
+## points down at her.
+func _place_numa() -> void:
+	if numa_bubble == null or elder == null:
+		return
+	var k := root.size.y / 1080.0
+	var ex := 60.0 * k
+	var ew := elder.size.x
+	if ew < 120.0:
+		return   # not laid out yet
+	numa_label.custom_minimum_size = Vector2(ew - 32.0, 0)   # wrap at the bubble's width before measuring
+	numa_bubble.position = Vector2(ex, 84.0)
+	numa_bubble.custom_minimum_size = Vector2(ew, 0)
+	numa_bubble.size = Vector2(ew, 0)
+	var font := numa_label.get_theme_font("font")
+	var fs := numa_label.get_theme_font_size("font_size")
+	var text_h := font.get_multiline_string_size(numa_label.text, HORIZONTAL_ALIGNMENT_LEFT, ew - 32.0, fs).y
+	numa_bubble.size = Vector2(ew, text_h + 22.0)
+	var bottom := numa_bubble.position.y + numa_bubble.size.y
+	var top := maxf(150.0 * k, bottom + 6.0)
+	elder.position.y = top
+	elder.size.y = 670.0 * k - top
+	var cx := ex + ew * 0.5
+	numa_tail.polygon = PackedVector2Array([Vector2(cx - 16.0, bottom - 3.0), Vector2(cx + 16.0, bottom - 3.0), Vector2(cx + 4.0, top + 12.0)])
+	numa_bubble.visible = numa_label.text != ""
+	numa_tail.visible = numa_bubble.visible
 
 
 func close_guide() -> void:
@@ -582,6 +760,8 @@ func _show_tab(i: int) -> void:
 		6:
 			_cards_tab()
 	select(0)
+	if visible:
+		numa_say("tab_%d" % i)   # her words for the tab (after the first entry's line)
 
 
 ## Every dinosaur card (the four originals, then the expansion species): a
@@ -600,7 +780,7 @@ func _cards_tab() -> void:
 		var bonus := Gear.bonus_text(Gear.CARD_PREFIX + id)
 		var where := "Dropped by a wild %s: bonk one with ATTACK." % Herd.name_of(id) if Critters.DATA.has(id) else "Found in rare and epic treasure chests."
 		if found:
-			_card(CardView.icon(id), Herd.name_of(id) + " Card", "Use it on a weapon at the Camp: it gives the weapon %s." % bonus,
+			_card(CardView.icon(id), Herd.name_of(id) + " Card", "Use it on a weapon at the Dinosaur Camp: it gives the weapon %s." % bonus,
 					"You have x%d  ·  %s" % [have, where], false, false, Color(0.55, 0.32, 0.12))
 		else:
 			_card(CardView.icon(id), "???", "Not found yet. " + where, "", true, false)
@@ -636,6 +816,7 @@ func select(i: int) -> void:
 	var tile: Node = tiles[selected]
 	var locked: bool = tile.get_meta("locked", false)
 	var nm: String = tile.get_meta("title", "")
+	numa_say("locked" if locked else ("new" if tile.get_meta("new", false) else "known"), nm)
 	var line := _text("“That one you have not seen yet. Run further, and you will.”" if locked else "“Ah, %s. Listen...”" % nm, 18, Color(0.55, 0.3, 0.1))
 	line.name = "Says"
 	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -752,6 +933,7 @@ func _add_entry(card: Control, tex: Texture2D, title: String, locked: bool, is_n
 		b.name = tile_name
 	b.set_meta("title", title)
 	b.set_meta("locked", locked)
+	b.set_meta("new", is_new)
 	b.set_meta("tex", tex)
 	for st in ["normal", "hover", "pressed", "hover_pressed"]:
 		b.add_theme_stylebox_override(st, _tile_box(false, locked))
@@ -921,7 +1103,7 @@ func _species_card(id: String) -> void:
 	for a in Dinos.ATTRS:
 		var sv := Dinos.stat(id, a)
 		rows.append([Dinos.ATTR_NAMES[a], int(roundf(sv)), ("%s/10, its speciality" if a == cat.lean else "%s/10") % Dinos.fmt(sv), Dinos.ATTR_MAX])
-	var how := "%s %s. Equip it at the Camp to play as it on the %s button." % [Dinos.desc(id), cat.role, cat.name]
+	var how := "%s %s. Equip it at the Dinosaur Camp to play as it on the %s button." % [Dinos.desc(id), cat.role, cat.name]
 	_card(tex, Dinos.name_of(id), how, "%s · %s · Lv %d★  ·  %s" % [cat.name, Dinos.tier_label(id), Dinos.level(id), Dinos.tradeoff(id)], false,
 			_new_ids.has("dino_" + id), Forms.DATA[cat.form].color, rows, id)
 

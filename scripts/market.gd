@@ -1070,7 +1070,7 @@ func _build_detail() -> void:
 	elif is_heart(id):
 		desc = "One more heart in every run, for good (%d in all once you have it)." % (Tuning.MAX_HEARTS + heart_index(id))
 	elif Gear.has(id):
-		desc = "%s %s%s%s. Equip it at the Camp." % [Gear.ITEMS[id].desc, Gear.bonus_text(id),
+		desc = "%s %s%s%s. Equip it at the Dinosaur Camp." % [Gear.ITEMS[id].desc, Gear.bonus_text(id),
 				(", reach %d" % int(Gear.ITEMS[id].reach)) if Gear.ITEMS[id].has("reach") else "",
 				(", lasts %d hits" % Gear.max_durability(id)) if Gear.max_durability(id) > 0 else ""]
 	elif id.begins_with(Crafting.MAT_PREFIX):
@@ -1100,7 +1100,7 @@ func _build_detail() -> void:
 		detail.add_child(trade)
 	if have:
 		var on: bool = (dino or hero_item) and game.equipped_in("hero" if hero_item else Dinos.category_of(id)) == id
-		var hint := _text(("Equipped" if on else "Owned") + " · level up, equip and compare at the Camp.", 14, Color(0.6, 1.0, 0.55))
+		var hint := _text(("Equipped" if on else "Owned") + " · level up, equip and compare at the Dinosaur Camp.", 14, Color(0.6, 1.0, 0.55))
 		hint.name = "CampHint" if Gear.has(id) else "HerdHint"
 		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		detail.add_child(hint)

@@ -89,8 +89,10 @@ func _ready() -> void:
 	header.add_child(back)
 	if _kit:
 		SceneKit.style_back(back)
-	var title := _plaque("CRAFTING BENCH" if mode == "bench" else "ITEMS")
-	title.name = "TitleBanner"
+	var title: Control = SceneKit.text_plaque("CRAFTING BENCH" if mode == "bench" else "ITEMS")
+	if title == null:
+		title = _plaque("CRAFTING BENCH" if mode == "bench" else "ITEMS")
+		title.name = "TitleBanner"
 	header.add_child(title)
 
 	board = PanelContainer.new()
@@ -513,7 +515,7 @@ func _item_detail() -> void:
 		var d := id.substr(Gear.CARD_PREFIX.length())
 		detail.add_child(_head(Gear.name_of(id), 0))
 		detail.add_child(_text("Gives the weapon slot %s  ·  reach %d  ·  you have %d" % [Gear.bonus_text(id), int(Gear.CARD_REACH), int(Gear.cards.get(d, 0))], 16, INK))
-		detail.add_child(_text("Dropped by wild %s and found in chests. Equip it at the Camp." % Herd.name_of(d), 15, Color(0.45, 0.28, 0.12)))
+		detail.add_child(_text("Dropped by wild %s and found in chests. Equip it at the Dinosaur Camp." % Herd.name_of(d), 15, Color(0.45, 0.28, 0.12)))
 		return
 	var r := Gear.rarity_of(id)
 	detail.add_child(_head(Gear.full_name(id), r))
@@ -527,15 +529,15 @@ func _item_detail() -> void:
 	detail.add_child(sl)
 	if Gear.max_durability(id) > 0:
 		var br := Gear.broken(id)
-		detail.add_child(_text("BROKEN · repair it at the Camp" if br else "Durability %d/%d hits" % [Gear.durability(id), Gear.max_durability(id)], 16, SHORT if br else INK))
+		detail.add_child(_text("BROKEN · repair it at the Dinosaur Camp" if br else "Durability %d/%d hits" % [Gear.durability(id), Gear.max_durability(id)], 16, SHORT if br else INK))
 	var d2 := _text(String(it.desc), 15, INK)
 	d2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	detail.add_child(d2)
 	var who := _equipped_by(id)
 	if who != "":
-		detail.add_child(_text("Equipped by %s (change it at the Camp)." % Heroes.name_of(who), 16, ENOUGH))
+		detail.add_child(_text("Equipped by %s (change it at the Dinosaur Camp)." % Heroes.name_of(who), 16, ENOUGH))
 		return
-	detail.add_child(_text("Not equipped · equip it at the Camp.", 15, Color(0.45, 0.28, 0.12)))
+	detail.add_child(_text("Not equipped · equip it at the Dinosaur Camp.", 15, Color(0.45, 0.28, 0.12)))
 	var back := Crafting.salvage_return(Gear.base(id), r)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)

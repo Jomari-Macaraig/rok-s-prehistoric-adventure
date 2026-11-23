@@ -37,7 +37,11 @@ var _confirm := ""          # attribute waiting for its confirming tap ("" = non
 var dscroll: ScrollContainer   # the detail panel's scroll (a hero with gear runs long)
 var scene: MarketScene        # the camp: a hut, a campfire (MarketScene kind "camp")
 var hero: AnimatedSprite2D    # the hero you play, at the left
-var stage: TextureRect        # the chosen dinosaur or hero, standing by the hut
+var stage: TextureRect        # the box the chosen dinosaur or hero stands in (a still portrait only without its art)
+var stage_body: AnimatedSprite2D   # ...playing its idle loop (the user's request: not just standing)
+var stage_atk: AnimatedSprite2D    # ...and now and then its attack clip
+var _stage_info := {}         # frame, pivot, attack clip of what's on stage
+var _stage_wait := 0.0        # seconds until the next attack
 var board: PanelContainer     # the wooden board holding `detail`
 var shelf: VBoxContainer      # tabs + the row of tiles (`list`)
 var _tile_h := 160.0
@@ -124,7 +128,7 @@ func _ready() -> void:
 	root.add_child(kit_bg if kit_bg else Market.backdrop("res://assets/bg/bg_1.png", Color(0.5, 0.68, 0.85)))   # its own scene: the camp in the forest
 	scene = MarketScene.new()
 	scene.kind = "camp"
-	scene.sign_text = "CAMP"
+	scene.sign_text = "DINO CAMP"
 	scene.style = "stall"
 	root.add_child(scene)
 	# the hero you play, at the left
@@ -140,6 +144,17 @@ func _ready() -> void:
 	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stage.flip_h = true   # facing the hero
 	root.add_child(stage)
+	for n in ["StageBody", "StageAttack"]:
+		var a := AnimatedSprite2D.new()
+		a.name = n
+		a.centered = false
+		a.visible = false
+		root.add_child(a)
+		if n == "StageBody":
+			stage_body = a
+		else:
+			stage_atk = a
+	stage_atk.animation_finished.connect(_stage_idle)
 	if _kit:
 		scene.visible = false   # the painted camp has its own fire, tent and forest
 
@@ -155,12 +170,14 @@ func _ready() -> void:
 	close.pressed.connect(close_herd)
 	close.name = "Back"
 	header.add_child(close)
-	var kit_title := SceneKit.picture("dinosaurs_title", 62.0, "TitleBanner")
+	# "Dinosaur Camp" (the user's name): the kit's plaque has "DINOSAURS" baked
+	# in, so the name goes on its blank plaque until new title art exists
+	var kit_title := SceneKit.text_plaque("DINOSAUR CAMP")
 	if kit_title:
 		SceneKit.style_back(close)
 		header.add_child(kit_title)
 	else:
-		header.add_child(Market.title_banner("dinosaurs", Market._text("CAMP", 40)))
+		header.add_child(Market.title_banner("dinosaurs", Market._text("DINOSAUR CAMP", 40)))
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
@@ -291,6 +308,7 @@ func _layout() -> void:
 	for t in list.get_children():
 		if t is Button:
 			(t as Control).custom_minimum_size.y = _tile_h
+	_place_stage()
 
 
 ## The kit's layout (its 1920x1080 reference scaled by the screen height;
@@ -316,6 +334,7 @@ func _layout_kit(w: float, h: float) -> void:
 	for t in list.get_children():
 		if t is Button:
 			(t as Control).custom_minimum_size = Vector2(_tile_h * 0.9, _tile_h)
+	_place_stage()
 
 
 func open_herd(cat := "") -> void:
@@ -445,11 +464,94 @@ func refresh() -> void:
 func _show_stage() -> void:
 	# the hero you play already stands at the left: only other heroes take the stage
 	var shown := selected != "" and not (Heroes.is_hero(selected) and selected == current("rok"))
-	stage.texture = icon_of(selected) if shown else null
-	stage.modulate = Color.WHITE if owns(selected) else Color(0.12, 0.07, 0.03, 0.85)
+	var tint := Color.WHITE if owns(selected) else Color(0.12, 0.07, 0.03, 0.85)
+	_stage_info = stage_info(selected) if shown else {}
+	stage_body.visible = not _stage_info.is_empty()
+	stage_atk.visible = false
+	stage.texture = icon_of(selected) if shown and _stage_info.is_empty() else null   # a still portrait without its art
+	stage.modulate = tint
 	stage.flip_h = not Heroes.is_hero(selected)
-	if Dinos.has(selected):
-		_anim.append([stage, selected, 0, Dinos.frame_times(selected)[0]])
+	if _stage_info.is_empty():
+		if shown and Dinos.has(selected):
+			_anim.append([stage, selected, 0, Dinos.frame_times(selected)[0]])
+		return
+	stage_body.sprite_frames = _stage_info.idle
+	stage_body.offset = -Vector2(_stage_info.pivot)
+	stage_body.modulate = tint
+	stage_body.play("idle")
+	stage_body.frame = randi() % 8
+	stage_atk.modulate = tint
+	_stage_wait = randf_range(Tuning.CAMP_ATTACK_FIRST.x, Tuning.CAMP_ATTACK_FIRST.y)
+	_place_stage()
+
+
+## What a character needs on the Camp's stage: its idle loop, frame, pivot
+## and attack clip ("" = none: a hero with no whole weapon, a species without
+## one). {} if its art isn't there (the still portrait is used instead).
+static func stage_info(id: String) -> Dictionary:
+	var d := {}
+	var slot := -1
+	for f in Forms.ORDER:
+		if Forms.DATA[f].id == id:
+			slot = f
+	if slot >= 0:
+		d = Forms.DATA[slot]
+	elif Heroes.is_hero(id) and Heroes.has(id):
+		d = Dinos.form_data(Forms.ROK, id)
+	elif Dinos.has(id) and Dinos.playable(id):
+		d = Dinos.form_data(Dinos.slot_of(Dinos.category_of(id)), id)
+	if d.is_empty():
+		return {}
+	var path := "res://assets/characters/%s/idle.png" % d.id
+	if not ResourceLoader.exists(path):
+		return {}
+	var times: Array = d.times.idle if d.get("species", false) and (d.times as Dictionary).has("idle") else SpriteLib.CHAR_ANIMS.idle
+	var sf := SpriteFrames.new()
+	sf.remove_animation("default")
+	SpriteLib._sheet_frames(sf, "idle", SpriteLib.tex(path), d.frame, times, true)
+	var clip := "attack"
+	if Heroes.is_hero(id):
+		var w := Gear.slot_item(id, "weapon")
+		clip = ("attack_" + Gear.base(w)) if Gear.has(w) and not Gear.broken(w) else ""
+	var atk := SpriteLib.attacks(String(d.id))
+	if atk == null or clip == "" or not atk.has_animation(clip):
+		clip = ""
+	return {"id": String(d.id), "idle": sf, "frame": Vector2(d.frame), "pivot": Vector2(d.pivot), "attack": atk, "clip": clip}
+
+
+## Fit the staged character in its box: feet at the bottom centre, as tall
+## as the box allows, facing the hero (dinosaurs are mirrored).
+func _place_stage() -> void:
+	if _stage_info.is_empty():
+		return
+	var fr: Vector2 = _stage_info.frame
+	var pv: Vector2 = _stage_info.pivot
+	var k := minf(stage.size.y / maxf(pv.y, 1.0), stage.size.x / maxf(fr.x, 1.0))
+	var feet := stage.position + Vector2(stage.size.x * 0.5, stage.size.y - 4.0)
+	var face := -1.0 if not Heroes.is_hero(selected) else 1.0
+	for a in [stage_body, stage_atk]:
+		a.position = feet
+		a.scale = Vector2(k * face, k)
+
+
+## Now and then the staged character shows off its attack, then idles again.
+func _stage_attack() -> void:
+	if _stage_info.is_empty() or String(_stage_info.clip) == "":
+		return
+	var clip: String = _stage_info.clip
+	var p: Array = SpriteLib.attack_meta(String(_stage_info.id)).get(clip, {}).get("pivot", [0, 0])
+	stage_atk.sprite_frames = _stage_info.attack
+	stage_atk.offset = -Vector2(p[0], p[1])
+	stage_atk.play(clip)
+	stage_atk.visible = true
+	stage_body.visible = false
+
+
+func _stage_idle() -> void:
+	stage_atk.visible = false
+	stage_atk.stop()
+	stage_body.visible = not _stage_info.is_empty()
+	_stage_wait = randf_range(Tuning.CAMP_ATTACK_EVERY.x, Tuning.CAMP_ATTACK_EVERY.y)
 
 
 ## The gear list for the slot being picked: "Nothing", then owned weapons or
@@ -856,6 +958,11 @@ func _input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if not visible:
 		return
+	if stage_body.visible and not stage_atk.visible:
+		_stage_wait -= delta
+		if _stage_wait <= 0.0:
+			_stage_attack()
+			_stage_wait = randf_range(Tuning.CAMP_ATTACK_EVERY.x, Tuning.CAMP_ATTACK_EVERY.y)
 	for a in _anim:
 		a[3] -= delta
 		if a[3] <= 0.0:

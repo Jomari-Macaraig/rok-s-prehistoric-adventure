@@ -35,7 +35,7 @@ One file per gameplay system, so each can be read and polished on its own. Progr
 
 ## Screens and UI
 - [Marketplace](marketplace.md): The Market screen: what's sold and when, buying, the cave scene and Ugo the merchant, the UI art and layout.
-- [Camp (levelling and gear screen)](camp.md): The Camp screen (code name Herd): pick a hero or dinosaur per button, compare, level up, and equip gear.
+- [Dinosaur Camp (levelling and gear screen)](camp.md): The Dinosaur Camp screen (code name Herd): pick a hero or dinosaur per button, compare, level up, and equip gear.
 - [Field Guide (Encyclopedia)](field-guide.md): The encyclopedia of dinosaurs, hazards, items and badges, with real-world facts.
 - [Screens and navigation](screens-and-navigation.md): How the full-screen places (Market, Field Guide, Camp) open and close, the shared scene look, and the side buttons on the main menu.
 - [HUD and touch controls](hud-and-controls.md): The on-screen layout: thumb clusters, touch buttons, cooldown display, button glow and the touch-first text rule.

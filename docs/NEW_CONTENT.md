@@ -30,7 +30,7 @@ Art conventions shared by everything:
 | trip, dizzy, snag | hit reactions | dizzy and snag: enter 0–1, hold 2–5, recover 6–7 |
 | **Flyers:** fly, glide, takeoff, land | flight | registered at the same point as the other clips |
 | **Tanks:** swim | Flooded Crossing gate | floats at the waterline |
-| **Card art** | the dinosaur card (Field Guide Cards tab, weapon slot) | transparent PNG at `../Assets/Rok_Dinosaur_Cards/<id>.png`, same frame as the four existing cards |
+| **Card art** | the dinosaur card (Field Guide Cards tab, weapon slot) | transparent PNG at `../Assets/Rok_Dinosaur_Cards/cards/<id>.png` (1024×1536, name painted on the plank, blank parchment below), like the 21 in the pack; `prepare_cards.py` trims and sizes it |
 
 ### Data and config
 - **Metadata** (`characters` / `role` in the pack): name, category (Runner, Smasher, Tank, Flyer), tier, blurb → `tools/prepare_dinos.gd` writes `assets/dinos/dinos.json`.
@@ -42,6 +42,7 @@ Art conventions shared by everything:
 - **Real-world facts** in `scripts/dino_facts.gd`: when, where, size, food and a fun fact.
 - **Wild version** (optional): a zone's stampede or swooper in `scripts/critters.gd`, with its own attributes. It drops its card and materials.
 - **Card bonus:** automatic, from its tier (`Gear.CARD_BONUS`).
+- **Dinosaur Camp stage:** automatic: it idles with its idle clip and shows off its attack clip now and then.
 
 ### Import and check
 1. Run `tools/prepare_dinos.gd`, then `prepare_reactions.gd`, then `prepare_animation_pack.gd` (crouches). Then `prepare_attacks.py`, `prepare_cards.py` and `--import`.

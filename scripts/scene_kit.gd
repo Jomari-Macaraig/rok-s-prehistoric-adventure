@@ -86,6 +86,35 @@ static func picture(name: String, h: float, node_name := "") -> TextureRect:
 	return r
 
 
+## A title plaque with our own words on it: the kit's blank plaque
+## (title_blank) stretched around the text, for screens whose name has no
+## baked-in title art (Dinosaur Camp, Crafting Bench, Items). null without the kit.
+static func text_plaque(text: String, node_name := "TitleBanner", font_size := 30) -> PanelContainer:
+	var bx := box("title_blank")
+	if bx == null:
+		return null
+	bx.content_margin_left = 44
+	bx.content_margin_right = 44
+	bx.content_margin_top = 6
+	bx.content_margin_bottom = 10
+	var p := PanelContainer.new()
+	p.name = node_name
+	p.set_meta("art", DIR % "title_blank")
+	p.add_theme_stylebox_override("panel", bx)
+	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_size_override("font_size", font_size)
+	l.add_theme_font_override("font", SpriteLib.ui_font("heading"))
+	l.add_theme_color_override("font_color", LIGHT)
+	l.add_theme_color_override("font_outline_color", Color(0.22, 0.11, 0.04))
+	l.add_theme_constant_override("outline_size", 6)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	p.add_child(l)
+	return p
+
+
 ## Dress a Button in a kit piece for every state (pressed = `pressed_name`).
 static func style_button(b: Button, name: String, pressed_name := "", font_size := 22, color := LIGHT) -> void:
 	var n := box(name)

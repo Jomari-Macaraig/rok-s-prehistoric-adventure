@@ -181,6 +181,13 @@ const ZONE_WALL_PIECE_H := 87.0  # px per sandstone/basalt wall piece (matches F
 # Attack (main._attack): the ATTACK button lunges at the nearest thing ahead
 const TUTORIAL_GAP := 34.0        # px between the Tutorial button and the Marketplace below it (its name sits there)
 const TUTORIAL_BUTTON_SIZE := 92.0  # the main menu's Tutorial button (right edge, above the Marketplace)
+## Elder Numa's murmur when she speaks: Ugo's mumbles, pitched up and softer.
+const NUMA_PITCH := 1.35
+const NUMA_DB := -4.0
+## The Camp's staged dinosaur or hero idles and now and then attacks:
+## seconds before the first attack and between attacks (random in the range).
+const CAMP_ATTACK_FIRST := Vector2(1.2, 2.5)
+const CAMP_ATTACK_EVERY := Vector2(3.5, 7.0)
 const SIDE_BUTTON_SIZE := 104.0  # Encyclopedia / Dinosaurs (left edge) and Marketplace (right edge) square buttons
 const TITLE_BANNER_H := 62.0     # the user's banners (ENCYCLOPEDIA, MARKETPLACE, DINOSAURS) as screen titles
 const STOP_CONFIRM_TIME := 3.0   # s the Stop button waits for its second tap

@@ -125,7 +125,7 @@ func _ready() -> void:
 	market_button.visible = false
 	herd_button = _button("herd", Tuning.SIDE_BUTTON_SIZE)
 	herd_button.icon = _icon_from(func(img: Image): _footprint(img))
-	herd_button.caption = "CAMP"
+	herd_button.caption = "DINO CAMP"
 	herd_button.visible = false
 	# the training run again (main.start_tutorial), on the main menu
 	tutorial_button = _button("tutorial", Tuning.TUTORIAL_BUTTON_SIZE)
@@ -170,7 +170,7 @@ func _ready() -> void:
 	skip_button.size = skip_button.custom_minimum_size
 	skip_button.visible = false
 	# the user's square menu buttons replace the drawn ones when imported, their name below
-	for trio in [[codex_button, "encyclopedia", "Encyclopedia"], [market_button, "marketplace", "Marketplace"], [herd_button, "dinosaurs", "Dinosaurs"], [tutorial_button, "tutorial", "Tutorial"]]:
+	for trio in [[codex_button, "encyclopedia", "Encyclopedia"], [market_button, "marketplace", "Marketplace"], [herd_button, "dinosaurs", "Dinosaur Camp"], [tutorial_button, "tutorial", "Tutorial"]]:
 		var path := "res://assets/ui/square_%s.png" % trio[1]
 		if ResourceLoader.exists(path):
 			(trio[0] as TouchButton).caption = trio[2]

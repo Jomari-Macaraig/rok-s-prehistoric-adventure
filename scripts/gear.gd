@@ -221,8 +221,9 @@ static func icon(id: String) -> Texture2D:
 	var path := "res://assets/gear/%s.png" % id
 	if ResourceLoader.exists(path):
 		return SpriteLib.tex(path)   # uses its sharper @2x twin when there is one
-	if id.begins_with(CARD_PREFIX):
-		return Herd.icon_of(id.substr(CARD_PREFIX.length()))
+	if id.begins_with(CARD_PREFIX):   # the user's card art, else the dinosaur's portrait
+		var card := CardView.art(id.substr(CARD_PREFIX.length()))
+		return card if card else Herd.icon_of(id.substr(CARD_PREFIX.length()))
 	if _icons.has(id):
 		return _icons[id]
 	var img := Image.create(96, 96, false, Image.FORMAT_RGBA8)

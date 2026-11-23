@@ -13,7 +13,7 @@ const STEPS := [
 		"text": "The MARKETPLACE: spend meat on power-ups,\ngear and new dinosaurs. Tap to look inside!",
 		"inside": "Tap an item to see what it does,\nthen Buy (tap twice). Tap Back when done."},
 	{"button": "herd", "screen": "herd",
-		"text": "The CAMP: level up your heroes and\ndinosaurs and equip gear. Tap it!",
+		"text": "The DINOSAUR CAMP: level up your heroes and\ndinosaurs and equip gear. Tap it!",
 		"inside": "Pick one to compare and level it up.\nTap Back when you're done."},
 	{"button": "codex", "screen": "codex",
 		"text": "The ENCYCLOPEDIA: everything you meet,\nexplained. Tap it!",

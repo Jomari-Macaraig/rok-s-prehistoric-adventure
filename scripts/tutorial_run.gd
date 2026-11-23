@@ -128,7 +128,7 @@ func step(delta: float) -> void:
 				return
 			if s.id == "finish":
 				g.queue_info("YOU'RE READY!", "Run as far as you can. Collect meat and spend it in the MARKETPLACE. " \
-						+ "Level up and equip your dinosaurs at the CAMP. Learn about everything you meet in the ENCYCLOPEDIA.\n\n" \
+						+ "Level up and equip your dinosaurs at the DINOSAUR CAMP. Learn about everything you meet in the ENCYCLOPEDIA.\n\n" \
 						+ "New dinosaurs join you the farther you run. Good luck!", SpriteLib.tex("res://assets/portraits/rok.png"), Color(1.0, 0.8, 0.35))
 				phase = "done"
 				return

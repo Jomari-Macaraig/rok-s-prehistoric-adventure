@@ -1466,6 +1466,39 @@ func _feedback_checks() -> void:
 	h.close_herd()
 	check(main.herd.find_child("Backdrop", true, false) != null and main.market.find_child("Backdrop", true, false) != null and main.codex.find_child("Backdrop", true, false) != null,
 			"the Camp, Market and Field Guide are their own full screens")
+	# the Dinosaur Camp's stage: the chosen one idles and now and then attacks
+	main.unlocked = Forms.ORDER.duplicate()
+	main.open_herd("runner")
+	var hs: Herd = main.herd
+	check(hs.stage_body.visible and hs.stage_body.is_playing() and String(hs.stage_body.animation) == "idle" and hs.stage.texture == null,
+			"the Dinosaur Camp's dinosaur plays its idle loop (not a still picture)")
+	hs._stage_attack()
+	check(hs.stage_atk.visible and not hs.stage_body.visible and String(hs.stage_atk.animation) == "attack", "...and now and then its attack")
+	hs._stage_idle()
+	check(hs.stage_body.visible and not hs.stage_atk.visible, "...then idles again")
+	check(hs.find_child("TitleBanner", true, false) != null and (not SceneKit.has() or (hs.find_child("TitleBanner", true, false).get_child(0) as Label).text == "DINOSAUR CAMP"),
+			"the screen is called the Dinosaur Camp")
+	hs.close_herd()
+	main.unlocked = [Forms.ROK]
+	# the user's card pack: a card for the four originals and the first 16 species
+	var carded := ["raptor", "triceratops", "spinosaurus", "pteranodon"] + Dinos.ids().slice(0, 16)
+	check(carded.all(func(d): return CardView.art(d) != null) and Gear.icon(Gear.CARD_PREFIX + "gallimimus") == CardView.art("gallimimus"),
+			"the 20 dinosaurs in the card pack have their card art, also on tiles")
+	# Elder Numa speaks (the user's request)
+	check(Codex.NUMA_LINES.keys().all(func(k): return (Codex.NUMA_LINES[k] as Array).size() >= 5) and range(7).all(func(i): return Codex.NUMA_LINES.has("tab_%d" % i)),
+			"Elder Numa has at least five lines for every situation and a pool per tab")
+	main.open_guide()
+	var cx: Codex = main.codex
+	if cx.numa_label:
+		check(cx.numa_bubble.visible and Codex.NUMA_LINES.greet.has(cx.numa_label.text), "opening the Encyclopedia, Numa greets you")
+		cx._show_tab(1)
+		check(Codex.NUMA_LINES.tab_1.has(cx.numa_label.text), "...each tab has her own words")
+		var lk := cx.grid.get_children().find_custom(func(t): return t.get_meta("locked", false))
+		if lk >= 0:
+			cx.select(lk)
+			check(Codex.NUMA_LINES.locked.has(cx.numa_label.text), "...and an undiscovered entry gets a 'not yet'")
+		check(cx.numa_bubble.position.y + cx.numa_bubble.size.y <= cx.elder.position.y + 1.0, "her bubble sits above her, not over her")
+	cx.close_guide()
 	main.gear_owned.clear()
 	main.gear_equipped.clear()
 	main.cards.clear()
@@ -1550,11 +1583,11 @@ func _feedback_checks() -> void:
 			"the side buttons are the user's square Encyclopedia, Marketplace and Dinosaurs buttons")
 	var titles_ok := true
 	var kit := SceneKit.has()   # the user's scene kit brings its own title plaques
-	for pair in [[main.market, "market/ui/title.png"], [main.herd, "scenes/dinosaurs_title.png" if kit else "banner_dinosaurs.png"], [main.codex, "scenes/encyclopedia_title.png" if kit else "banner_encyclopedia.png"]]:
+	for pair in [[main.market, "market/ui/title.png"], [main.herd, "scenes/title_blank.png" if kit else "banner_dinosaurs.png"], [main.codex, "scenes/encyclopedia_title.png" if kit else "banner_encyclopedia.png"]]:
 		var tb: Node = pair[0].find_child("TitleBanner", true, false)
-		var art: String = "" if tb == null else String(tb.get_meta("art", (tb as TextureRect).texture.resource_path))
+		var art: String = "" if tb == null else (String(tb.get_meta("art")) if tb.has_meta("art") else (tb as TextureRect).texture.resource_path)
 		titles_ok = titles_ok and art.ends_with(pair[1])
-	check(titles_ok, "the user's title plaques head the Camp and Field Guide (the scene kit's), the Marketplace UI pack's the Market")
+	check(titles_ok, "the user's title plaques head the Field Guide (the scene kit's; the Dinosaur Camp's name on its blank plaque), the Marketplace UI pack's the Market")
 	check(hd.market_button.hit(hd.market_button.global_position + Vector2(hd.market_button.size.x - 8.0, hd.market_button.size.y * 0.5)), "a banner button takes a tap anywhere on it")
 	for scr in [main.market, main.herd, main.codex]:
 		var back: Node = scr.find_child("Back", true, false)

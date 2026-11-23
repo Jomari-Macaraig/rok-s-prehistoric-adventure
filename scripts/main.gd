@@ -2161,7 +2161,7 @@ func _bank_meat() -> void:
 	if bench_open() and not seen.has("bench_open"):   # the Crafting Bench just opened
 		seen.append("bench_open")
 		SaveData.save_seen(seen)
-		new_this_run.append("Crafting Bench open: craft gear at the Camp")
+		new_this_run.append("Crafting Bench open: craft gear at the Dinosaur Camp")
 	if not run_materials.is_empty():   # (already in the bank; just the news)
 		new_this_run.append("Found " + Crafting.cost_text(run_materials))
 		run_materials.clear()
@@ -2543,7 +2543,7 @@ func _drop_card(o: Obstacle) -> void:
 	t.tween_callback(pic.queue_free)
 	fx.sparkle(pic.global_position, Color(1.0, 0.9, 0.5))
 	audio.play("unlock", 0.05, 1.3, -4.0)
-	hud.show_banner(Herd.name_of(d).to_upper() + " CARD!", "It dropped its card. Put it in a hero's weapon slot at the Camp.", Color(1.0, 0.85, 0.45), 2.4)
+	hud.show_banner(Herd.name_of(d).to_upper() + " CARD!", "It dropped its card. Put it in a hero's weapon slot at the Dinosaur Camp.", Color(1.0, 0.85, 0.45), 2.4)
 	new_this_run.append(Herd.name_of(d) + " Card")
 
 
@@ -2577,12 +2577,12 @@ func equip_gear(hero: String, slot: String, id: String) -> bool:
 
 
 ## One hit's wear on a weapon: at Gear.WEAR_WARN uses left a warning, at 0 it
-## breaks (snap sound, a banner; no bonus or reach until repaired at the Camp).
+## breaks (snap sound, a banner; no bonus or reach until repaired at the Dinosaur Camp).
 func wear_weapon(id: String) -> void:
 	var left := Gear.durability(id) - 1
 	gear_wear[id] = left
 	if left == Gear.WEAR_WARN:
-		hud.show_banner(Gear.name_of(id).to_upper() + " IS WEARING OUT", "%d hits left. Repair it at the Camp." % left, Color(1.0, 0.75, 0.4), 2.2)
+		hud.show_banner(Gear.name_of(id).to_upper() + " IS WEARING OUT", "%d hits left. Repair it at the Dinosaur Camp." % left, Color(1.0, 0.75, 0.4), 2.2)
 	elif left <= 0:
 		if player.form == Forms.ROK:
 			player.attack_stop()   # back to the body sprite so the shatter shows
@@ -2590,7 +2590,7 @@ func wear_weapon(id: String) -> void:
 		audio.play("weapon_break", 0.05)
 		fx.float_text(player.position + Vector2(-50, -230), "SNAP!", Color(1.0, 0.55, 0.4), 30)
 		fx.add_shake(4.0)
-		hud.show_banner(Gear.name_of(id).to_upper() + " BROKE!", "Repair it at the Camp to use it again.", Color(1.0, 0.5, 0.4), 2.8)
+		hud.show_banner(Gear.name_of(id).to_upper() + " BROKE!", "Repair it at the Dinosaur Camp to use it again.", Color(1.0, 0.5, 0.4), 2.8)
 		new_this_run.append(Gear.name_of(id) + " broke")
 	_save_gear()
 	if left <= 0 and player.form == Forms.ROK:
