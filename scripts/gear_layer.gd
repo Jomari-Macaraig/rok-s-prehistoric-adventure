@@ -37,6 +37,9 @@ var baked_run := false   # the hero's run sheet carries the weapon (Player.set_c
 ## A style clip's layer (Player.atk_gear): the weapon draws IN FRONT of the
 ## body with the fist redrawn over its handle (`_fist`), the shell behind.
 var front := false
+## The guide of the style clip showing (Player sets it: a standing clip's
+## attack_meta entry, or one phase of a running style); {} = none.
+var clip_meta := {}
 var _fist := Sprite2D.new()
 const FIST_R := 10.0   # 1x px: the fist patch's half size around the grip
 
@@ -148,8 +151,8 @@ func _place() -> void:
 	var spr := get_parent() as AnimatedSprite2D
 	if spr == null:
 		return
-	if String(spr.animation).begins_with("style_"):
-		_place_style(spr)
+	if not clip_meta.is_empty():
+		_place_style(spr, clip_meta)
 		return
 	var frames: Array = _sock.get(String(spr.animation), [])
 	var ok := hero != "" and not frames.is_empty() and spr.frame < frames.size()
@@ -177,13 +180,18 @@ func _place() -> void:
 ## An empty-handed style clip ("style_swing", tools/prepare_styles.py): the
 ## weapon's grip goes on the guide's grip point and it points along the
 ## guide's stick (angle clockwise from up, plus the weapon's own tilt); the
-## shell rides on the guide's back point. A frame without a stick (after a
-## throw) shows no weapon.
-func _place_style(spr: AnimatedSprite2D) -> void:
-	var m: Dictionary = SpriteLib.attack_meta(hero).get(String(spr.animation), {}) if hero != "" else {}
+## shell rides on the guide's back point. No stick: no weapon (Fist), except
+## after a Throw or Shoot release, where the sling or bow stays in the hand
+## at its last angle (only the stone or arrow left).
+func _place_style(spr: AnimatedSprite2D, m: Dictionary) -> void:
 	var i := spr.frame
 	var grips: Array = m.get("grip", [])
-	var angles: Array = m.get("angle", [])
+	var angles: Array = (m.get("angle", []) as Array).duplicate()
+	if m.get("release") != null and i < angles.size() and angles[i] == null:
+		for k in range(i, -1, -1):
+			if angles[k] != null:
+				angles[i] = angles[k]
+				break
 	var ok := i < grips.size() and grips[i] != null
 	_weapon.visible = ok and _weapon.texture != null and i < angles.size() and angles[i] != null
 	var backs: Array = m.get("back", [])
@@ -194,7 +202,7 @@ func _place_style(spr: AnimatedSprite2D) -> void:
 		var g := Vector2(grips[i][0], grips[i][1])
 		_weapon.position = spr.offset + g
 		_weapon.rotation_degrees = float(angles[i]) + float(a.angle)
-		var k := float(a.length) / float(a.size[1]) * float(m.frame[1]) / 224.0 * Gear.style_scale(_weapon_id)
+		var k := float(a.length) / float(a.size[1]) * Gear.style_scale(_weapon_id)   # every hero is drawn on a 224 px tall canvas
 		_weapon.scale = Vector2(k, k)
 		if front:   # the fist over the handle: the same frame, just the box around the grip
 			_fist.texture = spr.sprite_frames.get_frame_texture(spr.animation, i)

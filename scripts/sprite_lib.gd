@@ -221,6 +221,26 @@ static func running_attack(hero: String, weapon: String) -> SpriteFrames:
 	return frames
 
 
+## A hero's running style attack (tools/prepare_styles.py, assets/run_styles/):
+## animations "p0".."p7" (the attack started at run phase p), stepped by
+## Player with the run's clock like the running club. Built only when needed
+## (the equipped weapon's style), they're big. null if there's none.
+static func running_style(hero: String, style: String) -> SpriteFrames:
+	var m: Dictionary = attack_meta(hero).get("run_style_" + style, {})
+	if m.is_empty():
+		return null
+	var key := "runstyle_%s_%s" % [hero, style]
+	if _cache.has(key):
+		return _cache[key]
+	var frames := SpriteFrames.new()
+	frames.remove_animation("default")
+	for p in int(m.phases):
+		_sheet_frames(frames, "p%d" % p, tex("res://assets/run_styles/%s/run_style_%s_%d.png" % [hero, style, p]),
+				Vector2(m.frame[0], m.frame[1]), CHAR_ANIMS["run"], false)
+	_cache[key] = frames
+	return frames
+
+
 ## The new-best celebration jump (Rok, Nira, Boro; the user's art, imported by
 ## tools/prepare_animation_pack.gd onto each hero's own canvas): {times,
 ## launch, land} or {} if this character has none.
@@ -288,6 +308,8 @@ static func attacks(id: String) -> SpriteFrames:
 	var frames := SpriteFrames.new()
 	frames.remove_animation("default")
 	for clip in m:
+		if String(clip).begins_with("run_style_"):
+			continue   # the running styles are built on their own (running_style)
 		var c: Dictionary = m[clip]
 		_sheet_frames(frames, clip, tex("res://assets/attacks/%s/%s.png" % [id, clip]),
 				Vector2(c.frame[0], c.frame[1]), c.times, false)

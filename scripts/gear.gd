@@ -52,6 +52,14 @@ static func style(id: String) -> String:
 	return v if v is String else ""
 
 
+## The bare-hands attack: the hero's Fist style clip, or "" without one (or
+## with styles off): then a code-drawn lunge and slash.
+static func fist_clip(hero: String) -> String:
+	if not bool(Crafting.num("weapon_styles", "use_styles")):
+		return ""
+	return "style_fist" if SpriteLib.attack_meta(hero).has("style_fist") else ""
+
+
 ## How big a weapon draws in a style clip ([weapon_styles] scale, or
 ## "<id>_scale" for that weapon).
 static func style_scale(id: String) -> float:

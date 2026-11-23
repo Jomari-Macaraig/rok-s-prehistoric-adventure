@@ -146,7 +146,7 @@ func react_play(kind: String, hold := 0.0, from_hold := false) -> bool:
 ## A weapon breaking: its shatter plays in whichever hand shows it (the
 ## body's, or the style clip's during an attack).
 func weapon_break(id: String) -> void:
-	(atk_gear if atk.visible and attack_clip.begins_with("style_") else gear).play_break(id)
+	(atk_gear if atk.visible and not atk_gear.clip_meta.is_empty() else gear).play_break(id)
 
 
 ## Play an attack clip (SpriteLib.attacks: "attack" for a dinosaur,
@@ -168,6 +168,7 @@ func attack_play(clip: String) -> bool:
 	atk.play(clip)
 	atk.visible = true
 	sprite.visible = false
+	atk_gear.clip_meta = SpriteLib.attack_meta(String(data().id))[clip] if clip.begins_with("style_") else {}
 	if clip.begins_with("style_"):
 		atk_gear.refresh()   # the weapon at the grip from the first frame (no blink)
 	return true
@@ -270,6 +271,45 @@ func run_attack_play(weapon: String) -> bool:
 	return true
 
 
+## The hero's running style attack (`style`: swing, thrust, throw, shoot,
+## fist), like run_attack_play: the phase for the current run frame, stepped
+## by the run's frames, with the weapon drawn from that phase's guide. In
+## the air it plays phase 0 at the run's frame times (the standing clip's
+## upright pose is ~25% taller than the running pose: he looked like he
+## grew, the user's report).
+func run_style_play(style: String) -> bool:
+	if dead or swimming or low != Low.NONE or form != Forms.ROK:
+		return false
+	var airborne := not on_ground
+	if not airborne and sprite.animation != "run":
+		return false
+	var hero := String(data().id)
+	var sf := SpriteLib.running_style(hero, style)
+	if sf == null:
+		return false
+	react_stop()
+	var m: Dictionary = SpriteLib.attack_meta(hero)["run_style_" + style]
+	atk.stop()
+	atk.sprite_frames = sf
+	atk.offset = -Vector2(m.pivot[0], m.pivot[1])
+	var phase := 0 if airborne else sprite.frame
+	run_attack_phase = -1 if airborne else phase   # in the air: played, not stepped by the run
+	_run_attack_n = 0
+	attack_clip = "run_style_" + style
+	if airborne:
+		atk.speed_scale = 1.0
+		atk.play("p0")   # finishing calls attack_stop
+	else:
+		atk.animation = "p%d" % phase
+		atk.frame = 0
+	var g: Dictionary = (m.guides as Array)[phase]
+	atk_gear.clip_meta = {"grip": g.grip, "angle": g.angle, "back": g.back, "release": m.get("release")}
+	atk.visible = true
+	sprite.visible = false
+	atk_gear.refresh()
+	return true
+
+
 ## Seconds until the running attack's frame `i` (from now), at the run's clock.
 func run_attack_wait(i: int) -> float:
 	if run_attack_phase < 0:
@@ -315,6 +355,7 @@ func attack_stop() -> void:
 		return
 	attack_clip = ""
 	run_attack_phase = -1
+	atk_gear.clip_meta = {}
 	atk.stop()
 	atk.visible = false
 	sprite.visible = true

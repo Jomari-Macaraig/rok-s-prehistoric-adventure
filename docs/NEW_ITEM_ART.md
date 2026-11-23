@@ -32,11 +32,13 @@ If a hero doesn't have the style's clip yet, a new weapon falls back to the code
 
 | Style | Rok | Nira | Boro |
 |---|---|---|---|
-| Swing | ✓ (approved) | – | – |
-| Thrust | – | – | – |
-| Throw | – | – | – |
-| Shoot | – | – | – |
-| Fist (also bare hands) | – | – | – |
+| Swing | ✓ | ✓ | ✓ |
+| Thrust | ✓ | ✓ | ✓ |
+| Throw | ✓ | ✓ | ✓ |
+| Shoot | ✓ | ✓ | ✓ |
+| Fist (also bare hands) | ✓ | ✓ | ✓ |
+
+All standing and running (2026-11-23). A new hero needs the same set.
 
 ---
 

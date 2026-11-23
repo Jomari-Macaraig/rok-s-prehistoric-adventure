@@ -2813,7 +2813,12 @@ func _attack() -> Obstacle:
 	# running on the ground with a seamless running attack for this weapon:
 	# that (it joins the run cycle); otherwise the standing clip
 	var w := Gear.base(Gear.slot_item(String(player.data().id), "weapon")) if player.form == Forms.ROK and clip != "" else ""
-	if not (w != "" and player.run_attack_play(w)) and not player.attack_play(clip):
+	var ran := false
+	if clip.begins_with("style_"):
+		ran = player.run_style_play(clip.trim_prefix("style_"))   # the running style (joins the run cycle)
+	elif w != "":
+		ran = player.run_attack_play(w)   # an old drawn-in running attack (the club, with styles off)
+	if not ran and not player.attack_play(clip):
 		var lunge := player.create_tween()
 		lunge.tween_property(player.body, "position:x", 34.0, 0.08)
 		lunge.tween_property(player.body, "position:x", 0.0, 0.16)
@@ -2821,7 +2826,7 @@ func _attack() -> Obstacle:
 	audio.play("slide", 0.1, 1.6, -4.0)
 	if target == null:
 		return null
-	if clip == "attack_bow" or clip == "attack_sling":
+	if w in ["bow", "sling"]:
 		# the arrow / stone leaves on the clip's release frame
 		var to := target.global_position + Vector2(0, -target.size.y * 0.5)
 		var m: Dictionary = SpriteLib.attack_meta(String(player.data().id)).get(clip, {})
@@ -2831,7 +2836,7 @@ func _attack() -> Obstacle:
 				wait += float(m.times[i]) / 1000.0
 		elif player.run_attack_phase >= 0:
 			wait = player.run_attack_wait(4)   # the running attack releases on frame 4
-		get_tree().create_timer(wait, false).timeout.connect(_shoot_arrow.bind(to, clip == "attack_sling"))
+		get_tree().create_timer(wait, false).timeout.connect(_shoot_arrow.bind(to, w == "sling"))
 	return _attack_hit(target)
 
 
@@ -2851,10 +2856,11 @@ func carry_weapon() -> String:
 func attack_clip() -> String:
 	if player.form != Forms.ROK:
 		return "attack"
-	var w := Gear.slot_item(String(player.data().id), "weapon")
+	var hero := String(player.data().id)
+	var w := Gear.slot_item(hero, "weapon")
 	if w == "" or not Gear.ITEMS.has(Gear.base(w)) or Gear.slot_of(w) != "weapon" or Gear.broken(w):
-		return ""
-	var sc := Gear.style_clip(String(player.data().id), w)
+		return Gear.fist_clip(hero)   # bare hands (or a card, or a broken weapon): the Fist style, or "" (the drawn lunge)
+	var sc := Gear.style_clip(hero, w)
 	return sc if sc != "" else "attack_" + Gear.base(w)   # the empty-handed style (weapon drawn at the grip), else the drawn-in clip
 
 

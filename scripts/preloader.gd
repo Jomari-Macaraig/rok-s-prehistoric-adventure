@@ -404,6 +404,15 @@ static func collect() -> Array:
 	return [load_paths.filter(func(p): return ResourceLoader.exists(p)), tex_keys]
 
 
+## The equipped hero's running style for their weapon (Fist bare-handed).
+static func _running_style_job() -> void:
+	var hero := String(Forms.get_data(Forms.ROK).id)
+	var w := Gear.slot_item(hero, "weapon")
+	var clip := Gear.style_clip(hero, w) if w != "" and Gear.ITEMS.has(Gear.base(w)) and not Gear.broken(w) else Gear.fist_clip(hero)
+	if clip.begins_with("style_"):
+		SpriteLib.running_style(hero, clip.trim_prefix("style_"))
+
+
 ## The SpriteFrames a run builds, one Callable each (SpriteLib caches them).
 static func frame_jobs() -> Array:
 	var jobs: Array = []
@@ -413,6 +422,7 @@ static func frame_jobs() -> Array:
 	for id in form_ids():
 		jobs.append(SpriteLib.attacks.bind(id))
 		jobs.append(SpriteLib.reactions.bind(id))
+	jobs.append(_running_style_job)   # the hero's running attack for the equipped weapon's style (big: only that one)
 	jobs.append(SpriteLib.trex)
 	jobs.append(SpriteLib.transform_fx)
 	jobs.append(SpriteLib.powerup_fx)

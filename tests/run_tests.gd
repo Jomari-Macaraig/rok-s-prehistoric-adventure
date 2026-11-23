@@ -1033,7 +1033,8 @@ func _feedback_checks() -> void:
 	var critter: Obstacle = c.obstacles[-1]
 	check(critter.critter != "" and main._attack() == critter and not c.obstacles.has(critter), "ATTACK bonks a wild dinosaur")
 	main.attack_cd = 0.0
-	check(p.attack_clip == "" and p.sprite.visible, "bare-handed Rok has no attack clip (the code-drawn lunge stands in)")
+	check(p.attack_clip.ends_with("style_fist") and p.atk.visible and not p.atk_gear._weapon.visible, "bare-handed Rok punches (the Fist style, no weapon drawn)")
+	p.attack_stop()
 	var clips_ok := true
 	for hero in ["rok", "nira", "boro"]:
 		var hf := SpriteLib.attacks(hero)
@@ -1295,11 +1296,20 @@ func _feedback_checks() -> void:
 	check(not main.equip_gear("rok", "armor", axe), "a weapon doesn't go in the armor slot")
 	check(main.attack_reach() == Gear.reach("rok") and Gear.reach("rok") > Tuning.ATTACK_REACH_HAND, "a weapon reaches further than bare hands")
 	main.attack_cd = 0.0
+	main.player.on_ground = true
+	main.player.sprite.play("idle")   # standing: the standing clip
 	main._attack()
 	check(main.player.attack_clip == "style_swing" and main.player.atk.visible and main.player.atk_gear._weapon.visible and main.player.atk_gear._weapon.texture == Gear.icon("stone_axe"),
 			"Rok swings his Stone Axe with the empty-handed Swing, the axe drawn at the guide's grip")
-	check(Gear.style("stone_axe") == "swing" and Gear.style("flint_spear") == "thrust" and Gear.style_clip("rok", "flint_spear") == "" and Gear.style_clip("nira", "club") == "",
-			"weapon styles come from config; without that style's clip (the spear, Nira) the old drawn-in clip stays")
+	check(Gear.style("stone_axe") == "swing" and Gear.style("flint_spear") == "thrust" and Gear.style("bow") == "shoot" and Gear.style("sling") == "throw",
+			"weapon styles come from config")
+	var all_styles := true
+	for hero in ["rok", "nira", "boro"]:
+		for st in ["swing", "thrust", "throw", "shoot", "fist"]:
+			var am: Dictionary = SpriteLib.attack_meta(hero)
+			all_styles = all_styles and am.has("style_" + st) and am.has("run_style_" + st) and (am["run_style_" + st].guides as Array).size() == 8
+	check(all_styles and Gear.style_clip("nira", "club") == "style_swing" and Gear.fist_clip("boro") == "style_fist",
+			"Rok, Nira and Boro each have all five styles, standing and running (8 phases with guides)")
 	var sm: Dictionary = SpriteLib.attack_meta("rok")["style_swing"]
 	check((sm.grip as Array).size() == 8 and (sm.angle as Array).size() == 8 and (sm.back as Array).size() == 8 and int(sm.active) == 4,
 			"the Swing's guide gives a grip, an angle and a back point on all 8 frames (strike on 4)")
@@ -1322,11 +1332,11 @@ func _feedback_checks() -> void:
 	check(not p.gear._weapon.visible, "...and the separate club isn't drawn on top while he runs")
 	main.attack_cd = 0.0
 	main._attack()
-	check(p.run_attack_phase == 5 and p.attack_clip == "run_attack_club" and String(p.atk.animation) == "p5" and p.atk.frame == 0 and p.atk.visible,
-			"ATTACK while running plays the running swing made for the current run phase")
+	check(p.run_attack_phase == 5 and p.attack_clip == "run_style_swing" and String(p.atk.animation) == "p5" and p.atk.frame == 0 and p.atk.visible
+			and p.atk_gear._weapon.visible, "ATTACK while running plays the running Swing made for the current run phase, the club at its grip")
 	for k in 4:
 		p.sprite.frame = (p.sprite.frame + 1) % 8
-	check(p.atk.frame == 4 and p.attack_clip == "run_attack_club", "...stepped by the run's own frames (the hit on frame 4)")
+	check(p.atk.frame == 4 and p.attack_clip == "run_style_swing", "...stepped by the run's own frames (the hit on frame 4)")
 	for k in 4:
 		p.sprite.frame = (p.sprite.frame + 1) % 8
 	check(p.attack_clip == "" and p.sprite.frame == 5 and String(p.sprite.animation) == "run", "...and after 8 frames the run carries on at the phase it started from")
@@ -1338,7 +1348,8 @@ func _feedback_checks() -> void:
 	p.sprite.play("jump")
 	main.attack_cd = 0.0
 	main._attack()
-	check(p.attack_clip == "style_swing", "in the air the standing swing plays instead")
+	check(p.attack_clip == "run_style_swing" and p.run_attack_phase == -1 and p.atk.is_playing(),
+			"in the air the running swing plays on its own clock (the upright standing pose looked like he grew)")
 	p.attack_stop()
 	p.on_ground = true
 	main.equip_gear("rok", "weapon", axe)
@@ -1360,7 +1371,7 @@ func _feedback_checks() -> void:
 	main.wear_weapon(axe)
 	check(Gear.broken(axe) and is_equal_approx(Dinos.stat("rok", "power"), power0) and Gear.reach("rok") == Tuning.ATTACK_REACH_HAND
 			and main.audio.played.has("weapon_break"), "at 0 the weapon breaks: no bonus, bare-hand reach, a snap")
-	check(main.attack_clip() == "", "a broken weapon has no attack clip (bare hands)")
+	check(main.attack_clip() == "style_fist", "a broken weapon means bare hands (the Fist)")
 	check(int(SaveData.load_gear().wear[axe]) == 0, "wear is saved")
 	var rcost := Gear.repair_cost(axe)
 	var rwood := Crafting.have("wood")
