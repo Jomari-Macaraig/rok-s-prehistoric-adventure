@@ -35,6 +35,7 @@ Each gameplay system has its own doc in [docs/systems/](docs/systems/README.md);
 - **Presentation**: [Audio](docs/systems/audio.md), [Rendering, sprites and effects](docs/systems/rendering-and-fx.md)
 
 ## Subsystem Documentation
+- **[docs/TODO.md](docs/TODO.md): the running list of open work (code, decisions, art).** Read it at the start of a session; tick or remove items when done and add new requests, in the same commit.
 - [docs/ITEM_ART_PLAN.md](docs/ITEM_ART_PLAN.md): the step-by-step plan for weapons, armor and accessories without drawing every hero holding every item (attack styles, guide sheets, outfit masks): what exists, what to generate, in order.
 - [docs/NEW_ITEM_ART.md](docs/NEW_ITEM_ART.md): the art to generate for one new weapon, armor or accessory (and what the game already handles), plus the one-time hero art per attack style.
 - [docs/NEW_CONTENT.md](docs/NEW_CONTENT.md): what a new dinosaur, hero, weapon, armor or obstacle needs (animations, card, icons, config entries). Keep it current when a system starts needing something new.
