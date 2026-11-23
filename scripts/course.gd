@@ -14,6 +14,7 @@ signal introduced(key: String)   # first spawn of a pattern this run
 
 var difficulty := 0.0    # 0..1 (Progression.pressure)
 var metres := 0.0        # set by main every frame
+var specials: Array = []  # the run event and lap twist running now (main sets them; they pick special materials)
 var _spot_x := 0.0       # where the reward spot being filled is (its zone picks its materials)
 var speed := Tuning.START_SPEED
 ## A long pattern waiting for enough flat ground, and how far it has waited (px).
@@ -273,7 +274,7 @@ func _fill(kind: String, special: bool) -> String:
 		"mixed":
 			return "meat" if randf() < 0.5 else "amber"
 		"material":
-			var m := Crafting.drop_pick(Crafting.spot_table(String(zone_at_x(_spot_x).id), metres))
+			var m := Crafting.drop_pick(Crafting.spot_table(String(zone_at_x(_spot_x).id), metres, -1.0, specials))
 			return Crafting.PICKUP_PREFIX + m if m != "" else ""
 	return kind
 

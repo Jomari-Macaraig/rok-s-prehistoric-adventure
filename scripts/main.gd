@@ -1367,6 +1367,7 @@ func _play_step(delta: float) -> void:
 	hud.jump_button.cooldown_left = player.jump_cd if player.on_ground else 0.0
 	speed = minf(speed + Tuning.SPEED_RAMP * delta, Tuning.MAX_SPEED)
 	course.metres = metres()
+	course.specials = [events.current, weather.twist]   # an event or lap twist turns up its own materials
 	course.unlocked = unlocked
 	terrain.metres = metres()
 	terrain.speed = speed
@@ -1904,6 +1905,7 @@ func _charge_step(delta: float) -> void:
 		charge_state = ""
 		fx.float_text(player.position + Vector2(-60, -230), "Escaped!", Color(0.6, 1.0, 0.5))
 		badge_event("charges")
+		_charge_trophy()
 
 
 ## The flag at the best distance scrolls in with the world; running past it
@@ -2727,6 +2729,15 @@ func _drop_materials(table: Dictionary, n: int, at: Vector2) -> Dictionary:
 var mat_drop_override := -1.0
 
 
+## Escaping a hunter's charge sometimes drops its trophy (config/crafting.cfg [trophies]).
+func _charge_trophy() -> Dictionary:
+	var t := Crafting.trophy(hunter_id)
+	var r := mat_drop_override if mat_drop_override >= 0.0 else randf()
+	if t == "" or r >= float(Crafting.num("trophies", "chance")):
+		return {}
+	return _drop_materials({t: 1}, 1, player.position + Vector2(-40, -160))
+
+
 ## A broken obstacle sometimes drops materials (config/crafting.cfg [break_drops]).
 func _break_materials(o: Obstacle, at: Vector2) -> Dictionary:
 	var table := Crafting.break_table(o, String(course.zone_at_x(o.position.x).id))
@@ -2741,7 +2752,7 @@ func _wild_materials(o: Obstacle) -> Dictionary:
 	var r := mat_drop_override if mat_drop_override >= 0.0 else randf()
 	if r >= float(Crafting.num("wild_drops", "chance")):
 		return {}
-	var table: Dictionary = Crafting.num("wild_drops", "flyer" if o.kind == "swooper" else "land")
+	var table := Crafting.wild_table(String(o.critter), o.kind == "swooper")
 	return _drop_materials(table, Crafting.count_of("wild_drops"), o.global_position + Vector2(0, -o.size.y * 0.6))
 
 

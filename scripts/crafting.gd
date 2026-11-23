@@ -289,6 +289,21 @@ static func rarity_weighted(table: Dictionary) -> Dictionary:
 	return out
 
 
+## A wild dinosaur's drop table: land or flyer, plus its species' extras.
+static func wild_table(species: String, flyer: bool) -> Dictionary:
+	var t: Dictionary = (num("wild_drops", "flyer" if flyer else "land") as Dictionary).duplicate()
+	var extra: Dictionary = (num("wild_drops", "species") as Dictionary).get(species, {}) if num("wild_drops", "species") is Dictionary else {}
+	for m in extra:
+		t[m] = float(t.get(m, 0.0)) + float(extra[m])
+	return t
+
+
+## The trophy a hunter's escaped charge can drop ("" = none).
+static func trophy(hunter: String) -> String:
+	var v: Variant = num("trophies", hunter)
+	return String(v) if v is String else ""
+
+
 ## Pick a material a run drops from a table (drop rarity applied).
 static func drop_pick(table: Dictionary, roll := -1.0) -> String:
 	return pick(rarity_weighted(table), roll)
@@ -317,19 +332,29 @@ static func count_of(section: String) -> int:
 ## The break-drop table for a broken obstacle: "wood", "fiber",
 ## "rock_<zone>" or "meteor" ("" = drops no material, e.g. a mushroom).
 static func break_table(o: Obstacle, zone: String) -> String:
+	var t := ""
 	if o.mushroom:
-		return ""
-	if o.get_meta("meteor", false):
+		t = "mushroom"
+	elif o.get_meta("meteor", false):
 		return "meteor"
-	if o.vine or o.kind == "thorns":
-		return "fiber"
-	if o.kind in ["wood", "fence"]:
-		return "wood"
-	return "rock_" + zone
+	elif o.vine or o.kind == "thorns":
+		t = "fiber"
+	elif o.kind in ["wood", "fence"]:
+		t = "wood"
+	else:
+		return "rock_" + zone
+	var zoned := "%s_%s" % [t, zone]   # a zone's own table when there is one (fiber_desert: cactus spines)
+	var v: Variant = num("break_drops", zoned)
+	return zoned if v is Dictionary and not (v as Dictionary).is_empty() else t
 
 
 ## The table a material reward spot rolls at `metres` in `zone`.
-static func spot_table(zone: String, metres: float, roll := -1.0) -> Dictionary:
+static func spot_table(zone: String, metres: float, roll := -1.0, specials := []) -> Dictionary:
+	# an event or lap twist running: its own materials ([spots] special_chance)
+	for sp in specials:
+		var st: Variant = num("spots", String(sp)) if String(sp) != "" else null
+		if st is Dictionary and not (st as Dictionary).is_empty() and randf() < float(num("spots", "special_chance")):
+			return st
 	var from := float(num("spots", "deep_from_m"))
 	var full := float(num("spots", "deep_full_m"))
 	var deep := float(num("spots", "deep_max")) * clampf(inverse_lerp(from, full, metres), 0.0, 1.0)
@@ -345,7 +370,18 @@ static var _icons := {}
 const MAT_COLOR := {"wood": Color(0.55, 0.33, 0.15), "stone": Color(0.62, 0.6, 0.58), "fiber": Color(0.45, 0.62, 0.25),
 		"flint": Color(0.35, 0.38, 0.45), "hide": Color(0.72, 0.5, 0.3), "bone": Color(0.95, 0.9, 0.78),
 		"resin": Color(1.0, 0.65, 0.15), "dino_scale": Color(0.3, 0.65, 0.5), "obsidian": Color(0.18, 0.12, 0.22),
-		"shell": Color(0.85, 0.7, 0.5), "fossil_shard": Color(0.8, 0.72, 0.55), "primal_crystal": Color(0.55, 0.9, 1.0)}
+		"shell": Color(0.85, 0.7, 0.5), "fossil_shard": Color(0.8, 0.72, 0.55), "primal_crystal": Color(0.55, 0.9, 1.0),
+		"fern_frond": Color(0.3, 0.6, 0.25), "mushroom_cap": Color(0.8, 0.3, 0.25), "moss": Color(0.35, 0.5, 0.2),
+		"sandstone": Color(0.85, 0.65, 0.4), "cactus_spine": Color(0.5, 0.65, 0.35), "basalt": Color(0.25, 0.25, 0.28),
+		"ash": Color(0.55, 0.55, 0.55), "feather": Color(0.95, 0.85, 0.7), "clay": Color(0.7, 0.45, 0.3),
+		"wild_berries": Color(0.6, 0.15, 0.4), "ochre": Color(0.8, 0.45, 0.15), "sulfur": Color(0.95, 0.9, 0.25),
+		"ember_coal": Color(0.75, 0.25, 0.1), "sinew": Color(0.8, 0.6, 0.5), "claw": Color(0.9, 0.88, 0.8),
+		"eggshell": Color(0.95, 0.93, 0.85), "stampede_dust": Color(0.75, 0.6, 0.45), "bleached_skull": Color(0.98, 0.96, 0.9),
+		"horn": Color(0.85, 0.78, 0.6), "back_plate": Color(0.55, 0.45, 0.3), "tail_club_knob": Color(0.5, 0.42, 0.35),
+		"wing_membrane": Color(0.85, 0.55, 0.4), "golden_dust": Color(1.0, 0.85, 0.3), "storm_glass": Color(0.5, 0.6, 0.85),
+		"fog_pearl": Color(0.85, 0.88, 0.92), "fire_opal": Color(1.0, 0.45, 0.2), "t_rex_tooth": Color(0.95, 0.92, 0.82),
+		"carnotaurus_horn": Color(0.7, 0.35, 0.25), "allosaurus_claw": Color(0.85, 0.8, 0.7), "meteorite_iron": Color(0.4, 0.38, 0.42),
+		"eclipse_shard": Color(0.35, 0.2, 0.55), "insect_in_amber": Color(1.0, 0.6, 0.1), "star_metal": Color(0.75, 0.85, 1.0)}
 
 
 ## A material's icon: the user's art (assets/materials/<id>.png) once it

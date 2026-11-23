@@ -1331,7 +1331,29 @@ func _feedback_checks() -> void:
 	check(Gear.repair_cost(axe).is_empty() and not main.repair_gear(axe), "a weapon at full durability needs no repair")
 	# --- crafting (the user's design: gear is crafted, never bought; config/crafting.cfg)
 	Crafting.forget()
-	check(Crafting.materials().size() == 12 and Crafting.recipes().size() == Gear.ITEMS.size(), "crafting.cfg lists 12 materials and a recipe for every weapon and armor")
+	check(Crafting.materials().size() == 45 and Crafting.recipes().size() == Gear.ITEMS.size(), "crafting.cfg lists 45 materials and a recipe for every weapon and armor")
+	var all_tables: Array = []
+	for sec in ["break_drops", "spots", "chests"]:
+		for k in (Crafting._v[sec] as Dictionary):
+			if Crafting._v[sec][k] is Dictionary:
+				all_tables.append(Crafting._v[sec][k])
+	all_tables.append(Crafting.wild_table("gallimimus", false))
+	all_tables.append(Crafting.wild_table("quetzalcoatlus", true))
+	check(all_tables.all(func(t): return (t as Dictionary).keys().all(func(m): return Crafting.is_material(m))), "every drop table names real materials")
+	var sources := {}
+	for t in all_tables:
+		for m in t:
+			sources[m] = true
+	for h in ["trex", "carnotaurus", "allosaurus"]:
+		sources[Crafting.trophy(h)] = true
+	sources["fossil_shard"] = true
+	check(Crafting.materials().all(func(m): return sources.has(m)), "every material has somewhere it comes from (missing: %s)" % str(Crafting.materials().filter(func(m): return not sources.has(m))))
+	check(Crafting.wild_table("kentrosaurus", false).has("back_plate") and Crafting.wild_table("pteranodon", true).has("wing_membrane"), "wild species drop their own parts")
+	var sc0: float = Crafting.num("spots", "special_chance")
+	Crafting.set_value("spots", "special_chance", 1.0)
+	check(Crafting.spot_table("forest", 0.0, 0.99, ["golden_hour", ""]).has("golden_dust") and Crafting.spot_table("forest", 0.0, 0.99, ["", "eclipse"]).has("eclipse_shard"),
+			"events and lap twists turn up their own materials in reward spots")
+	Crafting.set_value("spots", "special_chance", sc0)
 	check(Crafting.recipes().all(func(k): return Crafting.recipe(k).keys().all(func(m): return Crafting.is_material(m))), "every recipe uses real materials")
 	var c_bm := Crafting.bench_m()
 	main.best_m = c_bm - 1.0
@@ -1372,7 +1394,9 @@ func _feedback_checks() -> void:
 	check(main._break_materials(c_rock, c_rock.position).keys().all(func(m): return ["wood", "fiber"].has(m)), "a broken log drops wood or fiber")
 	c_rock.critter = "gallimimus"
 	var c_wg: Dictionary = main._wild_materials(c_rock)
-	check(not c_wg.is_empty() and c_wg.keys().all(func(m): return Crafting.num("wild_drops", "land").has(m)), "a bonked wild dinosaur drops hide, bone or scales")
+	check(not c_wg.is_empty() and c_wg.keys().all(func(m): return Crafting.wild_table("gallimimus", false).has(m)), "a bonked wild dinosaur drops hide, bone or scales")
+	main.hunter_id = "trex"
+	check(main._charge_trophy().has("t_rex_tooth"), "escaping a T-rex charge can drop a T-rex Tooth")
 	main.mat_drop_override = 0.999
 	check(main._break_materials(c_rock, c_rock.position).is_empty(), "...and only by chance")
 	main.mat_drop_override = -1.0

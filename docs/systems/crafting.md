@@ -8,7 +8,7 @@ Part of the [system docs](README.md).
 
 | | |
 |---|---|
-| Config | **`config/crafting.cfg`**: when the bench opens, the materials, Market bundles, recipes, rarity odds and multipliers, catalysts, salvage, repair, and every drop table. Read by `Crafting._load()`. `Crafting.DEFAULTS` mirrors the file and is the fallback for anything missing. |
+| Config | **`config/crafting.cfg`**: when the bench opens, the materials, Market bundles, recipes, rarity odds and multipliers, catalysts, salvage, repair, and every drop table. Read by `Crafting._load()`. `Crafting.DEFAULTS` is the fallback if the file or a section is missing (it holds the original 12 materials; the file's `[materials]`, `[recipes]` and `[catalysts]` replace it whole). |
 | Code | `scripts/crafting.gd` (`Crafting`: config, odds, rolls, salvage and repair costs, drop tables, material icons), `scripts/workshop.gd` (`Workshop`: the Bench and Items screens), `main.craft` / `can_craft` / `salvage` / `grant_materials` / `bench_open` / `_break_materials` / `_wild_materials` / `_drop_materials`, `Gear` (copies and rarity) |
 | When a recipe is learned | `[unlock] bench_m` (500 m) opens the bench. Each recipe is learned at its item's `[market_unlocks]` distance in `config/progression.cfg`, and never before the bench opens (`Crafting.learn_m`). |
 | Saved | in the gear save (`SaveData.save_gear`): `materials`, `rarity` (copy id to rarity), `next` (the next copy number), plus the existing `owned`, `equipped`, `wear` and `cards` |
@@ -38,14 +38,26 @@ Part of the [system docs](README.md).
 - **Salvage** (`main.salvage`): break down an unequipped copy for `[salvage] share` of its recipe (rounded down), plus `[salvage] bonus[rarity]` (a catalyst for Rare and better).
 - **Repair** (`main.repair_gear`): costs materials instead of meat. `Gear.repair_cost` returns a materials dictionary: `[repair] share` of the recipe, scaled by how worn the weapon is, and at least 1 of the recipe's first material.
 
+## The 45 materials
+The 12 used by recipes today (Wood, Stone, Fiber, Flint, Hide, Bone, Resin, Dino Scale, Obsidian, Shell, Fossil Shard, Primal Crystal) plus 33 added for the coming weapons, armor and accessories. No recipe uses the added ones yet; they're found and kept.
+- **Common:** Fern Frond, Mushroom Cap, Moss, Sandstone, Cactus Spine, Basalt, Ash, Feather.
+- **Uncommon:** Clay, Wild Berries, Ochre, Sulfur, Ember Coal, Sinew, Claw, Eggshell, Stampede Dust.
+- **Rare:** Bleached Skull, Horn, Back Plate, Tail Club Knob, Wing Membrane, Golden Dust, Storm Glass, Fog Pearl.
+- **Epic:** Fire Opal, T-rex Tooth, Carnotaurus Horn, Allosaurus Claw, Meteorite Iron, Eclipse Shard.
+- **Legendary:** Insect in Amber, Star Metal.
+
+Each one's `from` text (shown on the Items screen) says where it drops. The tests check that every material has at least one source.
+
 ## Where materials come from
 
 All drops go straight into the bank (`grant_materials`). Materials found during a run are also counted in `run_materials`, and the summary's news lists them ("Found 3 Wood, 1 Flint"). Materials keep dropping before the bench opens, so you have some ready when it does.
 
 | Source | Code | Config |
 |---|---|---|
-| Broken obstacles. Logs and fences drop wood. Vines and thorns drop fiber. Rocks drop by zone (Forest stone, Desert flint, Volcanic obsidian). Meteors drop obsidian. Mushrooms drop nothing. | `_smash` → `_break_materials` (`Crafting.break_table`) | `[break_drops]` |
-| Bonked or bowled-over wild dinosaurs (land or flyer table) | `_drop_card` callers → `_wild_materials` | `[wild_drops]` |
+| Broken obstacles: logs and fences (wood), vines and thorns (fiber; Forest adds fern fronds, Desert gives cactus spines), mushrooms (mushroom caps), rocks by zone (Forest stone and flint, Desert sandstone and flint, Volcanic basalt, obsidian and sulfur), meteors (obsidian, Meteorite Iron, a little Star Metal). A `<kind>_<zone>` table is used when it exists. | `_smash` → `_break_materials` (`Crafting.break_table`) | `[break_drops]` |
+| Bonked or bowled-over wild dinosaurs: the land or flyer table plus the species' own parts (Gallimimus feathers, Kentrosaurus back plates, pterosaur wing membranes) | `_drop_card` callers → `_wild_materials` (`Crafting.wild_table`) | `[wild_drops]` (`species`) |
+| Escaping a hunter's charge: its trophy (T-rex Tooth, Carnotaurus Horn, Allosaurus Claw), by chance | `_charge_step` → `_charge_trophy` | `[trophies]` |
+| Events and lap twists: while one runs, material spots can roll its table (Golden Hour → Golden Dust, Meteor Shower → Meteorite Iron, Amber Storm → Resin and a rare Insect in Amber, Stampede → Stampede Dust, storm/fog/eclipse laps → Storm Glass, Fog Pearl, Eclipse Shard) | main sets `course.specials` each frame → `Crafting.spot_table` | `[spots]` `special_chance` + one table per event/twist |
 | Material reward spots. Their contents depend on the zone, and deep in a run some spots roll the `deep` table instead. | `Course._spot_kind` "material" → `_fill` → `m_<id>` pickups (`Pickup` shows `Crafting.icon`) | `[spots]` (rolled after hearts, fossils and power-ups) |
 | Milestone chests: a "materials" reward for each chest rarity | `_open_chest` | `[chests]` |
 | Rare fossils (each also gives Fossil Shards) | the fossil pickup | `[fossils] shards` |

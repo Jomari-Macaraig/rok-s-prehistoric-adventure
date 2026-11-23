@@ -38,6 +38,16 @@ Rerun it after the source art changes:
 
 Run `python3 tools/make_sounds.py`, then `godot --headless --path . --import`.
 
+## Loading screen kit (`prepare_loading.py`)
+`uv run --no-project --with pillow python tools/prepare_loading.py` copies the parts of the user's `../Assets/Rok_Loading_Screen_Kit` the loading screen uses into `assets/loading/`:
+- the 1920×1080 jungle background,
+- the ROK logo, scaled to 1.5× its layout size,
+- the wooden track, gold fill and LOADING label,
+- the footprint marker, dust puff, contact shadow, gold ribbon and leaf motes,
+- the kit's `layout.json` as `loading.json`, without its sheet list.
+
+The kit's run sheets, poses and sample tip aren't copied: the screen uses the game's own run animations and live tip text. Then `--import`.
+
 ## Elder Numa's animations (`prepare_elder.py`)
 `uv run --no-project --with pillow python tools/prepare_elder.py` imports `../Assets/Rok_Elder_Nuna_Animations` (the pack calls her Nuna). Its `animation.json` picks 8 frames per clip (idle loop 2 s, explain and wave one-shots 1 s each) from three 4×2 sheets of 384×512 cells, each frame with its own duration and a baseline fix (crop N transparent rows off the top, which moves the drawing up so the feet line up). The script writes one aligned 4×2 sheet per clip, `assets/scenes/elder/<clip>@2x.png` plus a half-size `<clip>.png`, and `elder.json` (1x frame 192×256, feet pivot 96×243, per-clip times in ms and loop flag, the drawing's visible box). Then `--import`.
 
@@ -125,7 +135,7 @@ Both: `uv run --no-project --with pillow python tools/<script>.py`, then `--impo
 The user's medals come from every `../Assets/Rok_*Medal*` folder and every `../Assets/Rok_*/medals` folder with a `png_168` (the 47-medal pack, the `Rok_Missing_5_Medals` top-up and the medals in `Rok_Hunters_Crouches_Best_Distance` so far), read oldest first so newer art wins; `ALIASES` maps a pack's names to badge ids (`swift_feet` → `swift`, `iron_hide` → `ironhide`) (`png_168/<id>_<unearned|bronze|silver|gold>.png`, 2× the 84 px display size). `python3 tools/prepare_badges.py` (standard library) copies them to `assets/badges/<id>_<0-3>.png` (0 = not earned) and prints which are still missing; `Badges.icon` draws a placeholder medal for those. Then `--import`.
 
 ## Placeholder art (waiting for the user's assets)
-- Crafting (see [docs/systems/crafting.md](../docs/systems/crafting.md)): `assets/scenes/crafting_bench.png` (a stone workbench with tools, transparent, about 420 × 260 px at 1x, scene-kit style), `assets/materials/<id>.png` for the 12 materials (square, transparent, about 128 px + `@2x`, gear-icon style), rarity tile frames (grey, green, blue, purple, gold; 9-slice), and "Crafting Bench" / "Items" title plaques. Each is used automatically once the file exists (`Crafting.icon`, `Workshop._bench_placeholder`).
+- Crafting (see [docs/systems/crafting.md](../docs/systems/crafting.md)): `assets/scenes/crafting_bench.png` (a stone workbench with tools, transparent, about 420 × 260 px at 1x, scene-kit style), `assets/materials/<id>.png` for all 45 materials (ids in `config/crafting.cfg` `[materials]`) (square, transparent, about 128 px + `@2x`, gear-icon style), rarity tile frames (grey, green, blue, purple, gold; 9-slice), and "Crafting Bench" / "Items" title plaques. Each is used automatically once the file exists (`Crafting.icon`, `Workshop._bench_placeholder`).
 - Badge medals still missing (same style and format as the delivered pack: square, transparent, eight-scallop medallion, unearned = grey stone with a padlock): the two perk badges `scorer` (Point Hunter: points scored) and `veteran` (Seasoned: dinosaur XP), all four states each (Swift Feet and Iron Hide arrived with the hunters pack).
 - Long-run items, drawn in code until supplied (square, transparent, the game's cartoon style): `assets/items/fossil.png` (a rare ammonite fossil, about 88 px), `assets/items/bonus_portal.png` (the bonus-zone entrance, a stone arch with swirling golden light, about 150 × 230 px, bottom centre on the ground). Big meat needs no art: it's the meat drawn bigger. Each is picked up automatically when the file exists (`Pickup.ART`, `BonusPortal.ART`); run `--import` after adding them.
 - The Market scene: the user's cave room and merchant are in (see Cave marketplace above); the older drawn-cave slots `assets/market/cave.png`, the trader's cave (a rocky hillside with a big arched mouth, the inside dark with a warm glow; transparent around it; about 600 × 460 px in game, bottom centre on the ground at the right of the screen, the mouth wide enough for a counter and the merchant), and `assets/market/merchant.png`, the merchant (a friendly prehistoric trader behind the counter, from the waist up, facing left toward the hero; transparent; about 200 px tall in game). Ideally also a merchant sheet (4×2, idle and a happy "sold!" pose) and torch flames; run `--import` after adding them.

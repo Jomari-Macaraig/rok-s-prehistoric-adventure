@@ -108,5 +108,16 @@ The user's request: no hitches in the game itself. On a normal launch, main adds
 
 The shown hint changes every `[settings] seconds`.
 
+**The look** is the user's loading screen kit (`../Assets/Rok_Loading_Screen_Kit`, imported by `tools/prepare_loading.py` into `assets/loading/`, positions in `loading.json` on a 1920×1080 design canvas). The kit is laid out on that canvas, scaled to fit and centred (`_kit_layout`), over the jungle background, which covers the whole screen:
+- the ROK logo,
+- the game's own Rok, Raptor and Triceratops run animations in the kit's boxes, with contact shadows, puffing dust and pulsing gold ribbons,
+- a few drifting leaves,
+- the LOADING label,
+- the wooden track, with the gold fill clipped to the progress (`_kit_progress`; the fill keeps its rounded caps),
+- the footprint marker riding the fill's edge (hidden at 0 and 100%),
+- the live tip ("TIP: …").
+
+Without the kit it falls back to the plain splash-green screen with the app icon.
+
 Then it fades out and frees itself. It takes about 1.4 s on a Mac, and afterwards the first shapeshift and attack in a run take 0.4 ms instead of about 43 ms. `start_run` calls `Preloader.warm_forms()`, so a dinosaur equipped later is built during the intro. Test and screenshot scripts don't get it: main only adds it when it is the tree's `current_scene`.
 

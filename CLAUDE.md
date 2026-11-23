@@ -48,6 +48,15 @@ Nothing on screen may overlap or spill out of its frame. Check every UI change i
 - **Text in frames** (details strips, speech bubbles, counters): text stays inside the art's inner area (content margins at least the frame's border), wraps, and scrolls inside a clipping container if it can still be too long; keep the most important lines (name, what it does, price/lock) visible without scrolling.
 - **Counters** (meat): sized for the largest value they'll show, with the icon inside the frame's border; a stretchable 9-slice frame means new art isn't needed to make one bigger.
 
+## Keep the docs current (the user's rule)
+Whenever you add or change an **animation, item, material, weapon, armor, accessory, character (hero or dinosaur), obstacle, screen or asset pack**, update the docs in the same change:
+- the system doc in `docs/systems/` for what it does,
+- [tools/CLAUDE.md](tools/CLAUDE.md) for its importer and source art (and its "Placeholder art" list for what's still missing),
+- [docs/NEW_CONTENT.md](docs/NEW_CONTENT.md) if it changes what a new dinosaur, hero, weapon, armor or obstacle needs,
+- [docs/ITEM_ART_PLAN.md](docs/ITEM_ART_PLAN.md) for weapon, armor and accessory art (what we have and what's left),
+- [tests/CLAUDE.md](tests/CLAUDE.md) for new checks,
+- `docs/POLISH.md` when it polishes a system.
+
 ## Conventions
 - All gameplay numbers live in `scripts/tuning.gd`. Form stats live in `scripts/forms.gd`.
 - No physics engine. Vertical motion and AABB collisions are written by hand in `player.gd` and `main.gd`.

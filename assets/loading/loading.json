@@ -1,0 +1,184 @@
+{
+ "canvas": {
+  "width": 1920,
+  "height": 1080
+ },
+ "ground_y": 747,
+ "draw_order": [
+  "background",
+  "contact_shadows",
+  "transformation_ribbon",
+  "dust_puffs",
+  "characters",
+  "logo",
+  "loading_label",
+  "bar_track",
+  "bar_fill",
+  "footprint_marker",
+  "tip"
+ ],
+ "background": {
+  "file": "backgrounds/jungle_loading_1920x1080.png",
+  "x": 0,
+  "y": 0,
+  "width": 1920,
+  "height": 1080
+ },
+ "logo": {
+  "file": "ui/rok_logo.png",
+  "x": 578,
+  "y": 20,
+  "width": 764,
+  "height": 381
+ },
+ "characters": [
+  {
+   "name": "rok",
+   "file": "sprites/rok_pose.png",
+   "x": 290,
+   "baseline": 747,
+   "height": 365,
+   "width": 304,
+   "y": 382,
+   "animation": {
+    "x": 255,
+    "y": 271,
+    "width": 373,
+    "height": 497
+   }
+  },
+  {
+   "name": "raptor",
+   "file": "sprites/raptor_pose.png",
+   "x": 684,
+   "baseline": 747,
+   "height": 324,
+   "width": 502,
+   "y": 423,
+   "animation": {
+    "x": 629,
+    "y": 314,
+    "width": 612,
+    "height": 459
+   }
+  },
+  {
+   "name": "triceratops",
+   "file": "sprites/triceratops_pose.png",
+   "x": 1226,
+   "baseline": 747,
+   "height": 300,
+   "width": 488,
+   "y": 447,
+   "animation": {
+    "x": 1192,
+    "y": 352,
+    "width": 557,
+    "height": 417
+   }
+  }
+ ],
+ "loading_label": {
+  "file": "ui/loading_label.png",
+  "x": 570,
+  "y": 775,
+  "width": 780,
+  "height": 100
+ },
+ "bar": {
+  "track_file": "ui/bar_track.png",
+  "x": 320,
+  "y": 867,
+  "width": 1280,
+  "height": 160,
+  "fill_file": "ui/bar_fill.png",
+  "fill_rect": {
+   "x": 103,
+   "y": 53,
+   "width": 1074,
+   "height": 56
+  },
+  "fill_direction": "left_to_right",
+  "progress_range": [
+   0,
+   1
+  ],
+  "fill_method": "Clip the full-width fill texture at round(1074*progress). Keep its texture scale unchanged. Draw it over bar_track at the fill_rect offset.",
+  "marker_file": "fx/footprint_marker.png",
+  "marker_height": 94,
+  "marker_center_y": 948,
+  "marker_center_x_formula": "320 + 103 + 1074 * progress",
+  "marker_visible": "progress > 0 && progress < 1"
+ },
+ "tip": {
+  "file": "ui/tip_slide.png",
+  "x": 410,
+  "y": 1020,
+  "width": 1100,
+  "height": 64
+ },
+ "preview_progress": 0.68,
+ "scaling": "Uniformly scale all values to fit other 16:9 viewports. For wider screens, extend or cover-crop the background and center this 1920x1080 composition inside a safe 16:9 area.",
+ "shadows": [
+  {
+   "file": "fx/contact_shadow.png",
+   "x": 285,
+   "y": 722,
+   "width": 300,
+   "height": 64
+  },
+  {
+   "file": "fx/contact_shadow.png",
+   "x": 679,
+   "y": 722,
+   "width": 460,
+   "height": 64
+  },
+  {
+   "file": "fx/contact_shadow.png",
+   "x": 1221,
+   "y": 722,
+   "width": 460,
+   "height": 64
+  }
+ ],
+ "ribbons": [
+  {
+   "file": "fx/transformation_ribbon.png",
+   "x": 486,
+   "y": 535,
+   "width": 570,
+   "height": 170
+  },
+  {
+   "file": "fx/transformation_ribbon.png",
+   "x": 1020,
+   "y": 560,
+   "width": 490,
+   "height": 146
+  }
+ ],
+ "dust": [
+  {
+   "file": "fx/dust_puff.png",
+   "x": 248,
+   "y": 672,
+   "width": 166,
+   "height": 83
+  },
+  {
+   "file": "fx/dust_puff.png",
+   "x": 672,
+   "y": 691,
+   "width": 144,
+   "height": 72
+  },
+  {
+   "file": "fx/dust_puff.png",
+   "x": 1238,
+   "y": 696,
+   "width": 130,
+   "height": 65
+  }
+ ]
+}

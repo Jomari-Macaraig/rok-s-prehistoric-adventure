@@ -96,10 +96,182 @@ func _ready() -> void:
 	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tip.custom_minimum_size = Vector2(620, 0)
 	box.add_child(tip)
+	if FileAccess.file_exists(KIT + "loading.json"):   # the user's loading screen kit replaces the plain look
+		box.visible = false
+		_build_kit()
 	_hints = hints_for(float(game.best_m) if game else 0.0)
 	_hint_every = hint_seconds()
 	_next_hint()
 	_plan()
+
+
+# ------------------------------------------------------------ the user's kit
+
+## The user's loading screen kit (tools/prepare_loading.py): the jungle
+## background (covering the screen), and on the kit's 1920x1080 design canvas
+## (scaled to fit, centred: loading.json positions) the ROK logo, Rok, the
+## Raptor and the Triceratops running (the game's own run animations, with
+## contact shadows, dust puffs and golden ribbons), drifting leaves, the
+## LOADING label, the wooden track with its gold fill clipped to the
+## progress, the footprint marker riding the fill's edge, and the live tip.
+const KIT := "res://assets/loading/"
+var _kit: Control            # the design canvas
+var _fill_clip: Control      # clips the gold fill to the progress
+var _marker: TextureRect
+var _kit_meta := {}
+var _leaves: Array = []      # [TextureRect, speed, phase]
+
+
+func _kit_tex(f: String) -> Texture2D:
+	var t: Texture2D = load(KIT + f)
+	keep.append(t)
+	return t
+
+
+func _kit_rect(f: String, r: Dictionary, parent: Control) -> TextureRect:
+	var t := TextureRect.new()
+	t.texture = _kit_tex(f)
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_SCALE
+	t.position = Vector2(r.x, r.y)
+	t.size = Vector2(r.width, r.height)
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(t)
+	return t
+
+
+func _build_kit() -> void:
+	_kit_meta = JSON.parse_string(FileAccess.get_file_as_string(KIT + "loading.json"))
+	var m := _kit_meta
+	var bg := TextureRect.new()   # covers any screen shape
+	bg.name = "KitBackground"
+	bg.texture = _kit_tex("background.png")
+	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(bg)
+	_kit = Control.new()
+	_kit.name = "Kit"
+	_kit.size = Vector2(m.canvas.width, m.canvas.height)
+	_kit.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_kit)
+	for sh in m.shadows:
+		_kit_rect("contact_shadow.png", sh, _kit).modulate.a = 0.8
+	for rb in m.ribbons:
+		var r := _kit_rect("transformation_ribbon.png", rb, _kit)
+		var tw := r.create_tween().set_loops()
+		tw.tween_property(r, "modulate:a", 0.45, 0.6).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(r, "modulate:a", 1.0, 0.6).set_trans(Tween.TRANS_SINE)
+	for i in (m.dust as Array).size():
+		var d := _kit_rect("dust_puff.png", m.dust[i], _kit)
+		d.pivot_offset = d.size * Vector2(0.8, 0.9)
+		var tw := d.create_tween().set_loops()
+		tw.tween_interval(0.1 * i)
+		tw.tween_property(d, "scale", Vector2(1.15, 1.15), 0.35)
+		tw.parallel().tween_property(d, "modulate:a", 0.0, 0.35)
+		tw.tween_property(d, "scale", Vector2(0.7, 0.7), 0.0)
+		tw.tween_property(d, "modulate:a", 1.0, 0.12)
+	# the runners: the game's own run animations in the kit's animation boxes
+	var forms := {"rok": Forms.ROK, "raptor": Forms.RAPTOR, "triceratops": Forms.TRICERATOPS}
+	for c in m.characters:
+		var f: int = forms.get(String(c.name), -1)
+		if f < 0:
+			continue
+		var d: Dictionary = Forms.DATA[f]
+		var path := "res://assets/characters/%s/run.png" % d.id
+		if not ResourceLoader.exists(path):
+			_kit_rect("../characters/%s/idle.png" % d.id, c, _kit)
+			continue
+		var sf := SpriteFrames.new()
+		sf.remove_animation("default")
+		SpriteLib._sheet_frames(sf, "run", SpriteLib.tex(path), d.frame, SpriteLib.CHAR_ANIMS.run, true)
+		var a := AnimatedSprite2D.new()
+		a.name = "Run_" + String(c.name)
+		a.centered = false
+		a.sprite_frames = sf
+		var box: Dictionary = c.animation
+		var k: float = float(box.width) / float(d.frame.x)
+		a.scale = Vector2(k, k)
+		a.position = Vector2(box.x, box.y)
+		a.play("run")
+		a.frame = randi() % 8
+		_kit.add_child(a)
+	# a few leaves drifting across
+	for i in 3:
+		var leaf := _kit_rect("leaf_motes.png", {"x": 1920.0 * (0.25 + 0.3 * i), "y": 120.0 + 170.0 * i, "width": 170.0, "height": 113.0}, _kit)
+		leaf.modulate.a = 0.85
+		_leaves.append([leaf, randf_range(40.0, 70.0), randf() * TAU])
+	_kit_rect("logo.png", m.logo, _kit)
+	_kit_rect("loading_label.png", m.loading_label, _kit)
+	var b: Dictionary = m.bar
+	_kit_rect("bar_track.png", {"x": b.x, "y": b.y, "width": b.width, "height": b.height}, _kit)
+	_fill_clip = Control.new()
+	_fill_clip.name = "FillClip"
+	_fill_clip.clip_contents = true
+	_fill_clip.position = Vector2(b.x + b.fill_rect.x, b.y + b.fill_rect.y)
+	_fill_clip.size = Vector2(0, b.fill_rect.height)
+	_fill_clip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_kit.add_child(_fill_clip)
+	_kit_rect("bar_fill.png", {"x": 0, "y": 0, "width": b.fill_rect.width, "height": b.fill_rect.height}, _fill_clip)
+	var mt := _kit_tex("footprint_marker.png")
+	var mh: float = b.marker_height
+	_marker = _kit_rect("footprint_marker.png", {"x": 0, "y": float(b.marker_center_y) - mh * 0.5, "width": mh * mt.get_width() / mt.get_height(), "height": mh}, _kit)
+	_marker.visible = false
+	# the live tip (config/hints.cfg), where the kit's sample tip sits
+	var t: Dictionary = m.tip
+	var tl := Label.new()
+	tl.name = "KitTip"
+	tl.position = Vector2(float(t.x) - 160.0, float(t.y) - 22.0)
+	tl.size = Vector2(float(t.width) + 320.0, 80.0)
+	tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tl.add_theme_font_override("font", SpriteLib.ui_font("heading"))
+	tl.add_theme_font_size_override("font_size", 32)
+	tl.add_theme_color_override("font_color", Color(1.0, 0.95, 0.82))
+	tl.add_theme_color_override("font_outline_color", Color(0.22, 0.11, 0.04))
+	tl.add_theme_constant_override("outline_size", 8)
+	tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_kit.add_child(tl)
+	tip = tl
+	root.resized.connect(_kit_layout)
+	_kit_layout()
+
+
+## Scale the design canvas to fit the screen, centred (wider phones see
+## more background at the sides).
+func _kit_layout() -> void:
+	if _kit == null:
+		return
+	var vs := root.size if root.size.x > 0.0 else root.get_viewport_rect().size
+	var s := minf(vs.x / _kit.size.x, vs.y / _kit.size.y)
+	_kit.scale = Vector2(s, s)
+	_kit.position = (vs - _kit.size * s) * 0.5
+
+
+## The gold fill clipped to the progress (its caps keep their shape) and the
+## footprint at its edge (hidden at 0 and 100%).
+func _kit_progress(p: float) -> void:
+	if _fill_clip == null:
+		return
+	var b: Dictionary = _kit_meta.bar
+	p = clampf(p, 0.0, 1.0)
+	_fill_clip.size.x = round(float(b.fill_rect.width) * p)
+	_fill_clip.visible = p > 0.0
+	_marker.position.x = float(b.x) + float(b.fill_rect.x) + float(b.fill_rect.width) * p - _marker.size.x * 0.5
+	_marker.visible = p > 0.0 and p < 1.0
+
+
+func _kit_leaves(delta: float) -> void:
+	for l in _leaves:
+		var t: TextureRect = l[0]
+		l[2] += delta
+		t.position.x -= float(l[1]) * delta
+		t.position.y += sin(float(l[2]) * 1.3) * 12.0 * delta
+		t.rotation = sin(float(l[2]) * 0.9) * 0.25
+		if t.position.x < -200.0:
+			t.position.x = 1960.0
 
 
 var _hints: Array = []
@@ -159,9 +331,9 @@ func _next_hint() -> void:
 	if _hints.is_empty():
 		_hints = [FALLBACK_HINT]
 	var pick: String = _hints.pick_random()
-	while _hints.size() > 1 and pick == tip.text:
+	while _hints.size() > 1 and tip.text.ends_with(pick):
 		pick = _hints.pick_random()
-	tip.text = pick
+	tip.text = ("TIP: " + pick) if _kit else pick
 	_hint_t = _hint_every
 
 
@@ -261,6 +433,7 @@ func _plan() -> void:
 
 
 func _process(delta: float) -> void:
+	_kit_leaves(delta)
 	_hint_t -= delta
 	if _hint_t <= 0.0:
 		_next_hint()
@@ -273,6 +446,7 @@ func _process(delta: float) -> void:
 			break   # wait for the threads (keeps the bar animating)
 	bar.value = float(_done) / float(_total)
 	label.text = "Loading... %d%%" % int(round(bar.value * 100.0))
+	_kit_progress(bar.value)
 
 
 ## One unit of work. Returns false when everything is done. (Tests call it
@@ -329,6 +503,7 @@ func _finish() -> void:
 	set_process(false)
 	bar.value = 1.0
 	label.text = "Ready!"
+	_kit_progress(1.0)
 	var tw := create_tween()
 	tw.tween_property(root, "modulate:a", 0.0, 0.35)
 	tw.tween_callback(func():
