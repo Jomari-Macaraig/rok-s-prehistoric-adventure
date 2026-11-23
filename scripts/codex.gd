@@ -140,6 +140,18 @@ var _tile_h := 150.0
 var progress_label: Label
 var tab_buttons: Array[Button] = []
 var _fling := 0.0        # scroll momentum (px/s) after a drag
+## The user's scene kit (SceneKit): the archive backdrop, Elder Numa, the
+## open book (left page: name, status, portrait; right page: the entry's
+## field notes), the roster frame, kit tabs and cards, arrows.
+var _kit := false
+var elder: TextureRect
+var elder_plate: Label
+var roster: Panel
+var left_page: VBoxContainer
+var book_prev: TextureButton
+var book_next: TextureButton
+var shelf_prev: TextureButton
+var shelf_next: TextureButton
 var _dragging := false
 
 
@@ -149,7 +161,9 @@ func _ready() -> void:
 	root = Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
-	root.add_child(Market.backdrop("res://assets/bg/bg_2.png", Color(0.45, 0.6, 0.8)))   # its own scene: the Elder's cave
+	_kit = SceneKit.has()
+	var kit_bg := SceneKit.backdrop("encyclopedia_archive")
+	root.add_child(kit_bg if kit_bg else Market.backdrop("res://assets/bg/bg_2.png", Color(0.45, 0.6, 0.8)))   # its own scene: the Elder's cave
 	scene = MarketScene.new()
 	scene.kind = "elder"
 	scene.sign_text = "ELDER"
@@ -159,6 +173,13 @@ func _ready() -> void:
 	hero.name = "Hero"
 	hero.centered = false
 	root.add_child(hero)
+	if _kit:   # the painted archive replaces the drawn cave; Elder Numa tells the stories
+		scene.visible = false
+		hero.visible = false
+		elder = SceneKit.picture("elder_numa", 300.0, "Elder")
+		root.add_child(elder)
+		elder_plate = SceneKit.badge("Elder Numa", "button_secondary", 20)
+		root.add_child(elder_plate)
 
 	var header := HBoxContainer.new()
 	header.name = "Header"
@@ -173,7 +194,13 @@ func _ready() -> void:
 	close.name = "Back"
 	header.add_child(close)
 	var title := _text("FIELD GUIDE", 40)
-	header.add_child(Market.title_banner("encyclopedia", title))
+	var kit_title := SceneKit.picture("encyclopedia_title", 62.0, "TitleBanner")
+	if kit_title:
+		SceneKit.style_back(close)
+		title.free()
+		header.add_child(kit_title)
+	else:
+		header.add_child(Market.title_banner("encyclopedia", title))
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
@@ -183,9 +210,15 @@ func _ready() -> void:
 	pst.set_corner_radius_all(16)
 	pst.content_margin_left = 14
 	pst.content_margin_right = 14
-	pill.add_theme_stylebox_override("panel", pst)
+	var plate := SceneKit.box("counter_plate")
+	if plate:
+		plate.content_margin_left = 30
+		plate.content_margin_right = 30
+	pill.add_theme_stylebox_override("panel", plate if plate else pst)
 	header.add_child(pill)
 	progress_label = _text("", 22, Color(1, 0.95, 0.82))
+	if plate:
+		progress_label.add_theme_font_override("font", SpriteLib.ui_font("heading"))
 	progress_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	pill.add_child(progress_label)
 
@@ -207,7 +240,22 @@ func _ready() -> void:
 	root.add_child(tail)
 	pscroll = ScrollContainer.new()
 	pscroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	bubble.add_child(pscroll)
+	if _kit:   # the open book: two pages (sized in _layout to keep its shape)
+		var book := StyleBoxTexture.new()
+		book.texture = SceneKit.tex("open_book")
+		bubble.add_theme_stylebox_override("panel", book)
+		var pages := HBoxContainer.new()
+		pages.name = "Pages"
+		bubble.add_child(pages)
+		left_page = VBoxContainer.new()
+		left_page.name = "LeftPage"
+		left_page.alignment = BoxContainer.ALIGNMENT_CENTER
+		left_page.add_theme_constant_override("separation", 6)
+		pages.add_child(left_page)
+		pscroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		pages.add_child(pscroll)
+	else:
+		bubble.add_child(pscroll)
 	page = VBoxContainer.new()
 	page.name = "Page"
 	page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -235,13 +283,43 @@ func _ready() -> void:
 	grid = HBoxContainer.new()
 	grid.add_theme_constant_override("separation", 12)
 	scroll.add_child(grid)
+	if _kit:
+		tail.visible = false
+		roster = Panel.new()   # the wooden roster frame behind the tabs and cards
+		roster.name = "Roster"
+		roster.add_theme_stylebox_override("panel", SceneKit.box("roster_panel"))
+		roster.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		root.add_child(roster)
+		root.move_child(roster, shelf.get_index())
+		for b in tab_buttons:
+			SceneKit.style_button(b, "tab_inactive", "tab_active", 20)
+		book_prev = _arrow("page_previous", func(): select(maxi(selected - 1, 0)))
+		book_next = _arrow("page_next", func(): select(mini(selected + 1, grid.get_child_count() - 1)))
+		shelf_prev = _arrow("page_previous", func(): scroll.scroll_horizontal -= int(_tile_h * 2.0))
+		shelf_next = _arrow("page_next", func(): scroll.scroll_horizontal += int(_tile_h * 2.0))
 	root.resized.connect(_layout)
+
+
+## A kit arrow button (the book's pages, the roster's scroll).
+func _arrow(piece: String, act: Callable) -> TextureButton:
+	var b := TextureButton.new()
+	b.texture_normal = SceneKit.tex(piece)
+	b.ignore_texture_size = true
+	b.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	b.custom_minimum_size = Vector2(40, 62)
+	b.size = b.custom_minimum_size
+	b.pressed.connect(act)
+	root.add_child(b)
+	return b
 
 
 ## Place everything around the Elder's cave (it follows the screen size).
 func _layout() -> void:
 	var w := root.size.x
 	var h := root.size.y
+	if _kit:
+		_layout_kit(w, h)
+		return
 	var gy: float = scene.ground_y
 	var hs: Vector2 = scene.hero_spot()
 	hero.position = hs
@@ -261,6 +339,47 @@ func _layout() -> void:
 	scene.shelf_y = scene.tiles_top + _tile_h
 	for t in grid.get_children():
 		(t as Control).custom_minimum_size.y = _tile_h
+
+
+## The kit's layout (docs/layout_reference.json of the kit: a 1920x1080
+## design scaled by the screen height; the book and roster anchored to the
+## right and bottom so wider screens just get more room in the middle).
+func _layout_kit(w: float, h: float) -> void:
+	var k := h / 1080.0
+	# the book keeps its shape; right-aligned
+	var bw := minf(1190.0 * k, w - 520.0 * k)
+	var bh := bw * 720.0 / 1536.0
+	bubble.position = Vector2(w - 40.0 * k - bw, 125.0 * k + (565.0 * k - bh) * 0.5)
+	bubble.size = Vector2(bw, bh)
+	var book := bubble.get_theme_stylebox("panel") as StyleBoxTexture
+	book.content_margin_left = bw * 0.08
+	book.content_margin_right = bw * 0.07
+	book.content_margin_top = bh * 0.13
+	book.content_margin_bottom = bh * 0.16
+	(bubble.get_node("Pages") as HBoxContainer).add_theme_constant_override("separation", int(bw * 0.07))
+	left_page.custom_minimum_size = Vector2(bw * 0.38, 0)
+	pscroll.custom_minimum_size = Vector2(bw * 0.40, 0)
+	book_prev.position = Vector2(bubble.position.x - 12.0 * k, bubble.position.y + bh * 0.5 - 31.0)
+	book_next.position = Vector2(bubble.position.x + bw - 30.0, bubble.position.y + bh * 0.5 - 31.0)
+	# Elder Numa in the space on the left, her plate at her feet
+	var ex := 60.0 * k
+	var ew := maxf(bubble.position.x - ex - 10.0, 200.0)
+	elder.position = Vector2(ex, 150.0 * k)
+	elder.size = Vector2(ew, 520.0 * k)
+	elder_plate.position = Vector2(ex + ew * 0.5 - 90.0, 150.0 * k + 520.0 * k - 30.0)
+	elder_plate.custom_minimum_size = Vector2(180, 0)
+	elder_plate.size = Vector2(180, 0)
+	# the roster along the bottom
+	roster.position = Vector2(20.0 * k, 700.0 * k)
+	roster.size = Vector2(w - 40.0 * k, h - 700.0 * k - 12.0 * k)
+	shelf.position = roster.position + Vector2(64.0, 14.0)
+	shelf.size = roster.size - Vector2(128.0, 26.0)
+	_tile_h = maxf(shelf.size.y - 46.0 - 8.0 - 10.0, 110.0)
+	var ty := shelf.position.y + 54.0 + _tile_h * 0.5 - 31.0
+	shelf_prev.position = Vector2(roster.position.x + 14.0, ty)
+	shelf_next.position = Vector2(roster.position.x + roster.size.x - 54.0, ty)
+	for t in grid.get_children():
+		(t as Control).custom_minimum_size = Vector2(_tile_h * 0.86, _tile_h)
 
 
 ## Drag to scroll on touch screens (and with a mouse drag on desktop, where
@@ -471,8 +590,12 @@ func select(i: int) -> void:
 	var tiles := grid.get_children().filter(func(c): return not c.is_queued_for_deletion())
 	selected = i if i >= 0 and i < tiles.size() else -1
 	for k in tiles.size():
+		var lk: bool = tiles[k].get_meta("locked", false)
 		for st in ["normal", "hover", "pressed", "hover_pressed"]:
-			(tiles[k] as Button).add_theme_stylebox_override(st, _tile_box(k == selected))
+			(tiles[k] as Button).add_theme_stylebox_override(st, _tile_box(k == selected, lk))
+		var chk: Node = tiles[k].get_node_or_null("Check")
+		if chk:
+			chk.visible = k == selected
 	for c in page.get_children():
 		page.remove_child(c)
 		c.queue_free()
@@ -492,7 +615,71 @@ func select(i: int) -> void:
 	var full: Control = tile.get_node("Card").duplicate()
 	full.visible = true
 	_compact(full)
+	if _kit:
+		_fill_book(tile, full, locked, nm)
 	page.add_child(full)
+
+
+## The book: the left page shows the entry (name, status, a big picture);
+## the right page its field notes (the entry's page without its own picture,
+## name and frame).
+func _fill_book(tile: Node, full: Control, locked: bool, nm: String) -> void:
+	for c in left_page.get_children():
+		left_page.remove_child(c)
+		c.queue_free()
+	var name_l := _text(nm, 34)
+	name_l.add_theme_font_override("font", SpriteLib.ui_font("heading"))
+	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	left_page.add_child(name_l)
+	var pic := TextureRect.new()
+	pic.texture = tile.get_meta("tex", null)
+	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	pic.custom_minimum_size = Vector2(0, bubble.size.y * 0.42)
+	pic.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	if locked:
+		pic.modulate = Color(0.12, 0.07, 0.03, 0.85)
+	left_page.add_child(pic)
+	var st := SceneKit.badge("✓ DISCOVERED" if not locked else "NOT YET FOUND", "status_pill_blank" if not locked else "button_secondary", 16)
+	if st:
+		st.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		left_page.add_child(st)
+	# the right page: "Field Notes", then the page minus its picture, name and frame
+	var says := page.get_node_or_null("Says") as Label
+	if says:
+		says.text = "Field Notes" if not locked else "Not yet discovered"
+		says.add_theme_font_override("font", SpriteLib.ui_font("heading"))
+		says.add_theme_font_size_override("font_size", 26)
+		says.add_theme_color_override("font_color", INK)
+		says.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if full is PanelContainer:
+		full.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+		var hb := full.get_child(0)
+		if hb is HBoxContainer and hb.get_child_count() > 1:
+			if hb.get_child(0) is TextureRect:
+				hb.get_child(0).visible = false
+			var vb := hb.get_child(1)
+			if vb is VBoxContainer and vb.get_child_count() > 0 and vb.get_child(0) is HBoxContainer:
+				vb.get_child(0).visible = false   # the name row (it's on the left page)
+	_wrap_to_page(full)
+
+
+## Keep the field notes on the right page: every label wraps and none asks
+## for more width than the page (stat notes used to run off the book).
+func _wrap_to_page(n: Node) -> void:
+	for c in n.get_children():
+		if c is Label:
+			var l := c as Label
+			var in_row := l.get_parent() is HBoxContainer
+			if in_row and l.get_index() < l.get_parent().get_child_count() - 1:
+				l.autowrap_mode = TextServer.AUTOWRAP_OFF   # a row's leading labels ("Speed") keep their word
+			else:
+				l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				l.custom_minimum_size.x = 0.0
+				if in_row:
+					l.size_flags_horizontal = Control.SIZE_EXPAND_FILL   # a row's last label takes the rest and wraps
+		_wrap_to_page(c)
 
 
 ## Fit a page in the bubble: narrower text and a smaller picture than the old
@@ -507,8 +694,11 @@ func _compact(n: Node) -> void:
 		_compact(c)
 
 
-## A shelf tile in its niche; the chosen one glows.
-func _tile_box(chosen: bool) -> StyleBoxFlat:
+## A shelf tile in its niche; the chosen one glows (the kit's cards: normal,
+## selected, locked).
+func _tile_box(chosen: bool, locked := false) -> StyleBox:
+	if _kit:
+		return SceneKit.card_box(chosen, locked)
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(0.17, 0.13, 0.11)
 	sb.set_corner_radius_all(14)
@@ -527,8 +717,9 @@ func _add_entry(card: Control, tex: Texture2D, title: String, locked: bool, is_n
 		b.name = tile_name
 	b.set_meta("title", title)
 	b.set_meta("locked", locked)
+	b.set_meta("tex", tex)
 	for st in ["normal", "hover", "pressed", "hover_pressed"]:
-		b.add_theme_stylebox_override(st, _tile_box(false))
+		b.add_theme_stylebox_override(st, _tile_box(false, locked))
 	var idx := grid.get_child_count()
 	b.pressed.connect(func(): select(idx))
 	var vb := VBoxContainer.new()
@@ -551,10 +742,19 @@ func _add_entry(card: Control, tex: Texture2D, title: String, locked: bool, is_n
 	var l := _text(title, 16, Color(1, 0.96, 0.85) if not locked else Color(0.75, 0.7, 0.62))
 	l.add_theme_color_override("font_outline_color", Color(0.15, 0.08, 0.03))
 	l.add_theme_constant_override("outline_size", 6)
+	if _kit:   # names in the kit's font: light with a dark outline, on parchment and on the dark locked card
+		l.add_theme_font_override("font", SpriteLib.ui_font("heading"))
+		l.add_theme_font_size_override("font_size", 17)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vb.add_child(l)
-	if is_new:
+	var kit_new := SceneKit.badge("NEW", "badge_new_blank", 13) if is_new and _kit else null
+	if kit_new:   # the kit's orange badge, on the card's top right
+		kit_new.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		kit_new.position = Vector2(-62, -6)
+		kit_new.size = Vector2(60, 26)
+		b.add_child(kit_new)
+	elif is_new:
 		var tag := _text(" NEW ", 14, Color(1, 0.97, 0.9))
 		var ts := StyleBoxFlat.new()
 		ts.bg_color = Color(0.85, 0.3, 0.15)
@@ -562,6 +762,17 @@ func _add_entry(card: Control, tex: Texture2D, title: String, locked: bool, is_n
 		tag.add_theme_stylebox_override("normal", ts)
 		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vb.add_child(tag)
+	if _kit:   # the kit's check, shown on the chosen card (select)
+		var chk := SceneKit.picture("badge_check", 30.0, "Check")   # top left: NEW sits top right
+		chk.position = Vector2(-6, -8)
+		chk.size = Vector2(30, 30)
+		chk.visible = false
+		b.add_child(chk)
+		if locked:
+			var lock := SceneKit.picture("icon_lock", 34.0, "Lock")
+			lock.set_anchors_preset(Control.PRESET_CENTER)
+			lock.position = Vector2(-15, -30)
+			b.add_child(lock)
 	Herd._ignore_mouse(b)
 	card.name = "Card"
 	card.visible = false

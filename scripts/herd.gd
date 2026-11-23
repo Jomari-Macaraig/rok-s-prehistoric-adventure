@@ -47,6 +47,10 @@ var bank_label: Label
 var _fling := 0.0
 var _dragging := false
 var _drag_dist := 0.0
+## The user's scene kit (SceneKit): the painted camp, the parchment stats
+## panel, the roster frame, kit tabs, cards, status pills and buttons.
+var _kit := false
+var roster: Panel
 
 
 ## Tabs: the heroes first (Rok, Nira, Boro; tab id "rok"), then one per dino category.
@@ -114,7 +118,9 @@ func _ready() -> void:
 	root = Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
-	root.add_child(Market.backdrop("res://assets/bg/bg_1.png", Color(0.5, 0.68, 0.85)))   # its own scene: the camp in the forest
+	_kit = SceneKit.has()
+	var kit_bg := SceneKit.backdrop("dinosaur_camp")
+	root.add_child(kit_bg if kit_bg else Market.backdrop("res://assets/bg/bg_1.png", Color(0.5, 0.68, 0.85)))   # its own scene: the camp in the forest
 	scene = MarketScene.new()
 	scene.kind = "camp"
 	scene.sign_text = "CAMP"
@@ -133,6 +139,8 @@ func _ready() -> void:
 	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stage.flip_h = true   # facing the hero
 	root.add_child(stage)
+	if _kit:
+		scene.visible = false   # the painted camp has its own fire, tent and forest
 
 	var header := HBoxContainer.new()
 	header.name = "Header"
@@ -146,7 +154,12 @@ func _ready() -> void:
 	close.pressed.connect(close_herd)
 	close.name = "Back"
 	header.add_child(close)
-	header.add_child(Market.title_banner("dinosaurs", Market._text("CAMP", 40)))
+	var kit_title := SceneKit.picture("dinosaurs_title", 62.0, "TitleBanner")
+	if kit_title:
+		SceneKit.style_back(close)
+		header.add_child(kit_title)
+	else:
+		header.add_child(Market.title_banner("dinosaurs", Market._text("CAMP", 40)))
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
@@ -156,7 +169,11 @@ func _ready() -> void:
 	pst.set_corner_radius_all(16)
 	pst.content_margin_left = 14
 	pst.content_margin_right = 16
-	pouch.add_theme_stylebox_override("panel", pst)
+	var plate := SceneKit.box("counter_plate")
+	if plate:
+		plate.content_margin_left = 26
+		plate.content_margin_right = 30
+	pouch.add_theme_stylebox_override("panel", plate if plate else pst)
 	header.add_child(pouch)
 	var prow := HBoxContainer.new()
 	pouch.add_child(prow)
@@ -182,7 +199,13 @@ func _ready() -> void:
 	ds.set_content_margin_all(14)
 	ds.shadow_color = Color(0, 0, 0, 0.25)
 	ds.shadow_size = 8
-	board.add_theme_stylebox_override("panel", ds)
+	var kit_panel := SceneKit.box("stats_panel")
+	if kit_panel:   # clear of the frame's wood and bones
+		kit_panel.content_margin_left = 50
+		kit_panel.content_margin_right = 46
+		kit_panel.content_margin_top = 40
+		kit_panel.content_margin_bottom = 40
+	board.add_theme_stylebox_override("panel", kit_panel if kit_panel else ds)
 	root.add_child(board)
 	dscroll = ScrollContainer.new()   # a hero's detail (with gear) can run long
 	dscroll.name = "DetailScroll"
@@ -218,6 +241,15 @@ func _ready() -> void:
 	list.name = "List"
 	list.add_theme_constant_override("separation", 12)
 	scroll.add_child(list)
+	if _kit:
+		roster = Panel.new()   # the wooden roster frame behind the tabs and cards
+		roster.name = "Roster"
+		roster.add_theme_stylebox_override("panel", SceneKit.box("roster_panel"))
+		roster.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		root.add_child(roster)
+		root.move_child(roster, shelf.get_index())
+		for cat in tab_buttons:
+			SceneKit.style_button(tab_buttons[cat], "tab_inactive", "tab_active", 20)
 	root.resized.connect(_layout)
 
 
@@ -225,6 +257,9 @@ func _ready() -> void:
 func _layout() -> void:
 	var w := root.size.x
 	var h := root.size.y
+	if _kit:
+		_layout_kit(w, h)
+		return
 	var gy: float = scene.ground_y
 	hero.position = scene.hero_spot()
 	var cx: float = scene.cave_x()
@@ -246,6 +281,31 @@ func _layout() -> void:
 			(t as Control).custom_minimum_size.y = _tile_h
 
 
+## The kit's layout (its 1920x1080 reference scaled by the screen height;
+## the stats panel anchored right, the roster along the bottom): the hero on
+## the left, the chosen one beside him by the tent.
+func _layout_kit(w: float, h: float) -> void:
+	var k := h / 1080.0
+	var pw := maxf(680.0 * k, 560.0)   # (its rows need ~440 px inside the frame)
+	board.position = Vector2(w - 30.0 * k - pw, 96.0 * k)
+	board.size = Vector2(pw, 590.0 * k)
+	var ground := 650.0 * k
+	hero.position = Vector2(300.0 * k, ground)
+	hero.scale = Vector2.ONE * (440.0 * k / 224.0)
+	var sx := 600.0 * k
+	var sw := maxf(board.position.x - sx - 20.0, 220.0)
+	stage.size = Vector2(sw, 360.0 * k)
+	stage.position = Vector2(sx, ground - 360.0 * k + 8.0)
+	roster.position = Vector2(20.0 * k, 700.0 * k)
+	roster.size = Vector2(w - 40.0 * k, h - 700.0 * k - 12.0 * k)
+	shelf.position = roster.position + Vector2(56.0, 14.0)
+	shelf.size = roster.size - Vector2(112.0, 26.0)
+	_tile_h = maxf(shelf.size.y - 46.0 - 8.0 - 10.0, 110.0)
+	for t in list.get_children():
+		if t is Button:
+			(t as Control).custom_minimum_size = Vector2(_tile_h * 0.9, _tile_h)
+
+
 func open_herd(cat := "") -> void:
 	visible = true
 	Market.enter(root)
@@ -258,7 +318,7 @@ func open_herd(cat := "") -> void:
 	hero.offset = -Vector2(Forms.get_data(Forms.ROK).pivot)
 	hero.scale = Vector2.ONE * 1.25
 	hero.play("idle")
-	_layout()
+	_layout()   # (the kit's layout sets its own hero scale)
 	show_tab(cat if cat != "" else tab)
 
 
@@ -440,7 +500,7 @@ func _row(id: String) -> Control:
 	b.focus_mode = Control.FOCUS_NONE
 	b.custom_minimum_size = Vector2(156, _tile_h)
 	for state in ["normal", "hover", "pressed", "hover_pressed"]:
-		b.add_theme_stylebox_override(state, _tile_box(id == selected, on))
+		b.add_theme_stylebox_override(state, _tile_box(id == selected, on, not have))
 	b.pressed.connect(func(): select(id))
 	var vb := VBoxContainer.new()
 	vb.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -465,10 +525,27 @@ func _row(id: String) -> Control:
 	var tr := _light(tier_text(id) if not have else "%s · Lv %d★" % [tier_text(id).get_slice(" ", 0), Dinos.level(id)], 13, Dinos.tier_color(id).lightened(0.35))
 	tr.name = "Stars" if have else "Tier"
 	vb.add_child(tr)
-	var tag := _light("EQUIPPED" if on else ("OWNED" if have else ("MARKET" if Market.on_sale(id, game.best_m) else "LOCKED")), 14,
-			Color(0.6, 1.0, 0.55) if have else Color(0.9, 0.82, 0.7))
+	var tag_text := "EQUIPPED" if on else ("OWNED" if have else ("MARKET" if Market.on_sale(id, game.best_m) else "LOCKED"))
+	var tag: Label = null
+	if _kit and tag_text != "LOCKED":   # the kit's green pill (orange for the Market)
+		tag = SceneKit.badge(tag_text, "status_pill_blank" if have else "badge_new_blank", 13)
+		tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	if tag == null:
+		tag = _light(tag_text, 14, Color(0.6, 1.0, 0.55) if have else Color(0.9, 0.82, 0.7))
 	tag.name = "Tag"
 	vb.add_child(tag)
+	if _kit:
+		if on:   # the kit's check on the one equipped
+			var chk := SceneKit.picture("badge_check", 30.0, "Check")
+			chk.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+			chk.position = Vector2(-26, -8)
+			chk.size = Vector2(30, 30)
+			b.add_child(chk)
+		if not have and tag_text == "LOCKED":
+			var lock := SceneKit.picture("icon_lock", 32.0, "Lock")
+			lock.set_anchors_preset(Control.PRESET_CENTER_TOP)
+			lock.position = Vector2(-14, 22)
+			b.add_child(lock)
 	if game.level_ready().has(id):
 		var up := _light("● LEVEL UP!", 14, Color(1.0, 0.45, 0.35))
 		up.name = "LevelReady"
@@ -479,7 +556,9 @@ func _row(id: String) -> Control:
 
 ## A tile on the wooden shelf: open (the dinosaur stands on the plank), a soft
 ## glow when chosen, a green rim on the one equipped.
-func _tile_box(chosen: bool, equipped: bool) -> StyleBoxFlat:
+func _tile_box(chosen: bool, equipped: bool, locked := false) -> StyleBox:
+	if _kit:
+		return SceneKit.card_box(chosen, locked)
 	var sb := StyleBoxFlat.new()
 	sb.set_corner_radius_all(14)
 	sb.bg_color = Color(1.0, 0.9, 0.55, 0.28) if chosen else Color(0, 0, 0, 0)
@@ -508,6 +587,23 @@ static func _ignore_mouse(n: Node) -> void:
 ## The selected dinosaur, its attributes as bars against the equipped one,
 ## what that means in play, and the Equip button.
 func _build_detail() -> void:
+	_build_detail_content()
+	if _kit:
+		_kit_buttons(detail)
+
+
+## The detail's action buttons in the kit's style: Equip / Play as green,
+## the rest brown (the small + level buttons keep theirs).
+func _kit_buttons(n: Node) -> void:
+	for c in n.get_children():
+		if c is Button and (c as Button).text.length() > 4:
+			var b := c as Button
+			var primary := b.name == "Equip" or b.text.begins_with("Play as") or b.text.begins_with("Use the")
+			SceneKit.style_button(b, "button_primary" if primary else "button_secondary", "", 18)
+		_kit_buttons(c)
+
+
+func _build_detail_content() -> void:
 	_anim.clear()
 	for c in detail.get_children():
 		detail.remove_child(c)

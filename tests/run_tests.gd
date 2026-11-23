@@ -1449,11 +1449,12 @@ func _feedback_checks() -> void:
 			and hd.market_button.banner.resource_path.ends_with("square_marketplace.png") and hd.herd_button.banner.resource_path.ends_with("square_dinosaurs.png"),
 			"the side buttons are the user's square Encyclopedia, Marketplace and Dinosaurs buttons")
 	var titles_ok := true
-	for pair in [[main.market, "market/ui/title.png"], [main.herd, "banner_dinosaurs.png"], [main.codex, "banner_encyclopedia.png"]]:
+	var kit := SceneKit.has()   # the user's scene kit brings its own title plaques
+	for pair in [[main.market, "market/ui/title.png"], [main.herd, "scenes/dinosaurs_title.png" if kit else "banner_dinosaurs.png"], [main.codex, "scenes/encyclopedia_title.png" if kit else "banner_encyclopedia.png"]]:
 		var tb: Node = pair[0].find_child("TitleBanner", true, false)
 		var art: String = "" if tb == null else String(tb.get_meta("art", (tb as TextureRect).texture.resource_path))
 		titles_ok = titles_ok and art.ends_with(pair[1])
-	check(titles_ok, "the user's banners are the Camp and Field Guide titles, the Marketplace UI pack's plaque the Market's")
+	check(titles_ok, "the user's title plaques head the Camp and Field Guide (the scene kit's), the Marketplace UI pack's the Market")
 	check(hd.market_button.hit(hd.market_button.global_position + Vector2(hd.market_button.size.x - 8.0, hd.market_button.size.y * 0.5)), "a banner button takes a tap anywhere on it")
 	for scr in [main.market, main.herd, main.codex]:
 		var back: Node = scr.find_child("Back", true, false)

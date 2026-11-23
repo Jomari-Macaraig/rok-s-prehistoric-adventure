@@ -1,0 +1,297 @@
+{
+ "boxes": {
+  "stats_panel": {
+   "texture": [
+    72,
+    72,
+    72,
+    72
+   ],
+   "content": [
+    48,
+    48,
+    48,
+    48
+   ]
+  },
+  "roster_panel": {
+   "texture": [
+    85,
+    64,
+    85,
+    64
+   ],
+   "content": [
+    75,
+    28,
+    75,
+    28
+   ]
+  },
+  "tab_inactive": {
+   "texture": [
+    20,
+    10,
+    20,
+    10
+   ],
+   "content": [
+    15,
+    7,
+    15,
+    7
+   ]
+  },
+  "tab_active": {
+   "texture": [
+    20,
+    10,
+    20,
+    10
+   ],
+   "content": [
+    15,
+    7,
+    15,
+    7
+   ]
+  },
+  "button_primary": {
+   "texture": [
+    20,
+    10,
+    20,
+    10
+   ],
+   "content": [
+    15,
+    7,
+    15,
+    7
+   ]
+  },
+  "button_secondary": {
+   "texture": [
+    20,
+    10,
+    20,
+    10
+   ],
+   "content": [
+    15,
+    7,
+    15,
+    7
+   ]
+  },
+  "card_normal": {
+   "texture": [
+    16,
+    16,
+    16,
+    16
+   ],
+   "content": [
+    10,
+    10,
+    10,
+    10
+   ]
+  },
+  "card_selected": {
+   "texture": [
+    16,
+    16,
+    16,
+    16
+   ],
+   "content": [
+    10,
+    10,
+    10,
+    10
+   ]
+  },
+  "card_locked": {
+   "texture": [
+    16,
+    16,
+    16,
+    16
+   ],
+   "content": [
+    10,
+    10,
+    10,
+    10
+   ]
+  },
+  "counter_plate": {
+   "texture": [
+    36,
+    14,
+    36,
+    14
+   ],
+   "content": [
+    24,
+    8,
+    24,
+    8
+   ]
+  },
+  "status_pill_blank": {
+   "texture": [
+    16,
+    6,
+    16,
+    6
+   ],
+   "content": [
+    10,
+    4,
+    10,
+    4
+   ]
+  },
+  "stat_track": {
+   "texture": [
+    12,
+    5,
+    12,
+    5
+   ],
+   "content": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "stat_fill": {
+   "texture": [
+    12,
+    5,
+    12,
+    5
+   ],
+   "content": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "xp_track": {
+   "texture": [
+    12,
+    5,
+    12,
+    5
+   ],
+   "content": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  "xp_fill": {
+   "texture": [
+    12,
+    5,
+    12,
+    5
+   ],
+   "content": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ },
+ "layout": {
+  "base_canvas": [
+   1920,
+   1080
+  ],
+  "encyclopedia": {
+   "header_title": [
+    150,
+    16,
+    560,
+    112
+   ],
+   "guide_area": [
+    70,
+    165,
+    510,
+    530
+   ],
+   "book_area": [
+    690,
+    125,
+    1190,
+    565
+   ],
+   "roster_area": [
+    20,
+    710,
+    1880,
+    350
+   ],
+   "book_left_page_fraction": [
+    0.08,
+    0.14,
+    0.47,
+    0.83
+   ],
+   "book_right_page_fraction": [
+    0.53,
+    0.14,
+    0.93,
+    0.83
+   ]
+  },
+  "dinosaurs": {
+   "header_title": [
+    150,
+    16,
+    535,
+    112
+   ],
+   "hero_area": [
+    160,
+    160,
+    330,
+    480
+   ],
+   "raptor_area": [
+    520,
+    200,
+    690,
+    440
+   ],
+   "stats_area": [
+    1220,
+    105,
+    680,
+    565
+   ],
+   "roster_area": [
+    20,
+    700,
+    1880,
+    360
+   ]
+  },
+  "responsive_notes": [
+   "These are starting areas for arranging your existing Control nodes.",
+   "At 1280x720 multiply coordinates by 2/3.",
+   "For wider 1560x720 views anchor the header and roster to the viewport edges; retain text and touch sizes.",
+   "Keep the open book aspect ratio and its text layers together.",
+   "Use Containers and minimum sizes for tabs/cards; scroll the collection horizontally."
+  ]
+ }
+}

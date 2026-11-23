@@ -80,10 +80,11 @@ as you go. Each system's details are in [docs/systems/](systems/README.md).
   - [x] Outdoor backdrop: sky above the cave, jungle in the wide-phone gap
   - [ ] Later: remove the retired Card Pack code (see Weapons)
 - [ ] [Camp](systems/camp.md)
-  - [ ] Hut art (`assets/camp/hut.png`)
+  - [x] Scene kit: painted camp, stats panel, roster, kit tabs, cards and pills
+  - [ ] Use the kit's stat meters for the attribute bars
 - [~] [Field Guide](systems/field-guide.md)
   - [x] Hazard pictures fixed (steam vents, Tougher Combos had none; pits, canyons, liquids, quicksand, rolling boulders, barricades were generic) and shown in each zone's look, on info cards and as a per-zone row in the guide (`HazardIcons`)
-  - [ ] Elder art (`assets/encyclopedia/elder.png`)
+  - [x] Scene kit: painted archive, Elder Numa, open book, roster, kit tabs and cards
 - [ ] [Screens and navigation](systems/screens-and-navigation.md)
 - [ ] [HUD and touch controls](systems/hud-and-controls.md)
 

@@ -54,3 +54,14 @@ Part of the [system docs](README.md).
 - Shown as a facts panel at the end of unlocked cards (`_facts_box`, node `Facts`); locked cards don't show facts.
 - The dino-unlock info card adds the `quiz` line as "Did you know?".
 - Figures are typical published estimates. The text points out that the Pteranodon was a pterosaur (not a dinosaur), the real Velociraptor was turkey-sized and feathered, and people never lived alongside dinosaurs.
+
+## The scene kit look
+
+With the user's Encyclopedia / Dinosaurs scene kit (`../Assets/Rok_Scene_Polish_Assets`, imported by `tools/prepare_scene_kit.py` into `assets/scenes/`; shared helpers in `scripts/scene_kit.gd`, `SceneKit`) the screen follows the kit's concept:
+
+- the painted archive cave as the backdrop (still named `Backdrop`), Elder Numa standing at the left with her name plate (the drawn cave, Elder and the hero are hidden);
+- the stone Back button (icon only, still the header's first node), the ENCYCLOPEDIA plaque (`TitleBanner`), the discovered count on the counter plate;
+- the open book in place of the speech bubble, kept to its shape and right-aligned: the left page (`LeftPage`) has the entry's name (Baloo 2), a big picture and a DISCOVERED / NOT YET FOUND pill; the right page is the page scroll as before, headed "Field Notes" (the `Says` label), with the entry's page minus its own picture, name row and frame, every label wrapped to the page (`_wrap_to_page`; a row's leading labels keep their word). Arrows on the book step to the previous / next entry;
+- the wooden roster frame behind the shelf, the kit's tabs (teal when chosen), the kit's cards (normal / selected / locked) with the orange NEW badge top right, the check top left on the chosen card and a padlock on locked ones; arrows at the roster's ends scroll it.
+
+Layout (`_layout_kit`): the kit's 1920×1080 reference scaled by the screen height; the book and roster anchored right and bottom, so a wide phone gets more room in the middle. Without the kit everything falls back to the drawn cave.

@@ -51,3 +51,7 @@ Ones you don't own are silhouettes but can still be compared, with how to get th
 ## Red dots
 
 Where something can be done: `main.level_ready()` (owned characters with the XP and meat for a level) and `gear_ready()` light the Camp button (`Hud.set_herd`), its tabs ("●") and rows ("● LEVEL UP!").
+
+## The scene kit look
+
+With the user's scene kit (`SceneKit`, see [field-guide](field-guide.md#the-scene-kit-look)) the Camp follows the kit's Dinosaurs concept: the painted camp (fire, tent, forest) as the backdrop with the drawn camp hidden; the stone Back button, the DINOSAURS plaque and the meat on the counter plate; the detail on the parchment stats panel (at least 560 px wide, its rows need ~440 px inside the frame); the hero you play animated on the left (scaled up) and the chosen dinosaur animated beside him by the tent; the wooden roster with kit tabs and cards, a green EQUIPPED / OWNED pill (orange MARKET), a check on the one equipped and a padlock on locked ones; Equip / Play as in the kit's green button and the other actions in brown (`_kit_buttons`). The kit's static presenter cutouts and stat meters aren't used yet (the animated actors and the existing attribute bars stay).
