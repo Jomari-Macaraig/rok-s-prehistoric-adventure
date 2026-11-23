@@ -45,8 +45,9 @@ Ones you don't own are silhouettes but can still be compared, with how to get th
 
 ## Gear (Heroes tab)
 
-- EQUIPMENT rows (`_gear_rows`): weapon and armor with their bonuses and attack reach, and "Durability n/max" (or BROKEN) with a **Repair** button (two taps, `press_repair`).
-- **Change** (`press_slot`) turns the shelf into that slot's choices (`_gear_list`: Nothing, owned gear, cards); a tap equips (`press_gear`).
+- EQUIPMENT rows (`_gear_rows`): weapon and armor by full name ("Epic Stone Axe") with their bonuses and attack reach, and "Durability n/max" (or BROKEN) with its material repair cost and a **Repair** button (two taps, `press_repair`; disabled without the materials).
+- **Change** (`press_slot`) turns the shelf into that slot's choices (`_gear_list`: Nothing, owned copies by item then rarest first, in their rarity colour, then cards); a tap equips (`press_gear`).
+- The header has **Crafting** (disabled and showing its distance until the bench opens, `bench_button`) and **Items** buttons, opening the [Crafting Bench and Items screens](crafting.md).
 
 ## Red dots
 

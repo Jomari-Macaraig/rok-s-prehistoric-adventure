@@ -40,6 +40,7 @@ Each system is documented on its own in [docs/systems/](../docs/systems/README.m
 | `combo.gd` | [combo-and-frenzy](../docs/systems/combo-and-frenzy.md) |
 | `combo_meter.gd` | [combo-and-frenzy](../docs/systems/combo-and-frenzy.md) |
 | `course.gd` | [obstacles-and-gates](../docs/systems/obstacles-and-gates.md), [pickups-and-loot](../docs/systems/pickups-and-loot.md), [wild-dinosaurs](../docs/systems/wild-dinosaurs.md) |
+| `crafting.gd` | [crafting](../docs/systems/crafting.md) |
 | `critters.gd` | [wild-dinosaurs](../docs/systems/wild-dinosaurs.md) |
 | `dino_facts.gd` | [field-guide](../docs/systems/field-guide.md) |
 | `dinos.gd` | [attributes](../docs/systems/attributes.md), [leveling](../docs/systems/leveling.md), [dinosaurs](../docs/systems/dinosaurs.md) |
@@ -77,5 +78,6 @@ Each system is documented on its own in [docs/systems/](../docs/systems/README.m
 | `coach_marker.gd` | [tutorial](../docs/systems/tutorial.md) |
 | `trex.gd` | [chase-and-hunters](../docs/systems/chase-and-hunters.md) |
 | `tuning.gd` | every system's gameplay numbers (each system doc names the constants it uses) |
+| `workshop.gd` | [crafting](../docs/systems/crafting.md) (the Crafting Bench and Items screens) |
 | `weather.gd` | [zones-and-environment](../docs/systems/zones-and-environment.md) |
 | `zones.gd` | [zones-and-environment](../docs/systems/zones-and-environment.md) |

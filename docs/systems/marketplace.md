@@ -27,7 +27,7 @@ only its own items, in order of unlock distance.
 | Tab | Items | Notes |
 |---|---|---|
 | Power-Ups | every non-starter power-up (Primal Amber, Fossil Magnet, Time Crystal, Primal Berry, Golden Fossil) | once bought they start spawning in runs; see [power-ups](power-ups.md) |
-| Gear | weapons and armor (`Gear.ITEMS`) | equipped at the Camp; see [weapons-and-armor](weapons-and-armor.md) |
+| Gear | bundles of the basic crafting materials (`mat_<id>`, `Crafting.market_ids`; bought again and again, never before the Crafting Bench opens). Weapons and armor are crafted, not sold | see [crafting](crafting.md) |
 | Dinosaurs | the 28 expansion dinosaurs | tiered per category; see [dinosaurs](dinosaurs.md) |
 | Heroes | Nira, Boro | see [heroes](heroes.md) |
 | Other | third booster slot (`SLOT_ID`), Heart Containers | hearts unlock by best **score**, one after another |

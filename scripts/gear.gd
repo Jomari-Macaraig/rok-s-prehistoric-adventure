@@ -1,10 +1,14 @@
 class_name Gear
 ## Hero gear (the user's design): each hero (Rok, Nira, Boro) has a Weapon
-## slot and an Armor slot. Weapons and armor are bought in the Market (its
-## Gear tab; prices and on-sale distances in config [market] /
-## [market_unlocks], defaults here) and add attributes to the hero wearing
-## them (`bonus`, used by Dinos.stat, so levels, perks and form_data all see
-## them). A weapon also sets how far ATTACK reaches (`reach`).
+## slot and an Armor slot. Weapons and armor are CRAFTED at the Crafting
+## Bench from materials (Crafting; recipes in config/crafting.cfg, learned at
+## the item's [market_unlocks] distance) and add attributes to the hero
+## wearing them (`bonus`, used by Dinos.stat, so levels, perks and form_data
+## all see them). A weapon also sets how far ATTACK reaches (`reach`).
+## Every crafted item is its own COPY with a rarity (0 Common .. 4
+## Legendary) that multiplies its bonuses and durability: its id is the
+## item id plus "#<n>" ("stone_axe#3"); `base(id)` gives the item id. Gear
+## from old saves has no "#" and is Common.
 ## Dinosaur CARDS can go in the weapon slot instead: one card per dinosaur
 ## (the playable four and the 28 expansion species), found in rare and epic
 ## milestone chests or Card Packs from the Market. A card adds CARD_BONUS (by
@@ -48,33 +52,52 @@ const CARD_BONUS := [1.0, 1.0, 1.5, 2.0, 3.0]
 const CARD_REACH := 200.0
 const CARD_PREFIX := "card:"
 
-static var owned: Array = []          # gear ids (main.gear_owned)
+static var owned: Array = []          # gear copy ids (main.gear_owned)
+static var rarity: Dictionary = {}    # copy id -> rarity 0-4 (missing = 0 Common; main.gear_rarity)
 static var equipped: Dictionary = {}  # hero id -> {"weapon": id or "card:<dino>", "armor": id}
 static var cards: Dictionary = {}     # dino id -> how many (main.cards)
 ## Weapon durability (the user's design): every ATTACK that connects costs 1;
 ## at 0 the weapon is broken (no bonus, no reach, not drawn) until repaired
 ## at the Camp for meat. id -> uses left (missing = new). main.gear_wear.
 static var wear: Dictionary = {}
-## A full repair costs this share of the weapon's price (less if it's only
-## partly worn); a weapon warns when this many uses are left.
-const REPAIR_SHARE := 0.5
+## A weapon warns when this many uses are left (repairs cost materials:
+## Crafting.repair_cost, config/crafting.cfg [repair]).
 const WEAR_WARN := 5
 
 
+## The item id of a copy ("stone_axe#3" -> "stone_axe"); cards unchanged.
+static func base(id: String) -> String:
+	if id.begins_with(CARD_PREFIX):
+		return id
+	var i := id.find("#")
+	return id if i < 0 else id.substr(0, i)
+
+
 static func has(id: String) -> bool:
-	return ITEMS.has(id)
+	return ITEMS.has(base(id))
 
 
 static func slot_of(id: String) -> String:
 	if id.begins_with(CARD_PREFIX):
 		return "weapon"
-	return String(ITEMS[id].slot)
+	return String(ITEMS[base(id)].slot)
 
 
 static func name_of(id: String) -> String:
 	if id.begins_with(CARD_PREFIX):
 		return Herd.name_of(id.substr(CARD_PREFIX.length())) + " Card"
-	return String(ITEMS[id].name) if ITEMS.has(id) else id
+	return String(ITEMS[base(id)].name) if ITEMS.has(base(id)) else id
+
+
+## A copy's rarity, 0 Common .. 4 Legendary (cards: 0).
+static func rarity_of(id: String) -> int:
+	return int(rarity.get(id, 0))
+
+
+## "Epic Stone Axe" (just "Stone Axe" for Common and for cards).
+static func full_name(id: String) -> String:
+	var r := rarity_of(id)
+	return name_of(id) if r == 0 or not has(id) else "%s %s" % [Crafting.rarity_name(r), name_of(id)]
 
 
 ## The attribute bonuses an item gives.
@@ -83,7 +106,14 @@ static func item_bonus(id: String) -> Dictionary:
 		var d := id.substr(CARD_PREFIX.length())
 		var lean: String = String(Dinos.CATEGORIES[Dinos.category_of(d)].lean)
 		return {lean: float(CARD_BONUS[clampi(Dinos.tier(d), 0, CARD_BONUS.size() - 1)])}
-	return ITEMS[id].bonus if ITEMS.has(id) else {}
+	if not ITEMS.has(base(id)):
+		return {}
+	var k := Crafting.bonus_mult(rarity_of(id))
+	var out := {}
+	var b: Dictionary = ITEMS[base(id)].bonus
+	for a in b:
+		out[a] = snappedf(float(b[a]) * k, 0.1) if float(b[a]) > 0.0 else float(b[a])   # rarity boosts the good, not the drawbacks
+	return out
 
 
 ## "+2 Power, +1 Speed".
@@ -98,7 +128,9 @@ static func bonus_text(id: String) -> String:
 
 ## How many hits a weapon takes in all (0 = it doesn't wear: armor, cards).
 static func max_durability(id: String) -> int:
-	return int(ITEMS[id].get("durability", 0)) if ITEMS.has(id) else 0
+	if not ITEMS.has(base(id)):
+		return 0
+	return int(round(float(ITEMS[base(id)].get("durability", 0)) * Crafting.durability_mult(rarity_of(id))))
 
 
 static func durability(id: String) -> int:
@@ -109,19 +141,18 @@ static func broken(id: String) -> bool:
 	return max_durability(id) > 0 and durability(id) <= 0
 
 
-## Meat to repair it to full (0 if it isn't worn).
-static func repair_cost(id: String) -> int:
+## Materials to repair it to full ({} if it isn't worn).
+static func repair_cost(id: String) -> Dictionary:
 	var mx := max_durability(id)
 	if mx <= 0 or durability(id) >= mx:
-		return 0
-	var price := float(Progression.PRICES.get(id, ITEMS[id].price))
-	return maxi(1, ceili(price * REPAIR_SHARE * float(mx - durability(id)) / float(mx)))
+		return {}
+	return Crafting.repair_cost(base(id), mx - durability(id), mx)
 
 
 ## A working (not broken) weapon with this property ("burns", "ranged"), or "".
 static func weapon_with(hero: String, prop: String) -> String:
 	var w := slot_item(hero, "weapon")
-	return w if ITEMS.has(w) and ITEMS[w].get(prop, false) and not broken(w) else ""
+	return w if ITEMS.has(base(w)) and ITEMS[base(w)].get(prop, false) and not broken(w) else ""
 
 
 static func slot_item(hero: String, slot: String) -> String:
@@ -147,7 +178,7 @@ static func reach(hero: String) -> float:
 	var w := slot_item(hero, "weapon")
 	if w.begins_with(CARD_PREFIX):
 		return CARD_REACH
-	return float(ITEMS[w].reach) if ITEMS.has(w) and not broken(w) else Tuning.ATTACK_REACH_HAND
+	return float(ITEMS[base(w)].reach) if ITEMS.has(base(w)) and not broken(w) else Tuning.ATTACK_REACH_HAND
 
 
 ## A random dinosaur card for a chest or Card Pack: rare chests the lower
@@ -167,7 +198,8 @@ static func random_card(epic: bool) -> String:
 
 ## Gear and card ids a hero could put in a slot: owned gear, owned cards.
 static func choices(slot: String) -> Array:
-	var out: Array = owned.filter(func(id): return ITEMS.has(id) and ITEMS[id].slot == slot)
+	var out: Array = owned.filter(func(id): return ITEMS.has(base(id)) and ITEMS[base(id)].slot == slot)
+	out.sort_custom(func(a, b): return [ITEMS.keys().find(base(a)), -rarity_of(a)] < [ITEMS.keys().find(base(b)), -rarity_of(b)])
 	if slot == "weapon":
 		var ids: Array = cards.keys()
 		ids.sort()
@@ -185,6 +217,7 @@ static var _icons := {}
 ## assets/gear/<id>.png): a weapon on a round badge, armor on a shield, a
 ## card shows its dinosaur, a Card Pack a fan of cards.
 static func icon(id: String) -> Texture2D:
+	id = base(id)
 	var path := "res://assets/gear/%s.png" % id
 	if ResourceLoader.exists(path):
 		return SpriteLib.tex(path)   # uses its sharper @2x twin when there is one

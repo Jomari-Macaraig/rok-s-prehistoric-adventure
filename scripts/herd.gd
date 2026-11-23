@@ -51,6 +51,7 @@ var _drag_dist := 0.0
 ## panel, the roster frame, kit tabs, cards, status pills and buttons.
 var _kit := false
 var roster: Panel
+var bench_button: Button   # the header's Crafting button (shows its distance until the bench opens)
 
 
 ## Tabs: the heroes first (Rok, Nira, Boro; tab id "rok"), then one per dino category.
@@ -163,6 +164,17 @@ func _ready() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(spacer)
+	# the Crafting Bench and the Items screen (gear is crafted, not bought)
+	for pair in [["Crafting", "BenchButton", "open_bench"], ["Items", "ItemsButton", "open_items"]]:
+		var wb := Market._button(pair[0], Vector2(130, 52))
+		wb.name = pair[1]
+		var fn: String = pair[2]
+		wb.pressed.connect(func(): game.call(fn))
+		if _kit:
+			SceneKit.style_button(wb, "button_secondary", "", 20)
+		header.add_child(wb)
+		if pair[1] == "BenchButton":
+			bench_button = wb
 	var pouch := PanelContainer.new()
 	var pst := StyleBoxFlat.new()
 	pst.bg_color = Color(0.25, 0.13, 0.06, 0.75)
@@ -405,6 +417,10 @@ func press_equip(id: String) -> void:
 
 
 func refresh() -> void:
+	if bench_button:
+		var open: bool = game.bench_open()
+		bench_button.text = "Crafting" if open else "Crafting · %d m" % Crafting.bench_m()
+		bench_button.disabled = not open
 	bank_label.text = str(game.meat_bank)
 	for cat in tab_buttons:
 		var tb: Button = tab_buttons[cat]
@@ -471,7 +487,10 @@ func _gear_list() -> void:
 		hb.add_child(ic)
 		var names := VBoxContainer.new()
 		names.alignment = BoxContainer.ALIGNMENT_CENTER
-		names.add_child(_light("Nothing" if gid == "" else Gear.name_of(gid), 17))
+		var nl := _light("Nothing" if gid == "" else Gear.full_name(gid), 17)
+		if gid != "" and Gear.rarity_of(gid) > 0:
+			nl.add_theme_color_override("font_color", Crafting.RARITY_COLOR[Gear.rarity_of(gid)])
+		names.add_child(nl)
 		var sub := "Empty slot" if gid == "" else Gear.bonus_text(gid)
 		if gid.begins_with(Gear.CARD_PREFIX):
 			sub += "  ·  x%d" % int(Gear.cards.get(gid.substr(Gear.CARD_PREFIX.length()), 0))
@@ -773,7 +792,7 @@ func _gear_rows(id: String) -> void:
 		if gid != "":
 			ic.texture = Gear.icon(gid)
 		row.add_child(ic)
-		var txt := "%s: %s" % [slot.capitalize(), ("%s (%s)" % [Gear.name_of(gid), Gear.bonus_text(gid)]) if gid != "" else "empty"]
+		var txt := "%s: %s" % [slot.capitalize(), ("%s (%s)" % [Gear.full_name(gid), Gear.bonus_text(gid)]) if gid != "" else "empty"]
 		var worn := Gear.max_durability(gid) > 0
 		var l := Market._text(txt, 16)
 		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -786,19 +805,22 @@ func _gear_rows(id: String) -> void:
 		b.add_theme_font_size_override("font_size", 15)
 		b.pressed.connect(func(): press_slot(slot))
 		row.add_child(b)
-		if worn and Gear.repair_cost(gid) > 0:
-			var rc := Gear.repair_cost(gid)
-			var rb := Market._button(("Sure? %d" if _confirm == "repair:" + gid else "Repair %d") % rc, Vector2(120, 40))
+		var rc := Gear.repair_cost(gid) if worn else {}
+		if not rc.is_empty():
+			var rb := Market._button("Sure?" if _confirm == "repair:" + gid else "Repair", Vector2(110, 40))
 			rb.name = "Repair_" + gid
 			rb.add_theme_font_size_override("font_size", 15)
-			rb.disabled = game.meat_bank < rc
-			rb.tooltip_text = "Meat to repair it to full"
+			rb.disabled = not Crafting.can_afford(rc)
+			rb.tooltip_text = "Repair it to full: " + Crafting.cost_text(rc)
 			rb.pressed.connect(func(): press_repair(gid))
 			row.add_child(rb)
 		detail.add_child(row)
 		if worn:   # weapon durability on its own line: hits left, BROKEN at 0
 			var br := Gear.broken(gid)
-			var dl := Market._text(("      BROKEN · repair it to use it again" if br else "      Durability %d/%d hits") % ([] if br else [Gear.durability(gid), Gear.max_durability(gid)]),
+			var dtxt := ("      BROKEN · repair it to use it again" if br else "      Durability %d/%d hits") % ([] if br else [Gear.durability(gid), Gear.max_durability(gid)])
+			if not rc.is_empty():
+				dtxt += "  ·  repair: " + Crafting.cost_text(rc)
+			var dl := Market._text(dtxt,
 					15, Color(0.8, 0.15, 0.1) if br else Color(0.45, 0.3, 0.15))
 			dl.name = "Durability_" + gid
 			detail.add_child(dl)

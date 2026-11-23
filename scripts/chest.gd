@@ -9,10 +9,11 @@ const RARITY := ["common", "rare", "epic"]
 const RARITY_NAME := {"common": "CHEST", "rare": "RARE CHEST", "epic": "EPIC CHEST"}
 const RARITY_COLOR := {"common": Color(0.95, 0.8, 0.5), "rare": Color(0.45, 0.85, 1.0), "epic": Color(1.0, 0.5, 1.0)}
 ## What each rarity can hold (picked evenly; see main._open_chest).
+## "materials" is a handful of crafting materials (config/crafting.cfg [chests]).
 const REWARDS := {
-	"common": ["meat", "xp"],
-	"rare": ["meat", "xp", "booster", "heart", "card"],
-	"epic": ["meat", "xp", "frenzy", "full_heal", "card"],
+	"common": ["meat", "xp", "materials"],
+	"rare": ["meat", "xp", "booster", "heart", "card", "materials"],
+	"epic": ["meat", "xp", "frenzy", "full_heal", "card", "materials"],
 }
 
 

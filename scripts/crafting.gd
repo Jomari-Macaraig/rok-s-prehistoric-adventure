@@ -1,0 +1,365 @@
+class_name Crafting
+## Crafting (the user's design): weapons and armor are never bought, only
+## crafted at the Crafting Bench from materials. Materials come from runs
+## (broken obstacles, wild dinosaurs, reward spots, chests, fossils) and the
+## basic ones are sold in bundles in the Market's Gear tab. Every craft rolls
+## a rarity (0 Common .. 4 Legendary) that multiplies the item's bonuses and
+## durability; a catalyst material improves the odds. Items can be salvaged
+## for part of their recipe, and repairs cost materials.
+## Everything is read from config/crafting.cfg (DEFAULTS mirror it).
+## The material bank lives in main (`materials`); `bank` points at it.
+
+const PATH := "res://config/crafting.cfg"
+
+const DEFAULTS := {
+	"materials": {
+		"wood": {"name": "Wood", "rarity": 0, "price": 40, "unlock_m": 500, "from": "Breaking logs, fences and bridges."},
+		"stone": {"name": "Stone", "rarity": 0, "price": 40, "unlock_m": 500, "from": "Breaking rocks, boulders and walls."},
+		"fiber": {"name": "Fiber", "rarity": 0, "price": 40, "unlock_m": 500, "from": "Breaking vines and thorn bushes."},
+		"flint": {"name": "Flint", "rarity": 1, "price": 90, "unlock_m": 1200, "from": "Breaking rocks, mostly in the Desert."},
+		"hide": {"name": "Hide", "rarity": 1, "price": 90, "unlock_m": 1200, "from": "Bonking wild land dinosaurs."},
+		"bone": {"name": "Bone", "rarity": 1, "price": 0, "unlock_m": 0, "from": "Bonking wild dinosaurs."},
+		"resin": {"name": "Resin", "rarity": 2, "price": 0, "unlock_m": 0, "from": "Deep reward spots and chests."},
+		"dino_scale": {"name": "Dino Scale", "rarity": 2, "price": 0, "unlock_m": 0, "from": "A rare drop from wild dinosaurs."},
+		"obsidian": {"name": "Obsidian", "rarity": 2, "price": 0, "unlock_m": 0, "from": "Volcanic rocks and meteors."},
+		"shell": {"name": "Shell", "rarity": 3, "price": 0, "unlock_m": 0, "from": "Epic chests."},
+		"fossil_shard": {"name": "Fossil Shard", "rarity": 3, "price": 0, "unlock_m": 0, "from": "Rare fossils."},
+		"primal_crystal": {"name": "Primal Crystal", "rarity": 4, "price": 0, "unlock_m": 0, "from": "Epic chests."},
+	},
+	"unlock": {"bench_m": 500},
+	"market": {"bundle": 5},
+	"recipes": {
+		"club": {"wood": 6, "fiber": 2},
+		"stone_axe": {"wood": 4, "stone": 4, "fiber": 3},
+		"flint_spear": {"wood": 6, "flint": 5, "fiber": 3},
+		"torch": {"wood": 5, "fiber": 3, "resin": 3},
+		"bone_hammer": {"bone": 6, "stone": 4, "hide": 3},
+		"sling": {"hide": 6, "fiber": 4, "stone": 4},
+		"bow": {"wood": 6, "fiber": 6, "flint": 4, "dino_scale": 2},
+		"hide_vest": {"hide": 6, "fiber": 3},
+		"bone_guards": {"bone": 6, "hide": 4},
+		"scale_mail": {"dino_scale": 8, "hide": 4},
+		"shell_plate": {"shell": 2, "hide": 4, "bone": 4},
+	},
+	"rarity": {
+		"names": ["Common", "Uncommon", "Rare", "Epic", "Legendary"],
+		"chances": [60, 25, 10, 4, 1],
+		"bonus_mult": [1.0, 1.2, 1.45, 1.75, 2.1],
+		"durability_mult": [1.0, 1.25, 1.5, 2.0, 2.5],
+	},
+	"catalysts": {
+		"resin": [45, 32, 15, 6, 2],
+		"obsidian": [35, 35, 19, 8, 3],
+		"fossil_shard": [15, 35, 30, 15, 5],
+		"primal_crystal": [0, 15, 40, 30, 15],
+	},
+	"salvage": {"share": 0.5, "bonus": ["", "", "resin", "fossil_shard", "primal_crystal"]},
+	"repair": {"share": 0.3},
+	"break_drops": {"chance": 0.55, "count": [1, 2],
+		"wood": {"wood": 3, "fiber": 1}, "fiber": {"fiber": 3, "wood": 1},
+		"rock_forest": {"stone": 4, "flint": 1}, "rock_desert": {"stone": 2, "flint": 3},
+		"rock_volcanic": {"stone": 2, "obsidian": 2}, "meteor": {"obsidian": 1}},
+	"wild_drops": {"chance": 0.7, "count": [1, 2],
+		"land": {"hide": 6, "bone": 4, "dino_scale": 1.5, "shell": 0.3},
+		"flyer": {"bone": 3, "hide": 2, "dino_scale": 1.5}},
+	"spots": {"chance": 0.14, "count": [1, 3],
+		"forest": {"wood": 3, "fiber": 3, "stone": 1}, "desert": {"flint": 3, "bone": 2, "stone": 1},
+		"volcanic": {"obsidian": 2, "stone": 2, "flint": 1},
+		"deep_from_m": 2500, "deep_full_m": 6000, "deep_max": 0.5,
+		"deep": {"resin": 3, "dino_scale": 3, "fossil_shard": 0.6, "primal_crystal": 0.15}},
+	"chests": {"common_count": 4, "common": {"wood": 1, "stone": 1, "fiber": 1, "flint": 1, "hide": 1},
+		"rare_count": 3, "rare": {"bone": 1, "resin": 1, "dino_scale": 1, "obsidian": 1},
+		"epic_count": 2, "epic": {"shell": 1, "fossil_shard": 1, "dino_scale": 1, "primal_crystal": 0.3}},
+	"fossils": {"shards": 1},
+}
+## Rarity frame colours: grey, green, blue, purple, gold.
+const RARITY_COLOR := [Color(0.72, 0.72, 0.7), Color(0.45, 0.85, 0.4), Color(0.4, 0.65, 1.0),
+		Color(0.78, 0.45, 1.0), Color(1.0, 0.78, 0.25)]
+## Market ids for material bundles: "mat_<id>" (a node-name-safe id: Market cards are named by it).
+const MAT_PREFIX := "mat_"
+## Pickup kinds for materials on the course: "m_<id>".
+const PICKUP_PREFIX := "m_"
+
+static var _v := {}
+static var bank: Dictionary = {}   # material id -> how many (main.materials)
+
+
+static func _load() -> void:
+	if not _v.is_empty():
+		return
+	_v = DEFAULTS.duplicate(true)
+	var c := ConfigFile.new()
+	if c.load(PATH) != OK:
+		return
+	for sec in c.get_sections():
+		if sec == "materials" or sec == "recipes" or sec == "catalysts":
+			_v[sec] = {}   # the file's list replaces the defaults (so ids can be removed)
+		elif not _v.has(sec):
+			_v[sec] = {}
+		for key in c.get_section_keys(sec):
+			_v[sec][key] = c.get_value(sec, key)
+
+
+## A value from the config: Crafting.num("spots", "chance").
+static func num(section: String, key: String) -> Variant:
+	_load()
+	return _v.get(section, {}).get(key, DEFAULTS.get(section, {}).get(key, 0))
+
+
+## Test hook: forget the loaded values, or set one.
+static func forget() -> void:
+	_v = {}
+
+
+static func set_value(section: String, key: String, value: Variant) -> void:
+	_load()
+	if not _v.has(section):
+		_v[section] = {}
+	_v[section][key] = value
+
+
+# ------------------------------------------------------------ materials
+
+static func materials() -> Array:
+	_load()
+	return _v.materials.keys()
+
+
+static func is_material(id: String) -> bool:
+	_load()
+	return _v.materials.has(id)
+
+
+static func mat(id: String) -> Dictionary:
+	_load()
+	return _v.materials.get(id, {"name": id, "rarity": 0, "price": 0, "unlock_m": 0, "from": ""})
+
+
+static func mat_name(id: String) -> String:
+	return String(mat(id).name)
+
+
+static func mat_rarity(id: String) -> int:
+	return int(mat(id).rarity)
+
+
+static func have(id: String) -> int:
+	return int(bank.get(id, 0))
+
+
+## "6 Wood, 2 Fiber".
+static func cost_text(cost: Dictionary) -> String:
+	var parts: Array = []
+	for m in cost:
+		parts.append("%d %s" % [int(cost[m]), mat_name(m)])
+	return ", ".join(parts)
+
+
+static func can_afford(cost: Dictionary) -> bool:
+	for m in cost:
+		if have(m) < int(cost[m]):
+			return false
+	return true
+
+
+## Materials the Market sells (price > 0), as "mat_<id>".
+static func market_ids() -> Array:
+	return materials().filter(func(m): return int(mat(m).price) > 0).map(func(m): return MAT_PREFIX + m)
+
+
+## The best distance that opens the Crafting Bench ([unlock] bench_m).
+static func bench_m() -> int:
+	return int(num("unlock", "bench_m"))
+
+
+static func bundle() -> int:
+	return int(num("market", "bundle"))
+
+
+# ------------------------------------------------------------ recipes and rarity
+
+static func recipe(item: String) -> Dictionary:
+	_load()
+	return _v.recipes.get(Gear.base(item), {})
+
+
+static func recipes() -> Array:
+	_load()
+	return _v.recipes.keys().filter(func(k): return Gear.ITEMS.has(k))
+
+
+## The best distance that teaches a recipe ([market_unlocks] in progression.cfg).
+static func learn_m(item: String) -> int:
+	return maxi(bench_m(), int(Progression.MARKET_UNLOCK_M.get(item, Gear.ITEMS[item].unlock_m))) if Gear.ITEMS.has(item) else 0
+
+
+static func rarity_names() -> Array:
+	return num("rarity", "names")
+
+
+static func rarity_name(r: int) -> String:
+	var n: Array = rarity_names()
+	return String(n[clampi(r, 0, n.size() - 1)])
+
+
+static func bonus_mult(r: int) -> float:
+	var a: Array = num("rarity", "bonus_mult")
+	return float(a[clampi(r, 0, a.size() - 1)])
+
+
+static func durability_mult(r: int) -> float:
+	var a: Array = num("rarity", "durability_mult")
+	return float(a[clampi(r, 0, a.size() - 1)])
+
+
+static func catalysts() -> Array:
+	_load()
+	return _v.catalysts.keys()
+
+
+## The chance weights of each rarity, with an optional catalyst.
+static func weights(catalyst := "") -> Array:
+	_load()
+	if catalyst != "" and _v.catalysts.has(catalyst):
+		return _v.catalysts[catalyst]
+	return num("rarity", "chances")
+
+
+## Each rarity's chance (0-1) with a catalyst.
+static func odds(catalyst := "") -> Array:
+	var w := weights(catalyst)
+	var total := 0.0
+	for x in w:
+		total += float(x)
+	return w.map(func(x): return float(x) / maxf(total, 0.0001))
+
+
+## The rarity a roll (0-1) lands on.
+static func roll_rarity(roll: float, catalyst := "") -> int:
+	var o := odds(catalyst)
+	for i in o.size():
+		roll -= float(o[i])
+		if roll < 0.0:
+			return i
+	return o.size() - 1
+
+
+## What salvaging an item returns.
+static func salvage_return(item: String, rarity: int) -> Dictionary:
+	var out := {}
+	var share := float(num("salvage", "share"))
+	var r := recipe(item)
+	for m in r:
+		var n := int(floor(float(r[m]) * share))
+		if n > 0:
+			out[m] = n
+	var bonus: Array = num("salvage", "bonus")
+	var b := String(bonus[clampi(rarity, 0, bonus.size() - 1)]) if not bonus.is_empty() else ""
+	if b != "":
+		out[b] = int(out.get(b, 0)) + 1
+	return out
+
+
+## Materials to repair a weapon with `worn` of `mx` hits used up.
+static func repair_cost(item: String, worn: int, mx: int) -> Dictionary:
+	if worn <= 0 or mx <= 0:
+		return {}
+	var out := {}
+	var share := float(num("repair", "share")) * float(worn) / float(mx)
+	var r := recipe(item)
+	for m in r:
+		var n := int(ceil(float(r[m]) * share - 0.001))
+		if n > 0:
+			out[m] = n
+	if out.is_empty() and not r.is_empty():
+		out[r.keys()[0]] = 1
+	return out
+
+
+# ------------------------------------------------------------ drops
+
+## Pick from a weights table {id: weight}.
+static func pick(table: Dictionary, roll := -1.0) -> String:
+	var total := 0.0
+	for k in table:
+		total += float(table[k])
+	if total <= 0.0:
+		return ""
+	var r := (randf() if roll < 0.0 else roll) * total
+	for k in table:
+		r -= float(table[k])
+		if r < 0.0:
+			return String(k)
+	return String(table.keys()[-1])
+
+
+static func count_of(section: String) -> int:
+	var c: Array = num(section, "count")
+	return randi_range(int(c[0]), int(c[1]))
+
+
+## The break-drop table for a broken obstacle: "wood", "fiber",
+## "rock_<zone>" or "meteor" ("" = drops no material, e.g. a mushroom).
+static func break_table(o: Obstacle, zone: String) -> String:
+	if o.mushroom:
+		return ""
+	if o.get_meta("meteor", false):
+		return "meteor"
+	if o.vine or o.kind == "thorns":
+		return "fiber"
+	if o.kind in ["wood", "fence"]:
+		return "wood"
+	return "rock_" + zone
+
+
+## The table a material reward spot rolls at `metres` in `zone`.
+static func spot_table(zone: String, metres: float, roll := -1.0) -> Dictionary:
+	var from := float(num("spots", "deep_from_m"))
+	var full := float(num("spots", "deep_full_m"))
+	var deep := float(num("spots", "deep_max")) * clampf(inverse_lerp(from, full, metres), 0.0, 1.0)
+	if (randf() if roll < 0.0 else roll) < deep:
+		return num("spots", "deep")
+	var t: Variant = num("spots", zone)
+	return t if t is Dictionary and not (t as Dictionary).is_empty() else num("spots", "forest")
+
+
+# ------------------------------------------------------------ icons
+
+static var _icons := {}
+const MAT_COLOR := {"wood": Color(0.55, 0.33, 0.15), "stone": Color(0.62, 0.6, 0.58), "fiber": Color(0.45, 0.62, 0.25),
+		"flint": Color(0.35, 0.38, 0.45), "hide": Color(0.72, 0.5, 0.3), "bone": Color(0.95, 0.9, 0.78),
+		"resin": Color(1.0, 0.65, 0.15), "dino_scale": Color(0.3, 0.65, 0.5), "obsidian": Color(0.18, 0.12, 0.22),
+		"shell": Color(0.85, 0.7, 0.5), "fossil_shard": Color(0.8, 0.72, 0.55), "primal_crystal": Color(0.55, 0.9, 1.0)}
+
+
+## A material's icon: the user's art (assets/materials/<id>.png) once it
+## exists, else a placeholder drawn in code (a lump in the material's colour
+## with a dark outline, on a ring of its rarity's colour).
+static func icon(id: String) -> Texture2D:
+	var path := "res://assets/materials/%s.png" % id
+	if ResourceLoader.exists(path):
+		return SpriteLib.tex(path)
+	if _icons.has(id):
+		return _icons[id]
+	var img := Image.create(96, 96, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var col: Color = MAT_COLOR.get(id, Color(0.6, 0.5, 0.4))
+	var ring: Color = RARITY_COLOR[clampi(mat_rarity(id), 0, 4)]
+	var dark := col.darkened(0.6)
+	var seed := hash(id)
+	for y in 96:
+		for x in 96:
+			var d := Vector2(x - 48, y - 48)
+			var ang := d.angle()
+			var wob := 30.0 + 5.0 * sin(ang * 3.0 + float(seed % 7)) + 3.0 * sin(ang * 5.0 + float(seed % 11))
+			var l := d.length()
+			if l > 44.0 and l < 47.0:
+				img.set_pixel(x, y, ring)
+			elif l < wob - 3.0:
+				var shade := 0.25 * (d.y - d.x) / 60.0
+				img.set_pixel(x, y, col.darkened(clampf(shade, -0.3, 0.4)) if shade > 0.0 else col.lightened(-shade))
+			elif l < wob:
+				img.set_pixel(x, y, dark)
+	var tex := ImageTexture.create_from_image(img)
+	_icons[id] = tex
+	return tex

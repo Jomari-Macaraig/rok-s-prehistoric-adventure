@@ -30,6 +30,7 @@ One file per gameplay system, so each can be read and polished on its own. Progr
 - [Dinosaurs (the expansion roster)](dinosaurs.md): The 28 expansion dinosaurs: their tiers, how they're sold, equipped on a button and played.
 - [Attributes and cooldowns](attributes.md): The five attributes (Speed, Jump, Stamina, Power, Armor), categories and leans, tier budgets, Rok's stats, and the cooldowns they shorten.
 - [Levelling and XP](leveling.md): XP earned by metres, levels 1-10, level-up costs and what each level adds.
+- [Crafting, materials, rarity and the Items screen](crafting.md): gear is crafted at the Crafting Bench from materials found in runs (or basic ones from the Market); each craft rolls a rarity; the Items screen lists what you own. All in `config/crafting.cfg`.
 - [Weapons, armor and dinosaur cards](weapons-and-armor.md): Hero gear: the weapon and armor slots, bonuses, reach, durability and repair, breaks, the Torch and Bow, dinosaur cards, and gear drawn on the hero.
 
 ## Screens and UI

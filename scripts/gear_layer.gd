@@ -54,8 +54,8 @@ func refresh() -> void:
 	_weapon_id = Gear.slot_item(hero, "weapon") if hero != "" else ""
 	_weapon_broken = Gear.broken(_weapon_id)   # a broken weapon isn't drawn
 	_back_id = Gear.slot_item(hero, "armor") if hero != "" else ""
-	_setup(_weapon, "" if _weapon_broken else _weapon_id)
-	_setup(_back, _back_id)
+	_setup(_weapon, "" if _weapon_broken else Gear.base(_weapon_id))
+	_setup(_back, Gear.base(_back_id))
 	_sock = _sockets.get(hero, {})
 	_place()
 
@@ -143,7 +143,7 @@ func _place() -> void:
 	var f: Array = frames[spr.frame]
 	var size_k := spr.sprite_frames.get_frame_texture(spr.animation, spr.frame).get_height() / 224.0   # heroes share a 224 px tall canvas
 	if _weapon.visible:
-		var a: Dictionary = _art[_weapon_id]
+		var a: Dictionary = _art[Gear.base(_weapon_id)]
 		_weapon.position = spr.offset + Vector2(f[0], f[1])
 		var tilt: float = 0.0 if a.get("hang", false) else CLIP_ANGLE.get(String(spr.animation), 20.0) + float(a.angle)
 		if a.get("upright", false):   # the bow and torch stay nearly upright (the flame points up)

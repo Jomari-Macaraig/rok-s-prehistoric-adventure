@@ -107,6 +107,9 @@ func setup(k: String) -> Pickup:
 		elif k == "heart":
 			st.texture = Hearts.icon(Hearts.QUARTERS)
 			st.scale = Vector2.ONE * 0.85
+		elif k.begins_with(Crafting.PICKUP_PREFIX):   # a crafting material
+			st.texture = Crafting.icon(k.substr(Crafting.PICKUP_PREFIX.length()))
+			st.scale = Vector2.ONE * (56.0 / maxf(st.texture.get_width(), st.texture.get_height()))
 		else:
 			st.texture = load("res://assets/props/Other_07.png")
 			st.scale = Vector2.ONE * 0.55

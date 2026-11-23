@@ -47,6 +47,8 @@ var _ranked := false
 var codex: Codex
 var market: Market
 var herd: Herd       # choose and compare the dinosaur on each button
+var bench: Workshop  # the Crafting Bench (workshop.gd, mode "bench")
+var items: Workshop  # the Items screen (workshop.gd, mode "items")
 var summary: RunSummary   # the end-of-run summary card
 ## Tests fix the Power roll with this (0 = always breaks through, 0.999 = never); -1 = random.
 var roll_override := -1.0
@@ -99,8 +101,12 @@ var bonus_tint: ColorRect    # the golden-violet wash over the world in a bonus 
 var weather: Weather         # lap twists: storm, fog, eclipse (weather.gd)
 var lap := 1                 # which lap of the zones Rok is on
 var missions := Missions.new()   # daily missions (missions.gd)
-var gear_owned: Array = []         # weapons and armor bought (gear.gd)
-var gear_wear: Dictionary = {}     # weapon id -> uses left (missing = new; Gear.wear)
+var gear_owned: Array = []         # crafted weapon and armor copies (gear.gd: "stone_axe#3")
+var gear_wear: Dictionary = {}     # weapon copy -> uses left (missing = new; Gear.wear)
+var gear_rarity: Dictionary = {}   # copy -> rarity 0-4 (missing = Common; Gear.rarity)
+var gear_next := 1                 # the next copy number
+var materials: Dictionary = {}     # crafting material -> how many (crafting.gd)
+var run_materials: Dictionary = {} # materials found this run (for the summary's news)
 var gear_equipped: Dictionary = {} # hero -> {"weapon": id or "card:<dino>", "armor": id}
 var cards: Dictionary = {}         # dino id -> dinosaur cards owned
 var last_card := ""                # the card a wild dinosaur or chest just gave
@@ -146,6 +152,9 @@ func _ready() -> void:
 	gear_equipped = Dictionary(g.get("equipped", {}))
 	cards = Dictionary(g.get("cards", {}))
 	gear_wear = Dictionary(g.get("wear", {}))
+	gear_rarity = Dictionary(g.get("rarity", {}))
+	gear_next = int(g.get("next", 1))
+	materials = Dictionary(g.get("materials", {}))
 	_sync_gear()
 	guide_viewed = SaveData.load_viewed()
 	boosters_owned = SaveData.load_unlocked_boosters()
@@ -236,6 +245,21 @@ func _ready() -> void:
 	herd.closed.connect(func():
 		audio.play("click", 0.0)
 		_show_menu_text())
+	for m in ["bench", "items"]:
+		var w := Workshop.new()
+		w.mode = m
+		w.game = self
+		add_child(w)
+		w.closed.connect(func():
+			audio.play("click", 0.0)
+			if herd.visible:
+				herd.refresh()   # back on the Camp: gear may have changed
+			else:
+				_show_menu_text())
+		if m == "bench":
+			bench = w
+		else:
+			items = w
 	audio.start_music()
 	_spawn_player()
 	_to_title()
@@ -373,6 +397,7 @@ func start_run(intro := true) -> void:
 	player.sprite.rotation = 0.0
 	slots = ["", "", ""]
 	last_run_meat = 0
+	run_materials.clear()
 	_market_announced.clear()
 	new_this_run.clear()
 	run_dino_m.clear()
@@ -724,6 +749,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed("pause") or event.is_action_pressed("market"):
 			market.close_market()
 		return
+	for w in [bench, items]:
+		if w.visible:
+			if event.is_action_pressed("pause"):
+				w.close_screen()
+			return
 	if herd.visible:
 		if event.is_action_pressed("pause") or event.is_action_pressed("herd"):
 			herd.close_herd()
@@ -739,7 +769,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("herd") and (state == State.TITLE or state == State.OVER):
 		open_herd()
 		return
-	if event.is_action_pressed("tutorial") and state == State.TITLE and not (codex.visible or market.visible or herd.visible):
+	if event.is_action_pressed("tutorial") and state == State.TITLE and not (_overlay_open()):
 		replay_tutorial()
 		return
 	if event.is_action_pressed("market") and (state == State.TITLE or state == State.OVER):
@@ -809,7 +839,7 @@ func _unhandled_input(event: InputEvent) -> void:
 ## Each finger is tracked separately, so you can hold JUMP and tap a form.
 func _input(event: InputEvent) -> void:
 	var t := event as InputEventScreenTouch
-	if t == null or codex.visible or market.visible or herd.visible:
+	if t == null or _overlay_open():
 		return   # the Field Guide is ordinary GUI: let its buttons and scrolling have the touch
 	get_viewport().set_input_as_handled()
 	if t.pressed:
@@ -913,6 +943,28 @@ func open_herd(cat := "") -> void:
 	_coach_done("camp")
 	_save_tutorial()
 	herd.open_herd(cat)
+
+
+## The Crafting Bench opens at a best distance (config/crafting.cfg [unlock]).
+func bench_open() -> bool:
+	return best_m >= Crafting.bench_m()
+
+
+## The Crafting Bench and the Items screen (opened from the Camp's header).
+func open_bench(t := "") -> void:
+	if not bench_open():
+		audio.play("denied", 0.0)
+		return
+	bench.open_screen(t)
+
+
+func open_items(t := "") -> void:
+	items.open_screen(t)
+
+
+## A full screen (Field Guide, Market, Camp, Crafting Bench, Items) is open.
+func _overlay_open() -> bool:
+	return codex.visible or market.visible or herd.visible or (bench != null and bench.visible) or (items != null and items.visible)
 
 
 ## Market items on sale that haven't been looked at yet.
@@ -1044,10 +1096,8 @@ func buy(id: String) -> bool:
 		heart_containers = Market.heart_index(id)
 		Market.hearts_owned = heart_containers
 		SaveData.save_heart_containers(heart_containers)
-	elif Gear.has(id):
-		gear_owned.append(id)
-		gear_wear.erase(id)   # brand new
-		_save_gear()
+	elif id.begins_with(Crafting.MAT_PREFIX):   # a bundle of a basic material
+		grant_materials({id.substr(Crafting.MAT_PREFIX.length()): Crafting.bundle()}, false)
 	elif id == Gear.CARD_PACK:
 		grant_card(Gear.random_card(false))
 	elif Dinos.has(id) or Heroes.has(id):   # bought dinosaurs and heroes live in dinos_owned
@@ -1538,7 +1588,14 @@ func _collide() -> void:
 				fx.sparkle(k.position, Color(0.7, 0.9, 1.0))
 				fx.sparkle(k.position + Vector2(0, -30), Color(1.0, 0.9, 0.6))
 				fx.float_text(k.position + Vector2(-80, -60), "RARE FOSSIL! +%d meat" % fm, Color(0.7, 0.9, 1.0), 30)
+				grant_materials({"fossil_shard": int(Crafting.num("fossils", "shards"))})
 				audio.play("unlock", 0.0, 1.3)
+			elif k.kind.begins_with(Crafting.PICKUP_PREFIX):   # a crafting material
+				var mid: String = String(k.kind).substr(Crafting.PICKUP_PREFIX.length())
+				grant_materials({mid: 1})
+				fx.sparkle(k.position, Crafting.RARITY_COLOR[Crafting.mat_rarity(mid)])
+				fx.float_text(k.position + Vector2(-30, -50), "+1 " + Crafting.mat_name(mid), Crafting.RARITY_COLOR[Crafting.mat_rarity(mid)], 22)
+				audio.play("click", 0.08, 1.4)
 			elif k.kind == "chest":
 				continue   # chests open by touch below (they sit on the ground)
 			elif k.kind == "heart":
@@ -2101,6 +2158,13 @@ func _power_step(delta: float) -> void:
 
 ## Meat collected in a run goes into the Market bank when the run ends.
 func _bank_meat() -> void:
+	if bench_open() and not seen.has("bench_open"):   # the Crafting Bench just opened
+		seen.append("bench_open")
+		SaveData.save_seen(seen)
+		new_this_run.append("Crafting Bench open: craft gear at the Camp")
+	if not run_materials.is_empty():   # (already in the bank; just the news)
+		new_this_run.append("Found " + Crafting.cost_text(run_materials))
+		run_materials.clear()
 	SaveData.save_badges(badge_stats, badge_tiers)   # running totals, once per run
 	SaveData.save_missions(missions.to_dict())   # today's progress
 	_apply_rank()
@@ -2436,12 +2500,15 @@ func _sync_gear() -> void:
 	Gear.equipped = gear_equipped
 	Gear.cards = cards
 	Gear.wear = gear_wear
+	Gear.rarity = gear_rarity
+	Crafting.bank = materials
 	Forms.clear_cache()
 
 
 func _save_gear() -> void:
 	_sync_gear()
-	SaveData.save_gear({"owned": gear_owned, "equipped": gear_equipped, "cards": cards, "wear": gear_wear})
+	SaveData.save_gear({"owned": gear_owned, "equipped": gear_equipped, "cards": cards, "wear": gear_wear,
+			"rarity": gear_rarity, "next": gear_next, "materials": materials})
 
 
 ## Dinosaur cards are dropped by wild dinosaurs (the user's rule, not sold in
@@ -2519,7 +2586,7 @@ func wear_weapon(id: String) -> void:
 	elif left <= 0:
 		if player.form == Forms.ROK:
 			player.attack_stop()   # back to the body sprite so the shatter shows
-			player.gear.play_break(id)   # its shatter plays in his hand
+			player.gear.play_break(Gear.base(id))   # its shatter plays in his hand
 		audio.play("weapon_break", 0.05)
 		fx.float_text(player.position + Vector2(-50, -230), "SNAP!", Color(1.0, 0.55, 0.4), 30)
 		fx.add_shake(4.0)
@@ -2530,20 +2597,141 @@ func wear_weapon(id: String) -> void:
 		player.refresh_form()   # its bonus is gone
 
 
-## Repair a worn or broken weapon to full for meat. Returns true if repaired.
+## Repair a worn or broken weapon to full for materials (Gear.repair_cost).
+## Returns true if repaired.
 func repair_gear(id: String) -> bool:
 	var cost := Gear.repair_cost(id)
-	if cost <= 0 or meat_bank < cost or not gear_owned.has(id):
+	if cost.is_empty() or not Crafting.can_afford(cost) or not gear_owned.has(id):
 		audio.play("denied", 0.0)
 		return false
-	meat_bank -= cost
-	SaveData.save_meat(meat_bank)
+	_spend(cost)
 	gear_wear.erase(id)
 	_save_gear()
 	audio.play("unlock", 0.0)
 	if player.form == Forms.ROK:
 		player.refresh_form()
 	return true
+
+
+# ------------------------------------------------------------ crafting
+
+## Add materials to the bank (from a run, a chest, the Market or salvage).
+## `found` marks them as this run's (the summary's news).
+func grant_materials(got: Dictionary, found := true) -> void:
+	for m in got:
+		if int(got[m]) <= 0:
+			continue
+		materials[m] = int(materials.get(m, 0)) + int(got[m])
+		if found:
+			run_materials[m] = int(run_materials.get(m, 0)) + int(got[m])
+	_save_gear()
+
+
+func _spend(cost: Dictionary) -> void:
+	for m in cost:
+		materials[m] = int(materials.get(m, 0)) - int(cost[m])
+		if int(materials[m]) <= 0:
+			materials.erase(m)
+
+
+## Can this recipe be crafted now (learned, and with a catalyst you hold)?
+func can_craft(item: String, catalyst := "") -> bool:
+	if not bench_open() or not Gear.ITEMS.has(item) or Crafting.recipe(item).is_empty() or best_m < Crafting.learn_m(item):
+		return false
+	var cost := Crafting.recipe(item).duplicate()
+	if catalyst != "":
+		if not Crafting.catalysts().has(catalyst):
+			return false
+		cost[catalyst] = int(cost.get(catalyst, 0)) + 1
+	return Crafting.can_afford(cost)
+
+
+## Craft an item at the Bench: spend its recipe (and the catalyst), roll its
+## rarity (tests pass `roll`) and add a new copy. Returns the copy id ("" if
+## it can't be crafted).
+func craft(item: String, catalyst := "", roll := -1.0) -> String:
+	if not can_craft(item, catalyst):
+		audio.play("denied", 0.0)
+		return ""
+	var cost := Crafting.recipe(item).duplicate()
+	if catalyst != "":
+		cost[catalyst] = int(cost.get(catalyst, 0)) + 1
+	_spend(cost)
+	var r := Crafting.roll_rarity(randf() if roll < 0.0 else roll, catalyst)
+	var copy := "%s#%d" % [item, gear_next]
+	gear_next += 1
+	gear_owned.append(copy)
+	if r > 0:
+		gear_rarity[copy] = r
+	_save_gear()
+	return copy
+
+
+## Break an unequipped copy down for part of its recipe (Crafting.salvage_return).
+func salvage(copy: String) -> bool:
+	if not gear_owned.has(copy):
+		return false
+	for h in gear_equipped:
+		if gear_equipped[h].values().has(copy):
+			audio.play("denied", 0.0)
+			return false
+	var back := Crafting.salvage_return(Gear.base(copy), Gear.rarity_of(copy))
+	gear_owned.erase(copy)
+	gear_wear.erase(copy)
+	gear_rarity.erase(copy)
+	grant_materials(back, false)
+	audio.play("break_wood", 0.05)
+	return true
+
+
+## Materials pop out of something in a run and are collected at once (a
+## broken obstacle, a bonked wild dinosaur), with a little icon flying up.
+func _drop_materials(table: Dictionary, n: int, at: Vector2) -> Dictionary:
+	var got := {}
+	for i in n:
+		var m := Crafting.pick(table)
+		if m != "":
+			got[m] = int(got.get(m, 0)) + 1
+	if got.is_empty():
+		return got
+	grant_materials(got)
+	var i := 0
+	for m in got:
+		var pic := Sprite2D.new()
+		pic.texture = Crafting.icon(m)
+		pic.scale = Vector2.ONE * (40.0 / maxf(pic.texture.get_width(), pic.texture.get_height()))
+		pic.z_index = 60
+		world.add_child(pic)
+		pic.global_position = at + Vector2(i * 34.0, 0)
+		var t := pic.create_tween()
+		t.tween_property(pic, "global_position", pic.global_position + Vector2(-20, -110), 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		t.tween_property(pic, "modulate:a", 0.0, 0.3)
+		t.tween_callback(pic.queue_free)
+		fx.float_text(at + Vector2(-20 + i * 34.0, -60), "+%d %s" % [int(got[m]), Crafting.mat_name(m)], Crafting.RARITY_COLOR[Crafting.mat_rarity(m)], 20)
+		i += 1
+	return got
+
+
+## Dice for material drops (tests pin it; -1 = roll).
+var mat_drop_override := -1.0
+
+
+## A broken obstacle sometimes drops materials (config/crafting.cfg [break_drops]).
+func _break_materials(o: Obstacle, at: Vector2) -> Dictionary:
+	var table := Crafting.break_table(o, String(course.zone_at_x(o.position.x).id))
+	var r := mat_drop_override if mat_drop_override >= 0.0 else randf()
+	if table == "" or r >= float(Crafting.num("break_drops", "chance")):
+		return {}
+	return _drop_materials(Crafting.num("break_drops", table), Crafting.count_of("break_drops"), at)
+
+
+## A bonked wild dinosaur drops materials (config/crafting.cfg [wild_drops]).
+func _wild_materials(o: Obstacle) -> Dictionary:
+	var r := mat_drop_override if mat_drop_override >= 0.0 else randf()
+	if r >= float(Crafting.num("wild_drops", "chance")):
+		return {}
+	var table: Dictionary = Crafting.num("wild_drops", "flyer" if o.kind == "swooper" else "land")
+	return _drop_materials(table, Crafting.count_of("wild_drops"), o.global_position + Vector2(0, -o.size.y * 0.6))
 
 
 # ------------------------------------------------------------ attack
@@ -2628,9 +2816,9 @@ func carry_weapon() -> String:
 	if player.form != Forms.ROK:
 		return ""
 	var w := Gear.slot_item(String(player.data().id), "weapon")
-	if w == "" or not Gear.ITEMS.has(w) or Gear.ITEMS[w].slot != "weapon" or Gear.broken(w):
+	if w == "" or not Gear.ITEMS.has(Gear.base(w)) or Gear.slot_of(w) != "weapon" or Gear.broken(w):
 		return ""
-	return w
+	return Gear.base(w)
 
 
 ## The attack clip for the current form: a hero's "attack_<weapon>" while the
@@ -2640,9 +2828,9 @@ func attack_clip() -> String:
 	if player.form != Forms.ROK:
 		return "attack"
 	var w := Gear.slot_item(String(player.data().id), "weapon")
-	if w == "" or not Gear.ITEMS.has(w) or Gear.ITEMS[w].slot != "weapon" or Gear.broken(w):
+	if w == "" or not Gear.ITEMS.has(Gear.base(w)) or Gear.slot_of(w) != "weapon" or Gear.broken(w):
 		return ""
-	return "attack_" + w
+	return "attack_" + Gear.base(w)
 
 
 ## The Bow's arrow (or the Sling's stone), from the hero's hand to where the
@@ -2729,6 +2917,7 @@ func _attack_hit(target: Obstacle) -> Obstacle:
 		audio.play("smash", 0.1, 0.8)
 		combo.feat()
 		_drop_card(target)
+		_wild_materials(target)
 	elif _small_hazard(target):
 		_power_break(target)
 	else:
@@ -2890,6 +3079,14 @@ func _open_chest(k: Pickup, roll := -1.0, pick := "") -> void:
 		"full_heal":
 			health = max_health()
 			text = "Hearts refilled!"
+		"materials":
+			var got := {}
+			for i in int(Crafting.num("chests", r + "_count")):
+				var m := Crafting.pick(Crafting.num("chests", r))
+				if m != "":
+					got[m] = int(got.get(m, 0)) + 1
+			grant_materials(got)
+			text = Crafting.cost_text(got)
 		"card":
 			var d := Gear.random_card(r == "epic")
 			grant_card(d)
@@ -2931,6 +3128,7 @@ func _frenzy_smash(o: Obstacle) -> void:
 		audio.play("smash", 0.1, 0.8)
 		combo.feat()
 		_drop_card(o)
+		_wild_materials(o)
 		return
 	_smash(o, Color(1.0, 0.8, 0.3))
 	fx.add_shake(3.0)
@@ -3021,6 +3219,7 @@ func _smash(o: Obstacle, color: Color) -> void:
 	score += Tuning.SMASH_SCORE * points_mult()
 	fx.float_text(pos + Vector2(-20, -40), "+%d" % int(Tuning.SMASH_SCORE * points_mult()))
 	_break_loot(pos)
+	_break_materials(o, pos)
 	course.shatter_obstacle(o)
 
 
@@ -3145,7 +3344,7 @@ func _refresh_hud() -> void:
 	# the summary card (OVER) has the screen to itself; the main menu (TITLE)
 	# brings back the Field Guide, Camp and Market buttons
 	var menu := state == State.TITLE or state == State.PAUSED
-	var overlay: bool = codex.visible or market.visible or herd.visible
+	var overlay: bool = _overlay_open()
 	hud.combo_meter.shown = state == State.PLAYING or state == State.INFO or state == State.PAUSED
 	hud.set_tips(state == State.PAUSED and not overlay, tutorial.enabled)
 	var in_run := (state == State.PLAYING or state == State.PAUSED) and not overlay
@@ -3198,7 +3397,7 @@ func _coach_step(delta: float) -> void:
 				_ground_jump_t = -1.0
 		elif player.on_ground or not player._jump_held:
 			_ground_jump_t = -1.0
-	var overlay: bool = codex.visible or market.visible or herd.visible
+	var overlay: bool = _overlay_open()
 	var where := "run" if state == State.PLAYING else ("menu" if state == State.TITLE and not overlay and _menu_t <= 0.0 else "")
 	var timed_out := tutorial.step(delta)
 	if tutorial.current != "":

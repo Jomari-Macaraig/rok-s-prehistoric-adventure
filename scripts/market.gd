@@ -73,7 +73,7 @@ static func items() -> Array:
 			a.append(k)
 	a.append_array(Dinos.ids())
 	a.append_array(Heroes.IDS.filter(func(h): return Heroes.has(h)))   # Nira, Boro
-	a.append_array(Gear.ITEMS.keys())   # weapons and armor
+	a.append_array(Crafting.market_ids())   # basic crafting materials (gear is crafted, not sold)
 	# (no Card Pack: dinosaur cards are dropped by wild dinosaurs, main._drop_card)
 	a.sort_custom(func(x, y): return unlock_m(x) < unlock_m(y) if unlock_m(x) != unlock_m(y) else price(x) < price(y))
 	return a
@@ -81,7 +81,7 @@ static func items() -> Array:
 
 ## Which tab an item is listed under.
 static func category(id: String) -> String:
-	if Gear.has(id) or id == Gear.CARD_PACK:
+	if Gear.has(id) or id == Gear.CARD_PACK or id.begins_with(Crafting.MAT_PREFIX):
 		return "gear"
 	if id == SLOT_ID or is_heart(id):
 		return "other"
@@ -91,6 +91,8 @@ static func category(id: String) -> String:
 
 
 static func price(id: String) -> int:
+	if id.begins_with(Crafting.MAT_PREFIX):
+		return int(Crafting.mat(id.substr(Crafting.MAT_PREFIX.length())).price)
 	if Gear.has(id):
 		return int(Progression.PRICES.get(id, Gear.ITEMS[id].price))
 	if id == Gear.CARD_PACK:
@@ -100,6 +102,8 @@ static func price(id: String) -> int:
 
 ## Best distance that puts an item on sale.
 static func unlock_m(id: String) -> int:
+	if id.begins_with(Crafting.MAT_PREFIX):   # never before the Crafting Bench opens
+		return maxi(Crafting.bench_m(), int(Crafting.mat(id.substr(Crafting.MAT_PREFIX.length())).unlock_m))
 	if Gear.has(id):
 		return int(Progression.MARKET_UNLOCK_M.get(id, Gear.ITEMS[id].unlock_m))
 	return int(Progression.MARKET_UNLOCK_M.get(id, 0))
@@ -176,6 +180,8 @@ func unlock_hint(id: String) -> String:
 
 
 static func item_name(id: String) -> String:
+	if id.begins_with(Crafting.MAT_PREFIX):
+		return "%s ×%d" % [Crafting.mat_name(id.substr(Crafting.MAT_PREFIX.length())), Crafting.bundle()]
 	if Gear.has(id):
 		return Gear.name_of(id)
 	if id == Gear.CARD_PACK:
@@ -192,7 +198,7 @@ static func item_name(id: String) -> String:
 func owns(id: String) -> bool:
 	if Gear.has(id):
 		return game.gear_owned.has(id)
-	if id == Gear.CARD_PACK:
+	if id == Gear.CARD_PACK or id.begins_with(Crafting.MAT_PREFIX):
 		return false   # buy as many as you like
 	if id == SLOT_ID:
 		return game.slot_count >= Boosters.MAX_SLOTS
@@ -728,6 +734,8 @@ func _icon_of(id: String) -> Texture2D:
 		return Dinos.icon(id)
 	if Gear.has(id) or id == Gear.CARD_PACK:
 		return Gear.icon(id)
+	if id.begins_with(Crafting.MAT_PREFIX):
+		return Crafting.icon(id.substr(Crafting.MAT_PREFIX.length()))
 	return Boosters.icon(id)
 
 
@@ -874,15 +882,15 @@ const LINES := {
 		"Ugo would keep this for himself, but his running days are over. Oof.",
 	],
 	"gear": [
-		"Made by Ugo's own hands! Sharp, sturdy, only slightly crooked.",
-		"Swing it hard, swing it often. It wears out, so come back to Ugo!",
+		"Gathered by Ugo's own hands! Mostly. A raccoon helped.",
+		"Take it to the Crafting Bench and make something sharp!",
 		"Good stone, good wood, good knots. Ugo-standard quality!",
-		"Hit things with it. That's the whole idea. Ugo hit his toe testing it.",
-		"Ugo's grandfather made one like this. He still has most of his fingers.",
-		"Break it and Ugo fixes it. For meat. Everything is for meat.",
+		"Craft it yourself, Ugo says. Ugo hit his toe the last time he crafted.",
+		"Ugo's grandfather built a whole hut from these. It fell down. Nicely.",
+		"Lucky crafters get shiny gold weapons. Ugo is not a lucky crafter.",
 		"A runner without gear is a runner with bruises. Ugo knows. Ugo has many.",
-		"Ugo blessed it with his lucky rock. Twice. Extra lucky.",
-		"Balanced perfectly! Well, Ugo tripped once. But that was the ground.",
+		"Ugo blessed this pile with his lucky rock. Twice. Extra lucky.",
+		"Break things out there and you find this for free. But Ugo is closer!",
 	],
 	"dinos": [
 		"A fine beast! Tame, fed, and only bites when asked nicely.",
@@ -1065,6 +1073,10 @@ func _build_detail() -> void:
 		desc = "%s %s%s%s. Equip it at the Camp." % [Gear.ITEMS[id].desc, Gear.bonus_text(id),
 				(", reach %d" % int(Gear.ITEMS[id].reach)) if Gear.ITEMS[id].has("reach") else "",
 				(", lasts %d hits" % Gear.max_durability(id)) if Gear.max_durability(id) > 0 else ""]
+	elif id.begins_with(Crafting.MAT_PREFIX):
+		var m := id.substr(Crafting.MAT_PREFIX.length())
+		desc = "%d %s for crafting weapons and armor at the Crafting Bench. You have %d. Also from: %s" % [
+				Crafting.bundle(), Crafting.mat_name(m), Crafting.have(m), String(Crafting.mat(m).from)]
 	elif id == Gear.CARD_PACK:
 		var n := 0
 		for k in game.cards:

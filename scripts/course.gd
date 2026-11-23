@@ -14,6 +14,7 @@ signal introduced(key: String)   # first spawn of a pattern this run
 
 var difficulty := 0.0    # 0..1 (Progression.pressure)
 var metres := 0.0        # set by main every frame
+var _spot_x := 0.0       # where the reward spot being filled is (its zone picks its materials)
 var speed := Tuning.START_SPEED
 ## A long pattern waiting for enough flat ground, and how far it has waited (px).
 const LONG_KEYS := ["combo", "hard_combo", "ledge"]
@@ -239,6 +240,10 @@ func _spot_kind() -> String:
 	if r < power:
 		return "power"
 	r -= power
+	var mats := float(Crafting.num("spots", "chance"))   # crafting materials (config/crafting.cfg [spots])
+	if r < mats:
+		return "material"
+	r -= mats
 	var meat: float = Loot.num("spots", "meat")
 	if r < meat or metres - _last_meat_m >= float(Loot.num("spots", "meat_due_m")):
 		_last_meat_m = metres
@@ -267,6 +272,9 @@ func _fill(kind: String, special: bool) -> String:
 			return "fossil" if special else ""
 		"mixed":
 			return "meat" if randf() < 0.5 else "amber"
+		"material":
+			var m := Crafting.pick(Crafting.spot_table(String(zone_at_x(_spot_x).id), metres))
+			return Crafting.PICKUP_PREFIX + m if m != "" else ""
 	return kind
 
 
@@ -855,6 +863,7 @@ func _spawn_single(k: String, x: float) -> Obstacle:
 ## over simple single hazards, never next to a ledge, wall, gate or combo,
 ## and separate island groups keep PLATFORM_GROUP_GAP apart.
 func _rewards(x: float, used: float, key := "small") -> void:
+	_spot_x = x
 	var islands_ok: bool = key in ["small", "thorn_bush", "log", "boulder", "fence"] \
 			and x - 200.0 > _last_platform_end + PLATFORM_GROUP_GAP
 	if Progression.available("sky_trail", metres) and randf() < float(Loot.num("placement", "sky_trail")):

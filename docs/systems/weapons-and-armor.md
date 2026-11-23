@@ -10,14 +10,17 @@ Part of the [system docs](README.md).
 | | |
 |---|---|
 | Code | `scripts/gear.gd` (`Gear.ITEMS`, `bonus`, `reach`, `wear`, `broken`, `repair_cost`), `scripts/gear_layer.gd` (`GearLayer`), `main.equip_gear` / `wear_weapon` / `repair_gear` / `grant_card` / `_drop_card` / `gear_ready` |
-| Prices and sale | defaults in `Gear.ITEMS`; `[market]` / `[market_unlocks]` can override |
+| Getting gear | **crafted, not bought**: recipes, rarity and materials in `config/crafting.cfg`; recipes learned at `[market_unlocks]` (see [crafting](crafting.md)) |
 | Art | icons `assets/gear/<id>.png` + @2x, `gear_art.json` (grips), `sockets.json` (hand/back per frame), `break_<id>.png` (`tools/prepare_gear.py`) |
-| Saved | `main.gear_owned`, `gear_equipped`, `cards`, `gear_wear` (`SaveData.load/save_gear`; `_sync_gear` points `Gear`'s statics at them) |
+| Saved | `main.gear_owned` (copy ids like `stone_axe#3`), `gear_equipped`, `cards`, `gear_wear`, `gear_rarity`, `gear_next`, `materials` (`SaveData.load/save_gear`; `_sync_gear` points `Gear`'s and `Crafting`'s statics at them) |
 
 ## Slots
 
-Each hero (Rok, Nira, Boro) has a **Weapon** and an **Armor** slot. Bought in
-the Market's Gear tab, equipped at the Camp (`main.equip_gear(hero, slot, id)`).
+Each hero (Rok, Nira, Boro) has a **Weapon** and an **Armor** slot. Gear is
+**crafted** at the Crafting Bench (each craft is its own copy with a rolled
+rarity that multiplies its bonuses and durability; see [crafting](crafting.md)),
+and equipped at the Camp (`main.equip_gear(hero, slot, copy_id)`). The tables
+below are the Common stats.
 A red dot on the Camp button means an owned hero has an empty slot it has gear
 for (`gear_ready()`).
 
@@ -34,7 +37,7 @@ for (`gear_ready()`).
 | Bow | Power +2 | 460 (longest) | 70 | **ranged**: fires a flint arrow |
 
 - Bare hands: `ATTACK_REACH_HAND`. See [combat](combat.md) for what Power breaks.
-- The Torch is 1300 meat from 3400 m; the Bow 2800 meat from 7400 m. Both are held nearly upright (`upright` in gear_art.json).
+- The Torch's recipe is learned at 3400 m, the Bow's at 7400 m. Both are held nearly upright (`upright` in gear_art.json).
 - Arrows and stones are cosmetic; the hit is instant.
 
 ## Armor
@@ -60,9 +63,9 @@ The user's design. Armor and cards don't wear.
 2. At `WEAR_WARN` (5) hits left, a banner warns.
 3. At 0 the weapon is **broken** (`Gear.broken`): its own 8-frame shatter plays in the hand (`GearLayer.play_break`; frame 0 is the intact weapon), the `weapon_break` sound, "SNAP!", a banner and a news line. Any attack clip stops so the shatter shows.
 4. Broken: no bonus, bare-hand reach, not drawn, no attack clip. It stays owned and equipped.
-5. **Repair** at the Camp (`Herd.press_repair`, two taps, `main.repair_gear`): cost = price × `REPAIR_SHARE` (0.5) × the worn share. The Camp shows "Durability n/max" (or BROKEN).
+5. **Repair** at the Camp (`Herd.press_repair`, two taps, `main.repair_gear`): costs **materials**, `[repair] share` of the recipe × the worn share (`Crafting.repair_cost`). The Camp shows "Durability n/max" (or BROKEN) and the repair cost.
 
-Buying a weapon gives full durability; the Market's text says how many hits it lasts.
+A crafted weapon starts at full durability (its rarity's `durability_mult` × the base hits).
 
 ## Dinosaur cards
 

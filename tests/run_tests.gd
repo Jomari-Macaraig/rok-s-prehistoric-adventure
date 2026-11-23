@@ -1250,21 +1250,28 @@ func _feedback_checks() -> void:
 	main.cards.clear()
 	main._sync_gear()
 	var power0 := Dinos.stat("rok", "power")
-	check(not main.equip_gear("rok", "weapon", "stone_axe"), "gear you don't own can't be equipped")
+	check(not main.equip_gear("rok", "weapon", "stone_axe#1"), "gear you don't own can't be equipped")
 	main.meat_bank = 100000
-	check(Market.category("stone_axe") == "gear" and Market.price("stone_axe") > 0, "weapons are sold in the Market's Gear tab")
+	check(not Market.items().has("stone_axe") and not main.buy("stone_axe"), "weapons aren't sold in the Market (they're crafted)")
 	main.best_m = 10000
-	check(main.buy("stone_axe") and main.gear_owned.has("stone_axe") and not main.buy("stone_axe"), "a weapon can be bought once")
-	check(main.equip_gear("rok", "weapon", "stone_axe") and Gear.slot_item("rok", "weapon") == "stone_axe", "...and equipped on a hero")
+	main.materials.clear()
+	check(not main.can_craft("stone_axe") and main.craft("stone_axe") == "", "without its materials a weapon can't be crafted")
+	main.grant_materials({"wood": 200, "stone": 200, "fiber": 200, "flint": 50, "hide": 50, "bone": 50, "resin": 20, "dino_scale": 20, "shell": 10}, false)
+	var wood0 := Crafting.have("wood")
+	var axe: String = main.craft("stone_axe", "", 0.0)   # roll 0 = Common
+	check(axe.begins_with("stone_axe#") and main.gear_owned.has(axe) and Gear.rarity_of(axe) == 0 and Crafting.have("wood") == wood0 - int(Crafting.recipe("stone_axe").wood),
+			"crafting spends the recipe and adds a Common copy on a low roll")
+	check(main.equip_gear("rok", "weapon", axe) and Gear.slot_item("rok", "weapon") == axe, "...and it can be equipped on a hero")
 	check(is_equal_approx(Dinos.stat("rok", "power"), power0 + 2.0), "the Stone Axe adds 2 Power to Rok")
-	check(not main.equip_gear("rok", "armor", "stone_axe"), "a weapon doesn't go in the armor slot")
+	check(not main.equip_gear("rok", "armor", axe), "a weapon doesn't go in the armor slot")
 	check(main.attack_reach() == Gear.reach("rok") and Gear.reach("rok") > Tuning.ATTACK_REACH_HAND, "a weapon reaches further than bare hands")
 	main.attack_cd = 0.0
 	main._attack()
 	check(main.player.attack_clip == "attack_stone_axe" and main.player.atk.visible, "Rok swings his Stone Axe with its own attack clip")
 	main.player.attack_stop()
 	# --- the seamless running attack (the user's Rok_Running_Club)
-	check(main.buy("club") and main.equip_gear("rok", "weapon", "club"), "(the club, bought and equipped)")
+	var club: String = main.craft("club", "", 0.0)
+	check(club != "" and main.equip_gear("rok", "weapon", club), "(the club, crafted and equipped)")
 	p.on_ground = true
 	p.sprite.play("run")
 	p.set_carry(main.carry_weapon())
@@ -1294,33 +1301,126 @@ func _feedback_checks() -> void:
 	check(p.attack_clip == "attack_club", "in the air the standing swing plays instead")
 	p.attack_stop()
 	p.on_ground = true
-	main.equip_gear("rok", "weapon", "stone_axe")
+	main.equip_gear("rok", "weapon", axe)
 	p.set_carry(main.carry_weapon())
 	check(p.carry == "" and p.sprite.sprite_frames == SpriteLib.character(Forms.ROK),
 			"a weapon without a running sheet keeps the plain run (the held weapon drawn on)")
-	main.buy("shell_plate")
-	main.equip_gear("rok", "armor", "shell_plate")
+	main.equip_gear("rok", "armor", main.craft("shell_plate", "", 0.0))
 	check(Forms.get_data(Forms.ROK).has("stumble_mult") and float(Forms.get_data(Forms.ROK).stumble_mult) < 1.0, "armor makes Rok tougher in play")
 	var lv0 := Dinos.trained_stat("rok", "armor")
 	check(Dinos.stat("rok", "armor") > lv0 and Dinos.can_raise("rok", "armor") == (lv0 < Dinos.level_cap("rok", "armor") - 0.001), "gear never blocks levelling")
 	var saved := SaveData.load_gear()
-	check((saved.owned as Array).has("stone_axe") and saved.equipped.rok.weapon == "stone_axe", "gear is saved")
+	check((saved.owned as Array).has(axe) and saved.equipped.rok.weapon == axe and int(saved.materials.wood) == Crafting.have("wood"), "gear and materials are saved")
 	# --- weapon durability (each connecting ATTACK wears it; broken = no bonus until repaired)
-	check(Gear.durability("stone_axe") == Gear.max_durability("stone_axe") and Gear.max_durability("stone_axe") > 0 and Gear.max_durability("shell_plate") == 0,
+	check(Gear.durability(axe) == Gear.max_durability(axe) and Gear.max_durability(axe) > 0 and Gear.max_durability("shell_plate") == 0,
 			"a new weapon has full durability and armor doesn't wear")
-	main.gear_wear["stone_axe"] = 2
-	main.wear_weapon("stone_axe")
-	check(Gear.durability("stone_axe") == 1 and not Gear.broken("stone_axe") and is_equal_approx(Dinos.stat("rok", "power"), power0 + 2.0), "a hit wears a weapon down by one")
-	main.wear_weapon("stone_axe")
-	check(Gear.broken("stone_axe") and is_equal_approx(Dinos.stat("rok", "power"), power0) and Gear.reach("rok") == Tuning.ATTACK_REACH_HAND
+	main.gear_wear[axe] = 2
+	main.wear_weapon(axe)
+	check(Gear.durability(axe) == 1 and not Gear.broken(axe) and is_equal_approx(Dinos.stat("rok", "power"), power0 + 2.0), "a hit wears a weapon down by one")
+	main.wear_weapon(axe)
+	check(Gear.broken(axe) and is_equal_approx(Dinos.stat("rok", "power"), power0) and Gear.reach("rok") == Tuning.ATTACK_REACH_HAND
 			and main.audio.played.has("weapon_break"), "at 0 the weapon breaks: no bonus, bare-hand reach, a snap")
 	check(main.attack_clip() == "", "a broken weapon has no attack clip (bare hands)")
-	check(int(SaveData.load_gear().wear.stone_axe) == 0, "wear is saved")
-	var rcost := Gear.repair_cost("stone_axe")
+	check(int(SaveData.load_gear().wear[axe]) == 0, "wear is saved")
+	var rcost := Gear.repair_cost(axe)
+	var rwood := Crafting.have("wood")
 	var rbank: int = main.meat_bank
-	check(rcost > 0 and rcost <= Market.price("stone_axe") and main.repair_gear("stone_axe") and main.meat_bank == rbank - rcost
-			and Gear.durability("stone_axe") == Gear.max_durability("stone_axe") and not Gear.broken("stone_axe"), "repairing at the Camp costs meat and restores it")
-	check(Gear.repair_cost("stone_axe") == 0 and not main.repair_gear("stone_axe"), "a weapon at full durability needs no repair")
+	check(not rcost.is_empty() and int(rcost.get("wood", 0)) <= int(Crafting.recipe("stone_axe").wood) and main.repair_gear(axe) and main.meat_bank == rbank
+			and Crafting.have("wood") == rwood - int(rcost.get("wood", 0)) and Gear.durability(axe) == Gear.max_durability(axe) and not Gear.broken(axe),
+			"repairing at the Camp costs materials (not meat) and restores it")
+	check(Gear.repair_cost(axe).is_empty() and not main.repair_gear(axe), "a weapon at full durability needs no repair")
+	# --- crafting (the user's design: gear is crafted, never bought; config/crafting.cfg)
+	Crafting.forget()
+	check(Crafting.materials().size() == 12 and Crafting.recipes().size() == Gear.ITEMS.size(), "crafting.cfg lists 12 materials and a recipe for every weapon and armor")
+	check(Crafting.recipes().all(func(k): return Crafting.recipe(k).keys().all(func(m): return Crafting.is_material(m))), "every recipe uses real materials")
+	var c_bm := Crafting.bench_m()
+	main.best_m = c_bm - 1.0
+	check(c_bm > 0 and not main.bench_open() and not main.can_craft("club"), "the Crafting Bench is closed before its distance (%d m)" % c_bm)
+	main.open_bench()
+	check(not main.bench.visible, "...and can't be opened")
+	check(not Market.on_sale("mat_wood", main.best_m), "...and the Market doesn't sell materials yet")
+	main.best_m = 10000
+	check(main.bench_open() and Market.on_sale("mat_wood", main.best_m), "past it the bench opens and wood is on sale")
+	var c_legend: String = main.craft("stone_axe", "", 0.9999)
+	check(Gear.rarity_of(c_legend) == 4 and Gear.full_name(c_legend).begins_with("Legendary"), "a lucky roll crafts a Legendary copy")
+	check(float(Gear.item_bonus(c_legend).power) > float(Gear.item_bonus(axe).power) and Gear.max_durability(c_legend) > Gear.max_durability(axe),
+			"rarity raises its bonus and durability")
+	main.gear_rarity["bone_hammer#99"] = 4
+	check(Gear.item_bonus("bone_hammer#99").speed == Gear.ITEMS.bone_hammer.bonus.speed and Gear.item_bonus("bone_hammer#99").power > Gear.ITEMS.bone_hammer.bonus.power,
+			"rarity raises the good and never makes a drawback worse")
+	main.gear_rarity.erase("bone_hammer#99")
+	check(float(Crafting.odds("primal_crystal")[0]) == 0.0 and float(Crafting.odds("")[0]) > 0.5, "a catalyst changes the odds (a Primal Crystal never rolls Common)")
+	main.materials["primal_crystal"] = 1
+	var c_pc: String = main.craft("club", "primal_crystal", 0.0)
+	check(Gear.rarity_of(c_pc) >= 1 and Crafting.have("primal_crystal") == 0, "crafting with a catalyst spends it and rolls better")
+	check(not main.can_craft("club", "primal_crystal"), "a catalyst you don't have can't be used")
+	var c_back := Crafting.salvage_return("stone_axe", 4)
+	var s_wood := Crafting.have("wood")
+	check(main.salvage(c_legend) and not main.gear_owned.has(c_legend) and Crafting.have("wood") == s_wood + int(c_back.wood) and c_back.has("primal_crystal"),
+			"salvaging returns half the recipe, plus a catalyst for rare and better")
+	check(not main.salvage(Gear.slot_item("rok", "weapon")), "equipped gear can't be salvaged")
+	Gear.rarity.erase("club")
+	check(Gear.base("club") == "club" and Gear.rarity_of("club") == 0 and Gear.max_durability("club") == int(Gear.ITEMS.club.durability), "gear from old saves counts as Common")
+	# materials from runs
+	var c_rock := Obstacle.new()
+	main.world.add_child(c_rock)
+	c_rock.kind = "rock"
+	main.mat_drop_override = 0.0
+	var c_got: Dictionary = main._break_materials(c_rock, c_rock.position)
+	check(not c_got.is_empty() and c_got.keys().all(func(m): return ["stone", "flint", "obsidian"].has(m)), "a broken c_rock drops stone, flint or obsidian")
+	c_rock.kind = "wood"
+	check(main._break_materials(c_rock, c_rock.position).keys().all(func(m): return ["wood", "fiber"].has(m)), "a broken log drops wood or fiber")
+	c_rock.critter = "gallimimus"
+	var c_wg: Dictionary = main._wild_materials(c_rock)
+	check(not c_wg.is_empty() and c_wg.keys().all(func(m): return Crafting.num("wild_drops", "land").has(m)), "a bonked wild dinosaur drops hide, bone or scales")
+	main.mat_drop_override = 0.999
+	check(main._break_materials(c_rock, c_rock.position).is_empty(), "...and only by chance")
+	main.mat_drop_override = -1.0
+	c_rock.queue_free()
+	check(Chest.REWARDS.common.has("materials") and Chest.REWARDS.epic.has("materials"), "chests can hold materials")
+	var c_cm := Crafting.have("shell") + Crafting.have("fossil_shard") + Crafting.have("dino_scale") + Crafting.have("primal_crystal")
+	var c_chest := Pickup.new().setup("chest")
+	main.course.add_child(c_chest)
+	main.course.pickups.append(c_chest)
+	main._open_chest(c_chest, 0.0, "materials")
+	check(Crafting.have("shell") + Crafting.have("fossil_shard") + Crafting.have("dino_scale") + Crafting.have("primal_crystal") > c_cm, "an epic c_chest's materials are rare ones")
+	check(main.course._fill("material", false).begins_with(Crafting.PICKUP_PREFIX), "a material reward spot holds material pickups")
+	var c_mp := Pickup.new().setup("m_flint")
+	check(c_mp.sprite is Sprite2D and (c_mp.sprite as Sprite2D).texture != null, "a material pickup shows its icon")
+	c_mp.free()
+	check(Crafting.spot_table("forest", 0.0, 0.0) == Crafting.num("spots", "forest") and Crafting.spot_table("forest", 99999.0, 0.0) == Crafting.num("spots", "deep"),
+			"deep in a run material spots can hold the rare table")
+	main.run_materials = {"wood": 2}
+	main.new_this_run.clear()
+	main._bank_meat()
+	check(main.new_this_run.any(func(n): return String(n).begins_with("Found")), "materials found in a run are news on the summary")
+	# the Crafting Bench and Items screens (from the Camp's header)
+	main.open_herd("rok")
+	check(main.herd.find_child("BenchButton", true, false) != null and main.herd.find_child("ItemsButton", true, false) != null, "the Camp's header has Crafting and Items")
+	main.open_bench("weapon")
+	var c_bn: Workshop = main.bench
+	check(c_bn.visible and c_bn.list.get_child_count() == Crafting.recipes().filter(func(k): return Gear.ITEMS[k].slot == "weapon").size(), "the bench lists every weapon recipe")
+	c_bn.select("flint_spear")
+	check(c_bn.detail.find_child("Materials", true, false) != null and c_bn.detail.find_child("Odds", true, false) != null and c_bn.detail.find_child("Craft", true, false) != null,
+			"a recipe shows its materials, the odds and Craft")
+	var n_gear: int = main.gear_owned.size()
+	c_bn.press_craft()
+	check(main.gear_owned.size() == n_gear, "one tap only arms Craft")
+	var c_made := c_bn.press_craft()
+	check(c_made.begins_with("flint_spear#") and main.gear_owned.size() == n_gear + 1 and (c_bn.detail.find_child("Result", true, false) as Label).visible, "the second crafts it and shows the result")
+	c_bn.close_screen()
+	main.open_items("materials")
+	var c_it: Workshop = main.items
+	check(c_it.visible and c_it.list.get_child_count() == Crafting.materials().filter(func(m): return Crafting.have(m) > 0).size(), "the Items screen lists the materials you have")
+	c_it.show_tab("weapon")
+	c_it.select(c_made)
+	check(c_it.detail.find_child("Salvage", true, false) != null and c_it.detail.find_child("Stats", true, false) != null, "an unequipped weapon shows its stats and Salvage")
+	c_it.press_salvage()
+	check(main.gear_owned.has(c_made), "one tap only arms Salvage")
+	c_it.press_salvage()
+	check(not main.gear_owned.has(c_made), "the second salvages it")
+	c_it.close_screen()
+	main.herd.close_herd()
 	# --- cooldowns shortened by attributes (ATTACK by Power, the slide by Speed)
 	check(Dinos.cooldown_mult("raptor", "speed") < Dinos.cooldown_mult("spinosaurus", "speed") and Dinos.cooldown_mult("rok", "power") < 1.0,
 			"more Speed or Power means a shorter cooldown")
@@ -1360,9 +1460,9 @@ func _feedback_checks() -> void:
 	check(h.detail.find_child("Slot_weapon", true, false) != null and h.detail.find_child("Slot_armor", true, false) != null, "the Camp shows a hero's weapon and armor slots")
 	check(main.gear_ready(), "owned gear with an empty slot puts a red dot on the Camp")
 	h.press_slot("weapon")
-	check(h.list.find_child("Gear_stone_axe", true, false) != null and h.list.find_child("Gear_none", true, false) != null, "Change lists what can go in the slot")
-	h.press_gear("stone_axe")
-	check(Gear.slot_item("rok", "weapon") == "stone_axe" and h.picking == "", "picking one equips it")
+	check(h.list.find_child("Gear_" + axe, true, false) != null and h.list.find_child("Gear_none", true, false) != null, "Change lists what can go in the slot")
+	h.press_gear(axe)
+	check(Gear.slot_item("rok", "weapon") == axe and h.picking == "", "picking one equips it")
 	h.close_herd()
 	check(main.herd.find_child("Backdrop", true, false) != null and main.market.find_child("Backdrop", true, false) != null and main.codex.find_child("Backdrop", true, false) != null,
 			"the Camp, Market and Field Guide are their own full screens")
@@ -2882,7 +2982,7 @@ func _market_checks() -> void:
 	# the Market sells the third slot and every non-starter power-up, at config prices
 	var c := ConfigFile.new()
 	c.load(Progression.CONFIG_PATH)
-	check(Market.items().size() == 6 + 3 + 28 + 2 + Gear.ITEMS.size() and Market.items().has(Market.SLOT_ID) and not Market.items().has("egg"), "the Market sells the third slot, 3 Heart Containers, the five locked power-ups, 28 dinosaurs, 2 heroes and the hero gear (no card packs)")
+	check(Market.items().size() == 6 + 3 + 28 + 2 + Crafting.market_ids().size() and Market.items().has(Market.SLOT_ID) and not Market.items().has("egg"), "the Market sells the third slot, 3 Heart Containers, the five locked power-ups, 28 dinosaurs, 2 heroes and basic crafting materials (no gear, no card packs)")
 	# the Dinosaur Expansion
 	check(Dinos.ids().size() == 28 and Dinos.ids().all(func(id): return Market.items().has(id)), "all 28 expansion dinosaurs are for sale")
 	check(Dinos.ids().all(func(id): return Market.price(id) == int(c.get_value("market", id, -1)) and Market.unlock_m(id) == int(c.get_value("market_unlocks", id, -1))), "dinosaur prices and distances come from the config")
@@ -2945,7 +3045,7 @@ func _market_checks() -> void:
 	main.course.boosters_owned = ["egg"]
 	# reward spots: one kind each, mostly amber; meat, lone power-ups and
 	# mixed amber+meat spots are rarer
-	var spots := {"amber": 0, "meat": 0, "power": 0, "mixed": 0, "heart": 0}
+	var spots := {"amber": 0, "meat": 0, "power": 0, "mixed": 0, "heart": 0, "material": 0}
 	for i in 4000:
 		spots[main.course._spot_kind()] += 1
 	check(spots.amber > 2000, "reward spots are mostly amber: %s" % str(spots))
@@ -3093,13 +3193,14 @@ func _market_checks() -> void:
 	main.meat_bank = 0
 	mk.select("golden_fossil")
 	check(mk.buy_box.find_child("Buy", true, false) == null and mk.buy_box.get_child_count() == 1, "without the meat, BUY is greyed (NEED N)")
-	main.meat_bank = Market.price("hide_vest")
-	main.best_m = maxf(main.best_m, 1.0)
+	main.meat_bank = Market.price("mat_wood")
+	main.best_m = maxf(main.best_m, float(Crafting.bench_m()))
+	var w0 := Crafting.have("wood")
 	mk.show_tab("gear")
-	mk.press_buy("hide_vest")
-	mk.press_buy("hide_vest")
-	check(main.gear_owned.has("hide_vest") and mk._say != "" and mk.scene._happy > 0.0, "after a sale the merchant beams and thanks you")
-	main.gear_owned.erase("hide_vest")
+	mk.press_buy("mat_wood")
+	mk.press_buy("mat_wood")
+	check(Crafting.have("wood") == w0 + Crafting.bundle() and mk._say != "" and mk.scene._happy > 0.0, "after a sale the merchant beams and thanks you")
+	main.materials.clear()
 	main._save_gear()
 	main.market.close_market()
 	check(not main.market.visible, "the Market closes")

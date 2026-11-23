@@ -65,6 +65,7 @@ as you go. Each system's details are in [docs/systems/](systems/README.md).
 - [ ] [Attributes and cooldowns](systems/attributes.md)
   - [ ] Cooldown animation in place of the wedge (art from the user)
 - [ ] [Levelling and XP](systems/leveling.md)
+- [ ] [Crafting, materials, rarity and the Items screen](systems/crafting.md): built 2026-11-23 (gear is crafted, not bought; bench opens at 500 m). Waiting on the bench, material icons, rarity frames and title plaques art; tune drop rates and recipe costs after play.
 - [ ] [Weapons, armor and dinosaur cards](systems/weapons-and-armor.md)
   - [ ] Body overlays for Hide Vest, Scale Mail and Bone Guards (art needed)
   - [ ] Remove the retired Card Pack code
