@@ -58,6 +58,7 @@ const MAX_SPEED := 900.0
 const SPEED_RAMP := 3.0          # px/s gained per second (≈ +180 px/s per minute)
 const PX_PER_M := 40.0           # world pixels per displayed metre
 const GRAVITY := 2700.0
+const CRITTER_HOP_V := 820.0     # a running wild dinosaur's hop over a pit or liquid (Obstacle.follow_ground)
 const JUMP_CUT := 0.75            # velocity kept when jump is released early (a tap still clears a small rock)
 const JUMP_TAP_TIME := 0.08      # a tap that ends before the jump starts is cut this long after takeoff
 const COYOTE_TIME := 0.09
@@ -203,7 +204,7 @@ const LOOT_CHANCE := 0.12         # a broken obstacle drops loot (main._break_lo
 const LOOT_HEART_SHARE := 0.15    # ...of which a heart (amber at full health)
 const LOOT_POWER_SHARE := 0.2     # ...a power-up the player owns; the rest is amber
 const LOOT_AMBER := 3             # amber pieces in an amber drop
-const CARD_DROP_CHANCE := 0.25   # a bonked wild dinosaur drops its own card (always the first time per species)
+const CARD_DROP_CHANCE := 0.08   # a bonked wild dinosaur drops its own card (config/pickups.cfg [cards] overrides)
 const COOLDOWN_CUT_PER_POINT := 0.04   # each attribute point cuts a cooldown by 4% (40% at 10)
 const ATTACK_REACH_HAND := 150.0 # px ahead a hero reaches bare-handed (weapons reach further)
 const ATTACK_REACH_DINO := 190.0 # px ahead a dinosaur reaches
@@ -267,7 +268,7 @@ const MISSION_STREAK_MAX := 6    # (capped)
 const CHEST_EVERY_M := 1000.0
 # Defaults only: config/pickups.cfg [chests] sets these (Chest reads it).
 # Chance of each rarity: [at the first milestone, + per milestone after, cap]
-const CHEST_ODDS := {"rare": [0.22, 0.03, 0.45], "ultra_rare": [0.04, 0.04, 0.30], "legendary": [0.01, 0.015, 0.12]}
+const CHEST_ODDS := {"rare": [0.15, 0.02, 0.30], "ultra_rare": [0.03, 0.015, 0.12], "legendary": [0.005, 0.005, 0.04]}
 const CHEST_MEAT := [4, 8, 15, 30]   # common / rare / ultra rare / legendary meat (+1 per milestone)
 const CHEST_XP := [150, 400, 1000, 2500]   # ... XP for the form Rok is in
 const CHEST_SCORE := 500         # points for opening any chest (default; pickups.cfg [chests] score)

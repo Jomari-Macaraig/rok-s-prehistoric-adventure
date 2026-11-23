@@ -245,19 +245,28 @@ static func reach(hero: String) -> float:
 	return float(ITEMS[base(w)].reach) if ITEMS.has(base(w)) and not broken(w) else Tuning.ATTACK_REACH_HAND
 
 
-## A random dinosaur card for a chest or Card Pack: rare chests the lower
-## tiers, epic ones any tier (the higher tiers more often).
+## A random dinosaur card for a chest: rare chests the lower tiers (up to
+## Skilled), ultra rare and legendary ones any tier. Each dinosaur weighs its
+## tier's config/pickups.cfg [cards] chest_tier_weights: the higher the tier,
+## the less likely (the user's rule).
 static func random_card(epic: bool) -> String:
-	var pool: Array = []
+	var wts: Array = Loot.num("cards", "chest_tier_weights")
+	var ids: Array = []
 	for f in Forms.ORDER:
 		if f != Forms.ROK:
-			pool.append(Forms.DATA[f].id)
+			ids.append(String(Forms.DATA[f].id))
 	for d in Dinos.ids():
-		var t := Dinos.tier(d)
-		if epic or t <= 2:
-			for i in (1 + t if epic else 1):
-				pool.append(d)
-	return pool.pick_random()
+		if epic or Dinos.tier(d) <= 2:
+			ids.append(d)
+	var total := 0.0
+	for d in ids:
+		total += float(wts[clampi(Dinos.tier(d), 0, wts.size() - 1)])
+	var roll := randf() * total
+	for d in ids:
+		roll -= float(wts[clampi(Dinos.tier(d), 0, wts.size() - 1)])
+		if roll < 0.0:
+			return d
+	return ids[-1]
 
 
 ## Gear a hero could put in a slot: owned weapons or armor (cards go in a

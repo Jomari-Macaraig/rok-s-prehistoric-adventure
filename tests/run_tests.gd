@@ -929,6 +929,20 @@ func _milestone_checks() -> void:
 	check(Chest.xp("legendary", 1) > Chest.xp("ultra_rare", 1) and Chest.xp("ultra_rare", 1) > Chest.xp("common", 1), "rarer chests hold more XP")
 	for ct in Chest.RARITY:
 		check(ResourceLoader.exists(Pickup.chest_art(ct, "anim")) and not Chest.rewards(ct).is_empty(), "the %s chest has its art and rewards" % ct)
+	check(c1.rare > c1.ultra_rare and c1.ultra_rare > c1.legendary and c50.rare > c50.ultra_rare and c50.ultra_rare > c50.legendary
+			and c50.rare + c50.ultra_rare + c50.legendary < 0.5, "the higher a chest's tier, the lower its chance, at every milestone")
+	var n_card := 0
+	for i in 3000:
+		if Chest.pick_reward("legendary") == "card":
+			n_card += 1
+	check(n_card < 3000 / Chest.rewards("legendary").size() * 0.7, "cards are a rarer chest reward than the others")
+	main.chest_appear_override = 0.0
+	main.start_run(false)
+	main.distance = (Tuning.CHEST_EVERY_M - 20.0) * Tuning.PX_PER_M
+	main._chest_step()
+	check(main.course.pickups.all(func(k): return k.kind != "chest") and main.next_chest_m == 2.0 * Tuning.CHEST_EVERY_M and float(Loot.num("chests", "appear")) < 1.0,
+			"not every milestone has a chest ([chests] appear)")
+	main.chest_appear_override = 1.0
 	# a chest is placed on flat ground at the milestone
 	main.start_run(false)
 	main.distance = (Tuning.CHEST_EVERY_M - 20.0) * Tuning.PX_PER_M
@@ -1564,12 +1578,26 @@ func _feedback_checks() -> void:
 	var n0 := int(main.cards.get("gallimimus", 0))
 	main.card_drop_override = 0.999   # every roll fails
 	main._drop_card(wild)
-	check(int(main.cards.get("gallimimus", 0)) == n0 + 1 and main.last_card == "gallimimus", "the first wild Gallimimus bonked drops its card")
-	main._drop_card(wild)
-	check(int(main.cards.get("gallimimus", 0)) == n0 + 1, "after that a card drops only by chance")
+	check(int(main.cards.get("gallimimus", 0)) == n0, "even the first wild dinosaur of a species drops its card only by chance")
 	main.card_drop_override = 0.0
 	main._drop_card(wild)
-	check(int(main.cards.get("gallimimus", 0)) == n0 + 2, "...and a lucky roll drops another")
+	check(int(main.cards.get("gallimimus", 0)) == n0 + 1 and main.last_card == "gallimimus", "a lucky roll drops its card")
+	check(main.card_chance("gallimimus", true) > main.card_chance("gallimimus", false) and main.card_chance("gallimimus", false) <= 0.1,
+			"card drops are rare (config/pickups.cfg [cards]), a little likelier the first time")
+	var by_tier := {}
+	for d in Dinos.ids():
+		by_tier[Dinos.tier(d)] = main.card_chance(d, false)
+	var tiers: Array = by_tier.keys()
+	tiers.sort()
+	var falling := true
+	for i in range(1, tiers.size()):
+		falling = falling and by_tier[tiers[i]] <= by_tier[tiers[i - 1]]
+	check(falling and by_tier[tiers[-1]] < by_tier[tiers[0]], "the higher a dinosaur's tier, the lower its card's drop chance")
+	var picks := {}
+	for i in 3000:
+		var cd := Gear.random_card(true)
+		picks[Dinos.tier(cd)] = int(picks.get(Dinos.tier(cd), 0)) + 1
+	check(int(picks.get(4, 0)) < int(picks.get(1, 0)), "a chest's card is a high-tier dinosaur less often")
 	main.card_drop_override = -1.0
 	wild.queue_free()
 	var card: String = Gear.CARD_PREFIX + main.last_card
@@ -1754,8 +1782,16 @@ func _feedback_checks() -> void:
 	main._press_stop()
 	main._press_stop()
 	check(main.state == main.State.OVER, "the run can be stopped while paused")
-	# --- side buttons and full-screen scenes
+	# back on the main screen everything is reset (the user's call)
+	main.health = 1
+	main.energy = 3.0
+	main.attack_cd = 2.0
+	main.player.slide_cd = 2.0
+	main.dizzy_t = 2.0
 	main._to_title()
+	check(main.health == main.max_health() and main.energy == Tuning.ENERGY_START and main.attack_cd == 0.0 and main.player.slide_cd == 0.0 and main.dizzy_t == 0.0 and main.score == 0.0,
+			"back on the main screen after a run, the hearts, PRIMAL energy and cooldowns are reset")
+	# --- side buttons and full-screen scenes
 	main._refresh_hud()
 	var vw: float = main.get_viewport().get_visible_rect().size.x
 	var hd: Hud = main.hud
@@ -2180,8 +2216,25 @@ func _trap_checks() -> void:
 	check(dw.hitbox().position.y <= 0.0, "the sandstone barricade reaches the top of the screen")
 	c.metres = Zones.ZONE_LEN_M * 2.1
 	var cl := c.ledge(p.position.x + 1500.0)
-	check((cl.get_child(0) as Sprite2D).texture == SpriteLib.tex(Terrain.CANYON % "rock_arch") and cl.hitbox().end.y <= Tuning.GROUND_Y - Tuning.LEDGE_CLEARANCE + 1.0,
+	check(((cl.get_child(0) as Sprite2D).texture as AtlasTexture).atlas == SpriteLib.tex(Terrain.CANYON % "rock_arch") and cl.hitbox().end.y <= Tuning.GROUND_Y - Tuning.LEDGE_CLEARANCE + 1.0,
 			"canyon ledge is the rock arch, its lintel at the slide clearance")
+	check((cl.get_child(0) as Sprite2D).z_index < 1 and (cl.get_child(1) as Sprite2D).z_index == Obstacle.ARCH_FRONT_Z,
+			"the arch's legs draw in front of Rok (he slides through the opening) and its lintel behind him")
+	# a running wild dinosaur follows the ground and hops over a pit (not through it)
+	var ft := Terrain.new()
+	ft.segs.append({"x0": 0.0, "x1": 400.0, "y0": 500.0, "y1": 500.0, "pit": false, "soft": false})
+	ft.segs.append({"x0": 400.0, "x1": 700.0, "y0": 0.0, "y1": 0.0, "pit": true, "soft": false})
+	ft.segs.append({"x0": 700.0, "x1": 1400.0, "y0": 560.0, "y1": 560.0, "pit": false, "soft": false})
+	var wd := Obstacle.new().setup_critter(Critters.for_zone("forest", "stampede"))
+	wd.position = Vector2(1000.0, 300.0)
+	wd.follow_ground(ft, 1.0 / 60.0)
+	check(is_equal_approx(wd.position.y, 566.0), "a wild dinosaur stands on the ground under it, not where it spawned")
+	wd.position.x = 450.0
+	wd.follow_ground(ft, 1.0 / 60.0)
+	wd.follow_ground(ft, 1.0 / 60.0)
+	check(wd.position.y < 566.0, "over a pit it hops instead of running in it")
+	wd.free()
+	ft.free()
 	var cfence := c.fence(p.position.x + 1900.0, false)
 	check(cfence.kind == "fence" and (cfence.get_child(0) as Sprite2D).texture == SpriteLib.tex(Terrain.CANYON % "wooden_barricade"), "canyon fence is the wooden barricade")
 	c.metres = Zones.ZONE_LEN_M * 3.1

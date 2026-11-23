@@ -24,6 +24,21 @@ static func rewards(r: String) -> Array:
 	return Loot.num("chests", "rewards_" + r) as Array
 
 
+## A reward from a rarity's list, by [chests] reward_weights (cards are kept rare).
+static func pick_reward(r: String) -> String:
+	var opts := rewards(r)
+	var w: Dictionary = Loot.num("chests", "reward_weights") if Loot.num("chests", "reward_weights") is Dictionary else {}
+	var total := 0.0
+	for o in opts:
+		total += float(w.get(o, 1.0))
+	var roll := randf() * total
+	for o in opts:
+		roll -= float(w.get(o, 1.0))
+		if roll < 0.0:
+			return o
+	return opts[-1]
+
+
 ## Chance of each rarer tier at milestone n (1 = the first, at
 ## CHEST_EVERY_M): each grows with every milestone, up to its cap.
 static func chances(n: int) -> Dictionary:

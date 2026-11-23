@@ -24,7 +24,7 @@ Part of the [system docs](README.md).
 | PAUSED | pause menu | resumes |
 | INFO | an info card about something new (see [progression](progression.md)) | dismisses it |
 | DYING | the death animation; world frozen | nothing |
-| OVER | the summary card only (side buttons and combo meter hidden) | opens the main menu |
+| OVER | the summary card only (side buttons and combo meter hidden) | opens the main menu, where `_reset_status` shows a fresh Rok: full hearts, starting PRIMAL energy, no cooldowns, dizziness, power-ups or combo, score and distance 0 (the user's call) |
 
 Keyboard (desktop testing): Space = jump / go on, R = restart now, X = stop, C = Field Guide, M/K = Market.
 

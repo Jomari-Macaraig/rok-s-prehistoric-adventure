@@ -76,8 +76,8 @@ A crafted weapon starts at full durability (its rarity's `durability_mult` × th
 - `main.slot_card(weapon, dino)` slots one ("" takes it out). `equip_gear` refuses card ids. Old saves with a card in the weapon slot have it taken out on load (back to the pile).
 - Camp: under the weapon row a **Card slot** row (`Herd._card_row`) with Change, which lists Empty, the slotted card and every dinosaur with a free card (`_card_list`). An equipped weapon with an empty card slot and a free card lights the red dot (`gear_ready`). The Items screen's Cards tab lists every card with how many are free.
 - **Where they come from** (the user's rule; the Market no longer sells a Card Pack):
-  - a wild dinosaur Rok bonks with ATTACK or bowls over in a frenzy drops its own species' card: always the first time ever per species (`seen` "card_<id>"), then `CARD_DROP_CHANCE` (25%) (`main._drop_card`; tests pin it with `card_drop_override`);
-  - rare/epic milestone chests (`Chest.REWARDS` "card", `Gear.random_card`).
+  - a wild dinosaur Rok bonks with ATTACK or bowls over in a frenzy **may** drop its own species' card (`main.card_chance`): `config/pickups.cfg` `[cards]` `first_drop_chance` (0.5) the first time ever per species (`seen` "card_<id>"), `drop_chance` (0.08) after that, both × the dinosaur tier's `tier_mult` (the user's rule 2026-11-23: rare, and the higher the tier the lower the chance; `main._drop_card`, tests pin it with `card_drop_override`);
+  - rare and better milestone chests, picked by `[chests] reward_weights` (card 0.35 against 1 for the rest); which dinosaur is by `[cards] chest_tier_weights` per tier (higher tiers less often; rare chests only up to Skilled; `Gear.random_card`).
 - A dropped card pops out with a sparkle and a banner and is collected at once.
 - A card's icon is its dinosaur's portrait.
 

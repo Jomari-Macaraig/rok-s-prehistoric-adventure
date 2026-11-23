@@ -55,6 +55,11 @@ const DEFAULTS := {
 		"rewards_rare": ["meat", "xp", "booster", "heart", "card", "materials"],
 		"rewards_ultra_rare": ["meat", "xp", "frenzy", "full_heal", "card", "materials"],
 		"rewards_legendary": ["meat", "xp", "frenzy", "full_heal", "card", "materials"],
+		"appear": 0.6, "reward_weights": {"card": 0.35},
+	},
+	"cards": {
+		"drop_chance": Tuning.CARD_DROP_CHANCE, "first_drop_chance": 0.5,
+		"tier_mult": [1.0, 1.0, 0.6, 0.3, 0.12], "chest_tier_weights": [5.0, 4.0, 2.0, 1.0, 0.4],
 	},
 	"power_ups": {
 		"pepper_share": 0.5,

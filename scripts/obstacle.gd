@@ -196,16 +196,28 @@ func setup_overhead_static(name: String, scale_factor: float) -> Obstacle:
 ## A slide-under arch whose legs reach the ground (the Canyon's rock arch):
 ## the node sits at the lintel's underside like any ledge, the picture hangs
 ## `lintel_h` (texture px) above it and its legs below, and only the lintel
-## collides.
+## collides. The legs are drawn IN FRONT of Rok (z_index ARCH_FRONT_Z), so
+## sliding under it he passes behind the pillars and shows through the
+## opening, like going through the hole (the user's report); the lintel stays
+## behind him so he can still hop on top of it.
+const ARCH_FRONT_Z := 2
 func setup_overhead_arch(path: String, scale_factor: float, lintel_h: float) -> Obstacle:
 	kind = "overhead"
-	var s := Sprite2D.new()
-	s.texture = SpriteLib.tex(path)
-	s.centered = false
-	s.scale = Vector2.ONE * scale_factor
-	var sz := s.texture.get_size() * scale_factor
-	s.position = Vector2(-sz.x * 0.5, -lintel_h * scale_factor)
-	add_child(s)
+	var tex := SpriteLib.tex(path)
+	var full := tex.get_size()
+	var sz := full * scale_factor
+	for part in [Rect2(0, 0, full.x, lintel_h), Rect2(0, lintel_h, full.x, full.y - lintel_h)]:
+		var at := AtlasTexture.new()
+		at.atlas = tex
+		at.region = part
+		var s := Sprite2D.new()
+		s.texture = at
+		s.centered = false
+		s.scale = Vector2.ONE * scale_factor
+		s.position = Vector2(-sz.x * 0.5, (part.position.y - lintel_h) * scale_factor)
+		if part.position.y > 0.0:
+			s.z_index = ARCH_FRONT_Z   # the legs, in front of Rok
+		add_child(s)
 	size = Vector2(sz.x, lintel_h * scale_factor)
 	shrink = Vector2(0.9, 0.8)
 	return self
@@ -299,6 +311,34 @@ func place_critter(ground_y: float) -> void:
 		position.y = ground_y - d.height - (b.position.y + b.size.y) * d.scale
 	else:
 		position.y = ground_y + 6.0
+	_base_y = position.y
+
+
+## A running wild dinosaur follows the ground under it as it comes (slopes,
+## steps) instead of keeping the height it spawned at, and hops over a pit or
+## a liquid instead of running through it (the user's report: some ran inside
+## the ground or in pits). Course.scroll calls it each frame.
+var _air := false
+var _vy := 0.0
+var _launch_y := 0.0
+func follow_ground(t: Terrain, delta: float) -> void:
+	var gy := t.height_at(position.x)
+	var hole := gy >= Terrain.PIT - 1.0 or t.liquid_at(position.x) != ""
+	if _air:
+		_vy += Tuning.GRAVITY * 0.8 * delta
+		position.y += _vy * delta
+		if not hole and _vy > 0.0 and position.y >= gy + 6.0:
+			position.y = gy + 6.0   # landed past it
+			_air = false
+		elif hole and position.y > _launch_y:
+			position.y = _launch_y   # a wide one: it keeps level until there's ground
+			_vy = 0.0
+	elif hole:
+		_air = true
+		_launch_y = position.y
+		_vy = -Tuning.CRITTER_HOP_V
+	else:
+		position.y = gy + 6.0
 	_base_y = position.y
 
 

@@ -93,6 +93,8 @@ func scroll(spd: float, delta: float) -> void:
 	var dx := spd * delta
 	for o in obstacles:
 		o.position.x -= dx + o.roll_speed * delta
+		if o.critter != "" and o.kind == "stampede" and terrain != null:
+			o.follow_ground(terrain, delta)
 	for d in debris:
 		d.position.x -= dx
 	for p in platforms:

@@ -40,7 +40,7 @@ the hunter eats it), and for flyers `height` and `bob`.
 ## Spawning
 
 - Pattern keys `stampede` / `swooper`; `Course._spawn_key` picks the zone's species (`Critters.for_zone`).
-- `Obstacle.setup_critter`: its run or fly loop, mirrored, moving at `roll_speed`; hitbox `custom_box` measured from the art (`Critters.art_bounds`). `place_critter` lifts swoopers; `make_diver` turns one into a diving flyer.
+- `Obstacle.setup_critter`: its run or fly loop, mirrored, moving at `roll_speed`; hitbox `custom_box` measured from the art (`Critters.art_bounds`). `place_critter` lifts swoopers; `make_diver` turns one into a diving flyer. A running one follows the ground under it every frame (`Obstacle.follow_ground`, from `Course.scroll`): it stands on slopes and steps instead of keeping its spawn height, and hops over a pit or liquid (`CRITTER_HOP_V`) instead of running in it (the user's report, 2026-11-23).
 
 ## What can happen
 

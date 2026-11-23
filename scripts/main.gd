@@ -348,10 +348,40 @@ func _to_title() -> void:
 	state = State.TITLE
 	_menu_t = Tuning.MENU_GRACE if after_run else 0.0
 	speed = 0.0
+	if after_run:
+		_reset_status()
 	player.idle()
 	hud.show_title(best, best_m, unlocked, meat_bank, played_once)
 	_show_missions()
 	_refresh_hud()
+
+
+## Back on the main screen after a run, the HUD shows a fresh Rok (the
+## user's call): full hearts, starting PRIMAL energy, no cooldowns, no
+## dizziness, power-ups or combo, and a zeroed score and distance. (A new run
+## sets all of these again in start_run.)
+func _reset_status() -> void:
+	health = max_health()
+	energy = Tuning.ENERGY_START
+	attack_cd = 0.0
+	dizzy_t = 0.0
+	dino_time = 0.0
+	boost_t = 0.0
+	power_t.clear()
+	sink = 0.0
+	slots = ["", "", ""]
+	combo.reset()
+	score = 0.0
+	distance = 0.0
+	if player:
+		player.react_stop()
+		player.reset_actions()
+		player.jump_mult = 1.0
+		player.invuln = 0.0
+		player.armor = 0
+		player.pfx_aura.visible = false
+		player.pfx_once.visible = false
+		hud.set_drain_heat(0.0)
 
 
 ## Starts a run. With intro (the default) the T-rex charges in and roars
@@ -2569,11 +2599,19 @@ func _save_gear() -> void:
 
 
 ## Dinosaur cards are dropped by wild dinosaurs (the user's rule, not sold in
-## the Market): one Rok bonks with ATTACK or bowls over in a frenzy drops its own
-## species' card, always the first time ever for that species, then with
-## CARD_DROP_CHANCE. The card pops out and is collected at once. Tests pin it
+## the Market): one Rok bonks with ATTACK or bowls over in a frenzy may drop its
+## own species' card (card_chance: rare, rarer for higher tiers). The card pops out and is collected at once. Tests pin it
 ## with card_drop_override (-1 = roll).
 var card_drop_override := -1.0
+
+
+## The chance a bonked wild dinosaur drops its card (config/pickups.cfg
+## [cards]): first_drop_chance the first time for its species, else
+## drop_chance, times its tier's tier_mult (higher tiers drop less).
+func card_chance(d: String, first: bool) -> float:
+	var base := float(Loot.num("cards", "first_drop_chance" if first else "drop_chance"))
+	var mult: Array = Loot.num("cards", "tier_mult")
+	return base * float(mult[clampi(Dinos.tier(d), 0, mult.size() - 1)])
 
 
 func _drop_card(o: Obstacle) -> void:
@@ -2582,7 +2620,7 @@ func _drop_card(o: Obstacle) -> void:
 		return
 	var first := not seen.has("card_" + d)
 	var roll := card_drop_override if card_drop_override >= 0.0 else randf()
-	if not first and roll >= Tuning.CARD_DROP_CHANCE:
+	if roll >= card_chance(d, first):
 		return
 	seen.append("card_" + d)
 	SaveData.save_seen(seen)
@@ -3088,8 +3126,14 @@ func _show_missions() -> void:
 	hud.set_missions(missions.lines(), head)
 
 
+## The chance a milestone has a chest ([chests] appear; tests pin it).
+var chest_appear_override := -1.0
+func chest_appear() -> float:
+	return chest_appear_override if chest_appear_override >= 0.0 else float(Loot.num("chests", "appear"))
+
+
 ## Milestone chests: when the next milestone (every CHEST_EVERY_M) comes
-## into view, a chest is placed on flat ground there (a little later if the
+## into view, a chest (with [chests] appear's chance) is placed on flat ground there (a little later if the
 ## ground isn't flat, never over a pit or liquid).
 func _chest_step() -> void:
 	var view_w := get_viewport().get_visible_rect().size.x
@@ -3104,6 +3148,10 @@ func _chest_step() -> void:
 	if gy < 0.0 or terrain.liquid_at(x) != "":
 		next_chest_m += 2.0   # try a little further on
 		return
+	var starter := next_chest_m < Tuning.CHEST_EVERY_M - 1.0
+	if not starter and randf() >= chest_appear():
+		next_chest_m = (floorf(next_chest_m / Tuning.CHEST_EVERY_M) + 1.0) * Tuning.CHEST_EVERY_M
+		return   # no chest at this milestone (config/pickups.cfg [chests] appear)
 	course._pickup("chest", Vector2(x, gy))
 	var n := maxi(1, int(roundf(next_chest_m / Tuning.CHEST_EVERY_M)))
 	course.pickups[-1].set_meta("milestone", n)
@@ -3137,7 +3185,7 @@ func _open_chest(k: Pickup, roll := -1.0, pick := "") -> void:
 	var n: int = k.get_meta("milestone", 1)
 	var r := Chest.rarity(n, roll) if roll >= 0.0 else (k.rarity if k.rarity != "" else Chest.rarity(n, randf()))
 	var t := Chest.tier(r)
-	var reward: String = pick if pick != "" else Chest.rewards(r).pick_random()
+	var reward: String = pick if pick != "" else Chest.pick_reward(r)
 	var col: Color = Chest.RARITY_COLOR[r]
 	var text := ""
 	match reward:

@@ -60,7 +60,7 @@ Part of the [system docs](README.md).
 | Boulders | as drawn | desert barricade art (`_zone_rock`) | low sandstone boulder | basalt chunk |
 | Walls | stacked tiles | desert barricade art | stacked cracked sandstone blocks | basalt walls |
 | Thorn bushes | yes | dry thorn shrub | the pack's dry tumble-thorn | ash-grey ember bramble (it had none before) |
-| Low ledge | vine branch (snags) | fossil arch | rock arch on sandstone legs (`setup_overhead_arch`: only the lintel collides, its underside at `LEDGE_CLEARANCE`) | floating rock |
+| Low ledge | vine branch (snags) | fossil arch | rock arch on sandstone legs (`setup_overhead_arch`: only the lintel collides, its underside at `LEDGE_CLEARANCE`; the legs draw in front of Rok, `ARCH_FRONT_Z`, so a slide goes through the opening, the lintel behind him) | floating rock |
 | Floating islands | grass island | sandstone island | the raised sandstone ledge | basalt island |
 | Sturdy pit bridges | logs | logs | the rope bridge, stretched over the gap | logs |
 | Gap edges | outline | outline | the pack's cliff edges | outline |

@@ -11,6 +11,12 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 - [ ] **Sounds:** a "rawr", and an "uh-oh" (must be a real recording from the user).
 - [ ] **Wire in art as it arrives** (see the art list below).
 
+## Code queue (the user's requests, in order)
+
+- [ ] A separate Daily Missions button, and weekly missions.
+- [ ] One font across the whole game.
+- [ ] The Encyclopedia says what each obstacle, wild dinosaur and other thing drops, read from the same config the game uses.
+
 ## Decisions (the user)
 
 - [ ] **Pet system (future):** the user plans pets; design to come. The eggs' new use (to be described) may tie in.
@@ -42,6 +48,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Done recently
 
+- 2026-11-23: rarer cards and chests (higher tiers rarer, `[cards]`, `[chests] appear`); the Canyon arch's legs in front of Rok; wild dinosaurs follow the ground and hop pits; the main screen resets hearts, energy and cooldowns after a run.
 - 2026-11-23: dinosaur cards are slotted into weapons (`[card_slots]`, a slot can stay empty), not equipped.
 - 2026-11-23: damage tiers per obstacle (`config/damage.cfg`; pits, liquids, quicksand and gates stay instant); a NEW banner per obstacle look (`config/obstacle_looks.cfg`), two banners at once; PRIMAL energy explained (Field Guide page, first-dino card, tiring banner, tutorial note).
 - 2026-11-23: Rok's size made consistent: idle, walk, duck, trip, dizzy, snag and the 5 standing styles from the user's consistency update (redrawn at his run's size), his per-weapon clips and gear sockets refitted.
