@@ -87,7 +87,7 @@ A crafted weapon starts at full durability (its rarity's `durability_mult` × th
 - Hidden outside hero clips (death hop, reactions, attack clips), for cards, and for armor without body art.
 - It notices equipment changes itself.
 
-### Attack styles (the Swing pilot)
+### Attack styles (the Swing pilot, approved 2026-11-23)
 The plan in [ITEM_ART_PLAN.md](../ITEM_ART_PLAN.md): a hero is drawn once per **attack style** with an empty, closed hand, plus a **guide sheet** (grip dot, weapon stick, head, chest and back dots), and the game draws whichever weapon is equipped.
 - Each weapon's style is in **`config/crafting.cfg` `[weapon_styles]`** (`Gear.style`): Club, Stone Axe, Bone Hammer and Torch swing; the Spear thrusts, the Sling throws, the Bow shoots. `use_styles` switches the system off, `scale` (and `<id>_scale`) sets how big a weapon is drawn in a style clip (`Gear.style_scale`).
 - `Gear.style_clip(hero, weapon)` is `"style_<style>"` when that hero has the clip (`SpriteLib.attack_meta` merges `assets/attacks/styles.json`), else "" and the old clip with the weapon drawn in plays. Today only **Rok's Swing** exists (`tools/prepare_styles.py`).

@@ -81,7 +81,7 @@ Art conventions shared by everything:
 
 > **What art to generate** for a new weapon, armor or accessory: [NEW_ITEM_ART.md](NEW_ITEM_ART.md).
 
-> Moving to **attack styles** (heroes drawn empty-handed once per style, with weapons placed by guide sheets), so a new weapon will need only its icon and a `[weapon_styles]` entry in `config/crafting.cfg`. See [ITEM_ART_PLAN.md](ITEM_ART_PLAN.md). Rok's **Swing** is in (the pilot, waiting for the user's approval): a new swing weapon already needs no attack clip for Rok. Until every hero has every style, the list below is what a weapon needs.
+> Moving to **attack styles** (heroes drawn empty-handed once per style, with weapons placed by guide sheets), so a new weapon will need only its icon and a `[weapon_styles]` entry in `config/crafting.cfg`. See [ITEM_ART_PLAN.md](ITEM_ART_PLAN.md). Rok's **Swing** is in (the pilot, approved): a new swing weapon already needs no attack clip for Rok. Until every hero has every style, the list below is what a weapon needs.
 
 ### Art
 

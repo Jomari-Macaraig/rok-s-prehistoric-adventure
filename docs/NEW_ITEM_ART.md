@@ -32,7 +32,7 @@ If a hero doesn't have the style's clip yet, a new weapon falls back to the code
 
 | Style | Rok | Nira | Boro |
 |---|---|---|---|
-| Swing | ✓ (pilot, waiting for approval) | – | – |
+| Swing | ✓ (approved) | – | – |
 | Thrust | – | – | – |
 | Throw | – | – | – |
 | Shoot | – | – | – |
