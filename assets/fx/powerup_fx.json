@@ -1,0 +1,33 @@
+{
+ "frame": [
+  256,
+  256
+ ],
+ "origin": [
+  128.0,
+  128.0
+ ],
+ "anims": {
+  "pickup": {
+   "frames": 8,
+   "fps": 12,
+   "loop": false
+  },
+  "activation": {
+   "frames": 8,
+   "fps": 16,
+   "loop": false
+  },
+  "aura": {
+   "frames": 8,
+   "fps": 12,
+   "loop": true
+  },
+  "expire": {
+   "frames": 8,
+   "fps": 12,
+   "loop": false
+  }
+ },
+ "ring": 167.5
+}

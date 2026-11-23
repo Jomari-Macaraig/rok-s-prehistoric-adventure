@@ -62,6 +62,8 @@ var run_attack_phase := -1
 var _run_attack_n := 0
 var carry := ""                # the weapon drawn into the run sheet (SpriteLib.carry_frames), or ""
 var tfx: AnimatedSprite2D       # the shapeshift burst (play_transform), drawn over the body
+var pfx_once: AnimatedSprite2D  # a power-up's pickup / activation / expire effect, over the body
+var pfx_aura: AnimatedSprite2D  # the power-up aura while one runs, behind the body
 var _react_hold := 0.0         # seconds left in the held loop before recovering
 var shadow: Polygon2D
 
@@ -103,6 +105,16 @@ func _ready() -> void:
 	tfx.visible = false
 	add_child(tfx)
 	tfx.animation_finished.connect(func(): tfx.visible = false)
+	pfx_aura = AnimatedSprite2D.new()
+	pfx_aura.centered = false
+	pfx_aura.visible = false
+	add_child(pfx_aura)
+	move_child(pfx_aura, 0)   # behind the body
+	pfx_once = AnimatedSprite2D.new()
+	pfx_once.centered = false
+	pfx_once.visible = false
+	add_child(pfx_once)
+	pfx_once.animation_finished.connect(func(): pfx_once.visible = false)
 	_apply_form(Forms.ROK)
 	sprite.play("idle")
 
@@ -172,6 +184,47 @@ func play_transform(from: Dictionary) -> bool:
 	tfx.frame = mini(Tuning.TRANSFORM_FX_START, int(m.frames) - 1)
 	tfx.visible = true
 	return true
+
+
+## Size and centre a power-up effect on the current form (its ring
+## POWERUP_FX_SIZE of the form's bigger side). False without the art.
+func _place_pfx(s: AnimatedSprite2D) -> bool:
+	var sf := SpriteLib.powerup_fx()
+	if sf == null:
+		return false
+	var m := SpriteLib.powerup_meta()
+	var art := Vector2(data().frame) * float(data().scale)
+	s.sprite_frames = sf
+	s.offset = -Vector2(m.origin[0], m.origin[1])
+	s.scale = Vector2.ONE * (maxf(art.x, art.y) * Tuning.POWERUP_FX_SIZE / float(m.ring))
+	s.position = Vector2(0, -art.y * 0.42)
+	return true
+
+
+## A power-up effect once: "pickup", "activation" or "expire".
+func powerup_fx(anim: String) -> bool:
+	if not _place_pfx(pfx_once):
+		return false
+	pfx_once.play(anim)
+	pfx_once.frame = 0
+	pfx_once.visible = true
+	return true
+
+
+## The looping aura while a power-up runs; when it stops, the expire effect.
+func set_power_aura(on: bool) -> void:
+	if on == pfx_aura.visible:
+		if on:
+			_place_pfx(pfx_aura)   # (follows a shapeshift's size)
+		return
+	if on:
+		if _place_pfx(pfx_aura):
+			pfx_aura.play("aura")
+			pfx_aura.visible = true
+	else:
+		pfx_aura.visible = false
+		pfx_aura.stop()
+		powerup_fx("expire")
 
 
 ## How big a form's art is drawn (its frame at its scale, the part the burst covers).

@@ -58,3 +58,16 @@ info card the first time one appears.
 1. A `Boosters.DATA` entry (art id, name, effect text, points; `starter` if owned from the start).
 2. A case in `main.activate_booster` (and `booster_ready` if it can't always be used).
 3. A price in `[market]` (it's then sold) and optionally `[market_unlocks]` / `[market_badges]`.
+
+## Effects
+
+The user's power-up effects (`../Assets/Rok_Powerup_FX_Preview/Rok_Powerup_FX`, imported by `tools/prepare_powerup_fx.py` into `assets/fx/powerup_*` + `powerup_fx.json`): gold rings around the player, sized to the current form (`POWERUP_FX_SIZE` of its drawn frame's bigger side, against the aura ring's measured diameter) and centred on it.
+
+| Effect | When | Where |
+|---|---|---|
+| pickup | a power-up goes into a slot (`collect_booster`) | `Player.pfx_once`, over the body |
+| activation | a slot is used (`activate_booster`) | `pfx_once` |
+| aura (loop) | while any power-up runs: the egg's boost or a timed one (`_power_step` → `Player.set_power_aura`) | `Player.pfx_aura`, behind the body (follows a shapeshift's size) |
+| expire | when the last one ends | `pfx_once` |
+
+A new run clears them.

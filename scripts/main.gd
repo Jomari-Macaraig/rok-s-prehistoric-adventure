@@ -327,6 +327,9 @@ func start_run(intro := true) -> void:
 		menu_tour = null
 		hud.hide_coach()
 	summary.hide_run()
+	if player:   # no power-up effects carried into a new run
+		player.pfx_aura.visible = false
+		player.pfx_once.visible = false
 	course.reset()
 	terrain.reset()
 	if player.dead or player.form != Forms.ROK or not player.visible:
@@ -1995,6 +1998,7 @@ func collect_booster(kind: String, at: Vector2) -> bool:
 		return false
 	slots[i] = kind
 	hud.pulse_slot(i)
+	player.powerup_fx("pickup")
 	return true
 
 
@@ -2028,6 +2032,7 @@ func booster_ready(kind: String) -> bool:
 ## What each booster does. Add new booster ids here.
 func activate_booster(kind: String) -> void:
 	var at := player.position + Vector2(-90, -240)
+	player.powerup_fx("activation")
 	match kind:
 		"egg":
 			_egg_boost()
@@ -2077,6 +2082,7 @@ func _power_step(delta: float) -> void:
 		power_t[k] = maxf(power_t[k] - delta, 0.0)
 		if power_t[k] <= 0.0:
 			power_t.erase(k)
+	player.set_power_aura(boost_t > 0.0 or not power_t.is_empty())   # the aura while one runs, expire when the last ends
 	if power_on("fossil_magnet"):
 		var target := player.position + Vector2(10.0, -70.0)
 		for p in course.pickups:

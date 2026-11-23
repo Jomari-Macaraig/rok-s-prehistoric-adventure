@@ -77,6 +77,35 @@ static var _celebrate_meta := {}
 static var _running_meta := {}
 static var _fx_meta := {}
 static var _tut_meta := {}
+static var _pfx_meta := {}
+
+
+## The power-up effects' meta (tools/prepare_powerup_fx.py): frame, origin,
+## per animation frames/fps/loop, and `ring` (the aura's diameter at 1x).
+static func powerup_meta() -> Dictionary:
+	if _pfx_meta.is_empty() and FileAccess.file_exists("res://assets/fx/powerup_fx.json"):
+		_pfx_meta = JSON.parse_string(FileAccess.get_file_as_string("res://assets/fx/powerup_fx.json"))
+	return _pfx_meta
+
+
+## The power-up effects as frames: "pickup", "activation", "aura" (loops),
+## "expire". null without the art.
+static func powerup_fx() -> SpriteFrames:
+	if _cache.has("powerup_fx"):
+		return _cache["powerup_fx"]
+	var m := powerup_meta()
+	if m.is_empty():
+		return null
+	var frames := SpriteFrames.new()
+	frames.remove_animation("default")
+	for name in m.anims:
+		var a: Dictionary = m.anims[name]
+		var ms := []
+		for i in int(a.frames):
+			ms.append(1000.0 / float(a.fps))
+		_sheet_frames(frames, name, tex("res://assets/fx/powerup_%s.png" % name), Vector2(m.frame[0], m.frame[1]), ms, bool(a.loop))
+	_cache["powerup_fx"] = frames
+	return frames
 
 
 ## The user's tutorial UI kit (tools/prepare_tutorial_ui.py): a piece by name

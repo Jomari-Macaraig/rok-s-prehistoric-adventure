@@ -2389,6 +2389,21 @@ func _fun_checks() -> void:
 	check(not tf.visible, "...and it's gone when it ends")
 	main.unlocked = unl_keep
 	main.start_run(false)
+	# --- the user's power-up effects
+	main.start_run(false)
+	var pwp: Player = main.player
+	main.slots = ["", "", ""]
+	main.collect_booster("egg", pwp.position)
+	check(pwp.pfx_once.visible and String(pwp.pfx_once.animation) == "pickup", "collecting a power-up plays the pickup effect")
+	main.use_slot(0)
+	check(String(pwp.pfx_once.animation) == "activation", "using it plays the activation effect")
+	main._power_step(0.016)
+	check(pwp.pfx_aura.visible and String(pwp.pfx_aura.animation) == "aura" and pwp.pfx_aura.get_index() == 0, "while it runs the aura loops behind the character")
+	main.boost_t = 0.0
+	main._power_step(0.016)
+	check(not pwp.pfx_aura.visible and String(pwp.pfx_once.animation) == "expire" and pwp.pfx_once.visible, "when it ends the expire effect plays")
+	main.start_run(false)
+	check(not main.player.pfx_aura.visible and not main.player.pfx_once.visible, "a new run starts without power-up effects")
 	# --- the Encyclopedia's Cards tab (the user's card art)
 	var cards_keep: Dictionary = main.cards.duplicate()
 	var seen_keep3: Array = main.seen.duplicate()

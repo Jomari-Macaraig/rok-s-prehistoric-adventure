@@ -84,7 +84,10 @@ const SHIFT_COOLDOWN := 0.35
 # first covering frame: the swap happens hidden under the cloud); 0 would
 # show the whole build-up after the change.
 const TRANSFORM_FX_START := 3
-const TRANSFORM_FX_COVER := 0.8   # the solid cloud covers this share of the bigger form's frame
+const TRANSFORM_FX_COVER := 0.8
+# The user's power-up effects (Player.powerup_fx / set_power_aura): the ring is this wide
+# against the form's drawn frame (its bigger side).
+const POWERUP_FX_SIZE := 0.75   # the solid cloud covers this share of the bigger form's frame
 const AMBER_ENERGY := 15.0       # energy per amber as Rok
 const AMBER_ENERGY_DINO := 7.0   # ...and while in a dino form (Rok is the form for recharging)
 # Staying a dino gets more tiring: the drain grows with the time spent as a
