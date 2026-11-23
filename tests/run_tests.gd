@@ -1348,6 +1348,8 @@ func _feedback_checks() -> void:
 		sources[Crafting.trophy(h)] = true
 	sources["fossil_shard"] = true
 	check(Crafting.materials().all(func(m): return sources.has(m)), "every material has somewhere it comes from (missing: %s)" % str(Crafting.materials().filter(func(m): return not sources.has(m))))
+	var with_art: Array = Crafting.materials().filter(func(m): return ResourceLoader.exists("res://assets/materials/%s.png" % m))
+	check(with_art.size() >= 33 and with_art.all(func(m): Crafting.icon(m); return not Crafting._icons.has(m)), "the user's material icons are used (%d of %d have art)" % [with_art.size(), Crafting.materials().size()])
 	check(Crafting.wild_table("kentrosaurus", false).has("back_plate") and Crafting.wild_table("pteranodon", true).has("wing_membrane"), "wild species drop their own parts")
 	var sc0: float = Crafting.num("spots", "special_chance")
 	Crafting.set_value("spots", "special_chance", 1.0)
