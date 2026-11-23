@@ -19,7 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT.parent / "Assets"
 OUT = ROOT / "assets" / "ui"
-NAMES = ["encyclopedia", "marketplace", "dinosaurs", "missions"]   # missions: when the user supplies it (skipped while missing)
+NAMES = ["encyclopedia", "marketplace", "dinosaurs", "missions", "crafting"]   # missions: when the user supplies it (skipped while missing)
 
 
 def main():

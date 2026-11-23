@@ -20,19 +20,20 @@ const STEPS := [
 		"inside": "Dinosaurs, hazards, items and badges.\nTap Back to finish the tour."},
 ]
 ## The Crafting tour (the user's request): back on the main menu after the
-## run that opened the Crafting Bench, the coach shows the way in: the Camp
-## button, the Camp's Crafting button, then on the bench a recipe and CRAFT.
+## run that opened the Crafting Bench, the coach shows the way in: the main
+## menu's Crafting button and CRAFT on the bench, then the Camp's equipment.
 ## A step's "target" is the control inside its screen the note points at
 ## (default Back) and "advance_on" the screen whose opening moves on (default:
 ## closing its own screen); a step without a "button" starts inside.
 const CRAFT_STEPS := [
+	{"button": "crafting", "screen": "bench",
+		"text": "The CRAFTING BENCH is open! Kora makes gear\nfrom the materials you find. Tap Crafting!",
+		"target": "Craft",
+		"inside": "Pick a recipe on the shelf. With its materials,\ntap CRAFT twice: every craft rolls a rarity.\nItems (top right) holds your materials and cards.\nThen tap Back."},
+	# then the Camp: the weapon, armor and card slot systems (the user's request)
 	{"button": "herd", "screen": "herd",
-		"text": "The CRAFTING BENCH is open! Kora makes gear\nfrom the materials you find. Tap the Camp!",
-		"target": "BenchButton", "inside": "Tap CRAFTING to visit Kora's bench.", "advance_on": "bench"},
-	{"button": "", "screen": "bench", "target": "Craft",
-		"inside": "Pick a recipe on the shelf. With its materials,\ntap CRAFT twice: every craft rolls a rarity.\nThen tap Back to equip it."},
-	# back in the Camp: the weapon, armor and card slot systems (the user's request)
-	{"button": "", "screen": "herd", "target": "EquipmentHead",
+		"text": "Now put your gear on: tap the Dinosaur Camp!",
+		"target": "EquipmentHead",
 		"inside": "EQUIPMENT: Change puts a weapon or armor on\nyour hero. Weapons wear with each hit you land,\narmor with each hit you take: Repair them here.\nA weapon's Card slot takes a dinosaur card\nfor a bonus. The Encyclopedia's Items tab\nexplains it all. Tap Back when done."},
 ]
 const SKIP_TIME := 3.0   # s a second stray tap has to skip the tour

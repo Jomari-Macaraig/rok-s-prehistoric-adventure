@@ -91,3 +91,7 @@ The Camp still equips gear. Its Change list shows each copy by full name in its 
 - Material icons: all 45 are the user's art (`tools/prepare_materials.py` → `assets/materials/`); a material without one falls back to a code-drawn lump on a rarity ring (`Crafting.icon`).
 - An Armor stat icon in the kit's style (armor uses the power icon today).
 - Title plaques with "Crafting Bench" and "Items" baked in (the kit's blank title sign with text is used).
+
+## Where it's opened
+
+The Crafting Bench has its own **Crafting** button on the main menu (the user's call, 2026-11-23; `Hud.crafting_button`, under the Marketplace, key J), shown once the bench is open; its red dot means a learned recipe can be crafted now (`main.crafting_ready`). The Items screen stays inside it (the bench's Items button) and in the Camp's header, beside Crafting. A hammer-and-anvil icon is drawn in code until the user's square art exists.

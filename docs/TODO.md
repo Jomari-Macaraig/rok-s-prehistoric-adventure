@@ -22,6 +22,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 - [ ] **Rok's Fist and Shoot standing styles, fresh redraws** (the consistency update ships them as the old art scaled to his run's size; same 4×2, 384×512 cells, feet at y 488, guides and landmarks): drop them in `Rok_Animation_Consistency_Update 3/rok/standing/` and rerun `prepare_styles.py`.
 - [ ] **Optional: Nira's and Boro's running style attacks redrawn over their in-game run** (`Rok_New_Heroes_Nira_Boro/<hero>/spritesheets/run.png`): their packs used a different, ~10% taller run, so the game fits them; legs only match exactly for Rok.
 - [ ] **A Missions scene** (the user's plan): a full screen like the Market and Camp for the daily and weekly missions (a backdrop, a board or scroll for the two lists with room for 3 + 3 missions, progress bars, a reward/streak plaque, a title plaque "MISSIONS"). Today a dark panel in the middle of the main menu stands in (`Hud.missions_panel`).
+- [ ] **UI: a Crafting button** in the square menu-button style (`Rok_Square_Buttons/png_256/button_crafting_square.png`, a hammer and anvil or Kora's bench); drawn in code until then.
 - [ ] **UI: a Settings button** (cog) in the round top-left button style; a cog is drawn in code until then.
 - [ ] **UI: a Missions button** in the square menu-button style (`Rok_Square_Buttons/png_256/button_missions_square.png`, a scroll or checklist icon, no text; `prepare_menu_buttons.py` copies it to `assets/ui/square_missions.png`). A scroll is drawn in code until then.
 - [ ] **UI:** an Armor stat icon (kit glyph style); "Crafting Bench", "Items" and "DINOSAUR CAMP" title plaques.
@@ -45,6 +46,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Done recently
 
+- 2026-11-23: a Crafting button on the main menu (the tour points at it).
 - 2026-11-23: the Encyclopedia's Weapons, Armor and Card Slots pages, and the Crafting tour's equipment step.
 - 2026-11-23: Settings (sound and music volumes); armor durability and repair; selling in the Market at 80% (`config/economy.cfg`).
 - 2026-11-23: a Missions button with daily and weekly missions (`config/missions.cfg`); one font (Baloo 2) everywhere; the Encyclopedia lists drops (from the config) and how to unlock locked entries; a Crafting tour after the run that opens the bench; Canyon rock drops fixed.

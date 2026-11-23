@@ -1730,18 +1730,20 @@ func _feedback_checks() -> void:
 	main._bank_meat()
 	main.state = main.State.OVER
 	main._to_title()
-	check(main.menu_tour != null and main.menu_tour.steps == MenuTour.CRAFT_STEPS and main.menu_tour.want() == "herd", "after the run that opened the Crafting Bench, a tour points at the Camp")
+	main._refresh_hud()
+	check(main.hud.crafting_button.visible, "once the bench is open, the main menu has a Crafting button")
+	check(main.menu_tour != null and main.menu_tour.steps == MenuTour.CRAFT_STEPS and main.menu_tour.want() == "crafting", "after the run that opened the Crafting Bench, a tour points at the Crafting button")
+	main._touch_pressed("crafting")
+	main.menu_tour.step(0.1)
+	main.menu_tour.step(0.1)
+	check(main.bench.visible and main.menu_tour.phase == "inside" and main.menu_tour.i == 0, "...it opens the bench, and the tour explains the recipes and CRAFT")
+	main.bench.close_screen()
+	main.menu_tour.step(0.1)
+	check(main.menu_tour.i == 1 and main.menu_tour.want() == "herd", "...then points at the Camp")
 	main.open_herd("rok")
 	main.menu_tour.step(0.1)
 	main.menu_tour.step(0.1)
-	check(main.menu_tour.phase == "inside" and main.menu_tour.i == 0, "...inside the Camp it points at Crafting")
-	main.open_bench("weapon")
-	main.menu_tour.step(0.1)
-	check(main.menu_tour.i == 1, "...on the bench it explains the recipes and CRAFT")
-	main.bench.close_screen()
-	main.menu_tour.step(0.1)
-	main.menu_tour.step(0.1)
-	check(main.menu_tour.i == 2 and main.menu_tour.phase == "inside" and main.herd.visible, "...back in the Camp it explains equipment: weapons, armor, wear, repair and the card slot")
+	check(main.menu_tour.phase == "inside" and main.herd.visible, "...where it explains equipment: weapons, armor, wear, repair and the card slot")
 	main.herd.close_herd()
 	main.menu_tour.step(0.1)
 	check(main.menu_tour == null and main.seen.has("craft_tour"), "...and Back ends it, for good")
@@ -2145,7 +2147,7 @@ func _variety_checks() -> void:
 	main._refresh_hud()
 	var hm: Hud = main.hud
 	check(hm.missions_button.visible and not hm.missions_panel.visible, "the main menu has a Missions button and no missions panel of its own")
-	var side := [hm.codex_button, hm.herd_button, hm.market_button, hm.missions_button, hm.tutorial_button]
+	var side := [hm.codex_button, hm.herd_button, hm.market_button, hm.missions_button, hm.tutorial_button, hm.crafting_button]
 	var side_clash := false
 	for i in side.size():
 		for j in range(i + 1, side.size()):

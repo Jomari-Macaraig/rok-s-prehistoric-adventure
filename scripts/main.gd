@@ -329,6 +329,7 @@ func _setup_input() -> void:
 		"herd": [KEY_H],
 		"tutorial": [KEY_U],
 		"missions": [KEY_O],
+		"crafting": [KEY_J],
 		"note_back": [KEY_LEFT, KEY_BACKSPACE],
 		"booster_1": [KEY_B],
 		"booster_2": [KEY_N],
@@ -817,10 +818,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		# the menu tour: only its highlighted button's key works
 		var wanted := menu_tour.want()
 		if not (wanted != "" and event.is_action_pressed(wanted)):
-			for act in ["jump", "restart", "tutorial", "codex", "market", "herd"]:
+			for act in ["jump", "restart", "tutorial", "codex", "market", "herd", "crafting"]:
 				if event.is_action_pressed(act):
 					menu_tour.stray_tap()
 					return
+	if event.is_action_pressed("crafting") and state == State.TITLE and not _overlay_open():
+		open_bench()
+		return
 	if event.is_action_pressed("herd") and (state == State.TITLE or state == State.OVER):
 		open_herd()
 		return
@@ -949,6 +953,11 @@ func _touch_pressed(a: String) -> void:
 	if a == "tutorial":
 		if state == State.TITLE:
 			replay_tutorial()
+		return
+	if a == "crafting":
+		if state == State.TITLE:
+			audio.play("click", 0.0)
+			open_bench()
 		return
 	if a == "missions":
 		if state == State.TITLE:
@@ -2754,6 +2763,17 @@ func wear_weapon(id: String) -> void:
 		player.refresh_form()   # its bonus is gone
 
 
+## Something can be crafted right now (a learned recipe with its materials):
+## the Crafting button's red dot.
+func crafting_ready() -> bool:
+	if not bench_open():
+		return false
+	for k in Crafting.recipes():
+		if can_craft(k):
+			return true
+	return false
+
+
 ## Sells one thing in the Market (Economy sell id) for Economy.sell_price
 ## (80% of its value): gear that isn't equipped (its slotted card goes back
 ## to the pile), one piece of a material, or one spare card. Returns the meat
@@ -3612,6 +3632,7 @@ func _refresh_hud() -> void:
 	hud.set_herd(state == State.TITLE and not overlay, not level_ready().is_empty() or gear_ready())
 	hud.set_tutorial(state == State.TITLE and not overlay and menu_tour == null)   # (the tour's bubble sits there)
 	hud.set_missions_button(state == State.TITLE and not overlay, missions_badge())
+	hud.set_crafting(state == State.TITLE and not overlay and bench_open(), crafting_ready())
 	hud.set_run_controls(state != State.TITLE and state != State.OVER)
 	if hud.missions_open and (state != State.TITLE or overlay):
 		hud.close_missions()

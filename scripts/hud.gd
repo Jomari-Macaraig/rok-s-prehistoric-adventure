@@ -30,6 +30,7 @@ var sound_button: TouchButton
 var codex_button: TouchButton
 var market_button: TouchButton
 var herd_button: TouchButton   # opens the Camp (level up, gear, choose dinosaurs)
+var crafting_button: TouchButton   # opens the Crafting Bench (its Items screen is inside), once it's open
 var stop_button: TouchButton   # ends the run early (two taps; main._press_stop)
 var tips_button: TouchButton   # coach hints on/off, shown on the pause screen
 var tutorial_button: TouchButton   # replays the training run, on the main menu
@@ -134,6 +135,11 @@ func _ready() -> void:
 	herd_button.caption = "DINO CAMP"
 	herd_button.visible = false
 	# the training run again (main.start_tutorial), on the main menu
+	crafting_button = _button("crafting", Tuning.SIDE_BUTTON_SIZE)
+	crafting_button.icon = _icon_from(func(img: Image): _anvil(img))
+	crafting_button.caption = "Crafting"
+	crafting_button.caption_below = true
+	crafting_button.visible = false
 	missions_button = _button("missions", Tuning.TUTORIAL_BUTTON_SIZE)
 	missions_button.icon = _icon_from(func(img: Image): _scroll(img))
 	missions_button.caption = "Missions"
@@ -181,7 +187,7 @@ func _ready() -> void:
 	skip_button.size = skip_button.custom_minimum_size
 	skip_button.visible = false
 	# the user's square menu buttons replace the drawn ones when imported, their name below
-	for trio in [[codex_button, "encyclopedia", "Encyclopedia"], [market_button, "marketplace", "Marketplace"], [herd_button, "dinosaurs", "Dinosaur Camp"], [tutorial_button, "tutorial", "Tutorial"]]:
+	for trio in [[codex_button, "encyclopedia", "Encyclopedia"], [market_button, "marketplace", "Marketplace"], [herd_button, "dinosaurs", "Dinosaur Camp"], [tutorial_button, "tutorial", "Tutorial"], [crafting_button, "crafting", "Crafting"]]:
 		var path := "res://assets/ui/square_%s.png" % trio[1]
 		if ResourceLoader.exists(path):
 			(trio[0] as TouchButton).caption = trio[2]
@@ -555,6 +561,8 @@ func _layout() -> void:
 	codex_button.position = Vector2(m, mid - codex_button.size.y - 22.0)   # room for its name below
 	herd_button.position = Vector2(m, mid + 14.0)
 	market_button.position = Vector2(vw - m - market_button.size.x, mid - market_button.size.y * 0.5)
+	# Crafting under the Marketplace, mirroring the Camp under the Encyclopedia
+	crafting_button.position = Vector2(vw - m - crafting_button.size.x, market_button.position.y + market_button.size.y + Tuning.TUTORIAL_GAP)
 	# Missions under the Dinosaur Camp (the run controls there are hidden on the main menu)
 	missions_button.position = Vector2(herd_button.position.x + (herd_button.size.x - missions_button.size.x) * 0.5,
 			herd_button.position.y + herd_button.size.y + Tuning.TUTORIAL_GAP)
@@ -668,6 +676,20 @@ func _bag(img: Image) -> void:
 
 
 ## A three-toed dinosaur footprint: the Herd.
+## A stone hammer over a log anvil (the Crafting button until the user's art).
+func _anvil(img: Image) -> void:
+	var c := Color(0.45, 0.24, 0.1)
+	var wood := Color(0.72, 0.48, 0.25)
+	img.fill_rect(Rect2i(10, 38, 44, 16), c)
+	img.fill_rect(Rect2i(13, 41, 38, 10), wood)
+	img.fill_rect(Rect2i(18, 54, 6, 6), c)
+	img.fill_rect(Rect2i(40, 54, 6, 6), c)
+	for i in 26:   # the handle, slanting down to the left
+		img.fill_rect(Rect2i(22 + i, 34 - i, 4, 4), c)
+	img.fill_rect(Rect2i(38, 4, 20, 14), c)
+	img.fill_rect(Rect2i(40, 6, 16, 10), Color(0.6, 0.6, 0.58))
+
+
 ## A rolled scroll with tick marks (the Missions button until the user's art).
 func _scroll(img: Image) -> void:
 	var c := Color(0.45, 0.24, 0.1)
@@ -836,6 +858,15 @@ func set_market(visible_now: bool, affordable: bool) -> void:
 
 ## The Camp (Herd) button shows on the title and game-over screens, beside
 ## the Market; its red dot means something can level up (or be equipped).
+## The Crafting button shows on the main menu once the bench is open; its dot
+## means something can be crafted right now.
+func set_crafting(visible_now: bool, ready := false) -> void:
+	crafting_button.visible = visible_now
+	if crafting_button.badge != ready:
+		crafting_button.badge = ready
+		crafting_button.queue_redraw()
+
+
 func set_herd(visible_now: bool, ready := false) -> void:
 	herd_button.visible = visible_now
 	if herd_button.badge != ready:
