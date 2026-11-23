@@ -76,6 +76,49 @@ static func character(form: int) -> SpriteFrames:
 static var _celebrate_meta := {}
 static var _running_meta := {}
 static var _fx_meta := {}
+static var _tut_meta := {}
+
+
+## The user's tutorial UI kit (tools/prepare_tutorial_ui.py): a piece by name
+## (card, plaque, pill, hand, ring, marks, chevrons), or null without it.
+static func tutorial_ui(name: String) -> Texture2D:
+	var p := "res://assets/ui/tutorial/%s.png" % name
+	return tex(p) if ResourceLoader.exists(p) else null
+
+
+## A kit piece's 9-slice style (its `margins`, 1x), or null without it.
+static func tutorial_box(name: String) -> StyleBoxTexture:
+	var t := tutorial_ui(name)
+	if t == null:
+		return null
+	if _tut_meta.is_empty() and FileAccess.file_exists("res://assets/ui/tutorial/tutorial_ui.json"):
+		_tut_meta = JSON.parse_string(FileAccess.get_file_as_string("res://assets/ui/tutorial/tutorial_ui.json"))
+	var m: Array = _tut_meta.get(name, {}).get("margins", [0, 0, 0, 0])
+	var sb := StyleBoxTexture.new()
+	sb.texture = t
+	sb.texture_margin_left = m[0]
+	sb.texture_margin_top = m[1]
+	sb.texture_margin_right = m[2]
+	sb.texture_margin_bottom = m[3]
+	return sb
+
+
+## The kit's fonts: "heading" (Baloo 2, weight 800) or "body" (Nunito Sans,
+## weight 600); the default font without them.
+static func ui_font(kind: String) -> Font:
+	var key := "font_" + kind
+	if _cache.has(key):
+		return _cache[key]
+	var path := "res://assets/fonts/%s.ttf" % ("Baloo2-Variable" if kind == "heading" else "NunitoSans-Variable")
+	var f: Font = ThemeDB.fallback_font
+	if ResourceLoader.exists(path):
+		var fv := FontVariation.new()
+		fv.base_font = load(path)
+		# (the axis key must be the OpenType tag as a number, not the string "wght")
+		fv.variation_opentype = {TextServerManager.get_primary_interface().name_to_tag("wght"): 800.0 if kind == "heading" else 600.0}
+		f = fv
+	_cache[key] = f
+	return f
 
 
 ## The shapeshift burst's meta (tools/prepare_transform_fx.py): cell, pivot,

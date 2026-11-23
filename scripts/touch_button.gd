@@ -90,15 +90,28 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	if pill_text != "":   # a dark rounded pill with light text (lit while armed)
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color(0.62, 0.22, 0.1, 0.95) if active else Color(0.25, 0.13, 0.06, 0.85 if not held else 0.95)
-		sb.border_color = Color(1.0, 0.85, 0.55, 0.9)
-		sb.set_border_width_all(2)
-		sb.set_corner_radius_all(int(size.y * 0.5))
-		draw_style_box(sb, Rect2(Vector2.ZERO, size))
-		var pf := get_theme_default_font()
-		var pw := pf.get_string_size(pill_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x
-		draw_string(pf, Vector2(size.x * 0.5 - pw * 0.5, size.y * 0.5 + 8.0), pill_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1, 0.96, 0.88))
+		var kit := SpriteLib.tutorial_box("pill")   # the user's brown pill, and its chevrons
+		var chev := SpriteLib.tutorial_ui("chevrons")
+		if kit:
+			var tint := Color(1.25, 0.75, 0.6) if active else (Color(0.85, 0.85, 0.85) if held else Color.WHITE)
+			draw_style_box(kit, Rect2(Vector2.ZERO, size))
+			if tint != Color.WHITE:
+				draw_rect(Rect2(Vector2(size.y * 0.25, size.y * 0.2), size - Vector2(size.y * 0.5, size.y * 0.4)), Color(tint, 0.18) if active else Color(0, 0, 0, 0.15))
+		else:
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = Color(0.62, 0.22, 0.1, 0.95) if active else Color(0.25, 0.13, 0.06, 0.85 if not held else 0.95)
+			sb.border_color = Color(1.0, 0.85, 0.55, 0.9)
+			sb.set_border_width_all(2)
+			sb.set_corner_radius_all(int(size.y * 0.5))
+			draw_style_box(sb, Rect2(Vector2.ZERO, size))
+		var pf := SpriteLib.ui_font("body")
+		var label := pill_text.trim_suffix(" »") if chev else pill_text
+		var pw := pf.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x
+		var cw := chev.get_width() + 6.0 if chev else 0.0
+		var x0 := size.x * 0.5 - (pw + cw) * 0.5
+		draw_string(pf, Vector2(x0, size.y * 0.5 + 8.0), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1, 0.96, 0.88))
+		if chev:
+			draw_texture(chev, Vector2(x0 + pw + 6.0, size.y * 0.5 - chev.get_height() * 0.5))
 		return
 	if banner:
 		var tint := Color(0.85, 0.85, 0.85) if held else Color.WHITE

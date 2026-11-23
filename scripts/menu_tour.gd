@@ -90,7 +90,10 @@ func finish(skipped: bool) -> void:
 	phase = "done"
 	game.hud.hide_coach()
 	game.hud.clear_banner()
-	if not skipped:
-		game.hud.show_banner("YOU'RE ALL SET!", "Tap anywhere to start running.", Color(1.0, 0.85, 0.45), 3.0)
 	game.end_menu_tour()
-	game._show_menu_text()   # the title panel back
+	if skipped:
+		game._show_menu_text()   # the title panel back
+		return
+	game.hud.show_banner("YOU'RE ALL SET!", "Tap anywhere to start running.", Color(1.0, 0.85, 0.45), 3.0)
+	# the title panel comes back once the banner has gone (it sat on top of it)
+	game.get_tree().create_timer(3.2).timeout.connect(game._show_menu_text)

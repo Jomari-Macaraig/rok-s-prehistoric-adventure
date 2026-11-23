@@ -46,6 +46,19 @@ the Stop button is hidden meanwhile). Only steps with something to explain or
 grab first (`intro`: your screen, meat, power-ups, amber) open with a note;
 the button steps go straight to their card.
 
+**The user's tutorial UI kit** (`../Assets/Rok_Tutorial_UI_Kit`, imported by
+`tools/prepare_tutorial_ui.py` into `assets/ui/tutorial/` and `assets/fonts/`)
+dresses all of this: the ivory card (`SpriteLib.tutorial_box("card")`,
+stretched only in its straight middle), the focus ring, the attention marks
+(over the button and off the card's corner), the tap pointer (mirrored when
+the button is in the screen's corner), the wood-and-bone plaque, the brown
+pill for Skip (with the chevrons) and the notes' Back / Next, and the fonts
+(`SpriteLib.ui_font`: Baloo 2 weight 800 for card titles, Nunito Sans weight
+600 for text; the weight is set with the OpenType tag as a number). Without
+the kit everything falls back to the code-drawn look. The kit's HUD pieces
+(hearts, pause, counter, PRIMAL bar), slot frames and action buttons aren't
+used (the game keeps its own HUD).
+
 **How each step works** (`TutorialRun.STEPS`)
 1. An `intro` step first shows a note with its title and hint (frozen, until
    a tap; the user wanted nothing to move on by itself; a retry skips it).
@@ -115,7 +128,7 @@ The user asked for the tutorial to walk the player through the screens.
    button (the coach marker is on its own `CanvasLayer` 30, above the
    Market, Camp and Field Guide). Back moves on.
 2. The same for the **Camp**, then the **Encyclopedia**.
-3. "YOU'RE ALL SET!" and the title panel comes back.
+3. "YOU'RE ALL SET!", and the title panel comes back once that banner has gone (it used to sit on top of it).
 
 During the tour the title panel and the Tutorial button are hidden (the
 bubbles sit there). A tap anywhere else shows "TAP THE GLOWING BUTTON", and a

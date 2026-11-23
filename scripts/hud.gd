@@ -147,10 +147,20 @@ func _ready() -> void:
 	psb.content_margin_bottom = 6
 	psb.shadow_color = Color(0, 0, 0, 0.3)
 	psb.shadow_size = 3
-	tutorial_plaque.add_theme_stylebox_override("panel", psb)
-	var pl := _label(26, Color(0.32, 0.17, 0.06))
+	var kit_plaque := SpriteLib.tutorial_box("plaque")   # the user's wood-and-bone plaque
+	if kit_plaque:
+		kit_plaque.content_margin_left = 40
+		kit_plaque.content_margin_right = 40
+		kit_plaque.content_margin_top = 4
+		kit_plaque.content_margin_bottom = 8
+	tutorial_plaque.add_theme_stylebox_override("panel", kit_plaque if kit_plaque else psb)
+	var pl := _label(26, Color(1.0, 0.95, 0.82) if kit_plaque else Color(0.32, 0.17, 0.06))
 	pl.text = "Tutorial"
-	pl.remove_theme_constant_override("outline_size")
+	pl.add_theme_font_override("font", SpriteLib.ui_font("heading"))
+	if kit_plaque:
+		pl.add_theme_constant_override("outline_size", 6)
+	else:
+		pl.remove_theme_constant_override("outline_size")
 	tutorial_plaque.add_child(pl)
 	tutorial_plaque.visible = false
 	root.add_child(tutorial_plaque)

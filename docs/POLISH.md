@@ -18,7 +18,7 @@ as you go. Each system's details are in [docs/systems/](systems/README.md).
   - [x] Tutorial button on the main menu replays the training run
   - [x] Training run explains the HUD (hearts, hunter meter, points, distance, meat, PRIMAL) and ends with a tour of the Marketplace, Camp and Encyclopedia
   - [x] Mockup polish: big top cards with highlighted button names, glowing button with rays, dashed move arcs, Tutorial plaque and Skip
-  - [ ] Tapping-hand art (`assets/ui/tap_hand.png`)
+  - [x] The user's tutorial UI kit: card, plaque, pills, focus ring, attention marks, tap pointer, Baloo 2 / Nunito Sans
   - [ ] Square art for the Tutorial button (`assets/ui/square_tutorial.png`, like the Encyclopedia/Marketplace/Dinosaurs buttons)
   - [ ] Playtest the timing (gap, show time, look-ahead) on a phone
 - [ ] [Combat](systems/combat.md)
