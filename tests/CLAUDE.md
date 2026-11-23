@@ -23,5 +23,7 @@
   `godot --headless --path . --fixed-fps 60 -s tests/timeline_probe.gd [-- <metres>]`
 - `tutorial_shots.gd`: plays the whole tutorial on a fresh save like a person (real taps, a long press for the hold step) and saves every moment that shows tutorial UI, numbered in order: the title, each step's intro note, each button hint (and the double jump's mid-air one), each HUD note, the finish card, every menu-tour step and the end. 34 shots. Output goes in `screenshots/` (gitignored):
   `godot --path . --fixed-fps 60 --resolution 1280x720 -s tests/tutorial_shots.gd -- "$PWD/screenshots/tutorial_1280x720"`
+- `screens_shots.gd`: the Encyclopedia (every tab with an entry open) and the Camp (every tab, plus a dinosaur compared with the equipped one), with some progress so they aren't empty. 12 shots into `screenshots/` (gitignored):
+  `godot --path . --fixed-fps 60 --resolution 1280x720 -s tests/screens_shots.gd -- "$PWD/screenshots/screens_1280x720"`
 - `news_shots.gd`: the game-over screen listing what was new this run, including a Market item (`news_gameover`), and the Market with it tagged NEW (`news_market`):
   `godot --path . --fixed-fps 60 --resolution 1280x720 -s tests/news_shots.gd -- <out_dir>`
