@@ -2389,6 +2389,31 @@ func _fun_checks() -> void:
 	check(not tf.visible, "...and it's gone when it ends")
 	main.unlocked = unl_keep
 	main.start_run(false)
+	# --- the Encyclopedia's Cards tab (the user's card art)
+	var cards_keep: Dictionary = main.cards.duplicate()
+	var seen_keep3: Array = main.seen.duplicate()
+	main.cards.clear()
+	main._sync_gear()
+	main.grant_card("raptor")
+	main.seen.append("card_raptor")
+	main.open_guide()
+	main.codex._show_tab(6)
+	var ctiles: Array = main.codex.grid.get_children().filter(func(c): return not c.is_queued_for_deletion())
+	var raptor_tile: Node = main.codex.grid.get_node_or_null("Card_raptor")
+	var tri_tile: Node = main.codex.grid.get_node_or_null("Card_triceratops")
+	check(ctiles.size() == Forms.ORDER.size() - 1 + Dinos.ids().size() and raptor_tile != null and String(raptor_tile.get_meta("title")) == "Raptor Card"
+			and tri_tile != null and bool(tri_tile.get_meta("locked")), "the Cards tab lists every dinosaur card; found ones by name, the rest locked")
+	check(CardView.art("raptor") != null and CardView.art("pteranodon") != null, "the four original dinosaurs have the user's card art")
+	main.codex.select(raptor_tile.get_index())
+	var cv: Node = main.codex.find_child("CardView", true, false)
+	check(cv != null and (cv as CardView).text == Gear.bonus_text(Gear.CARD_PREFIX + "raptor") and (cv as CardView).text != "",
+			"a found card shows on the book's page with what it gives a weapon written on it")
+	main.codex.close_guide()
+	main.cards.clear()
+	for k in cards_keep:
+		main.cards[k] = cards_keep[k]
+	main._sync_gear()
+	main.seen = seen_keep3
 	# --- hazard icons (info cards and Field Guide), in each zone's look
 	var missing := []
 	for e in Progression.INTROS:

@@ -33,6 +33,7 @@ Each system is documented on its own in [docs/systems/](../docs/systems/README.m
 | `best_flag.gd` | [goals](../docs/systems/goals.md) |
 | `bonus_portal.gd` | [long-run-events](../docs/systems/long-run-events.md) |
 | `boosters.gd` | [power-ups](../docs/systems/power-ups.md) |
+| `card_view.gd` | [field-guide](../docs/systems/field-guide.md#cards-tab) |
 | `chase_meter.gd` | [chase-and-hunters](../docs/systems/chase-and-hunters.md) |
 | `chest.gd` | [long-run-events](../docs/systems/long-run-events.md) |
 | `codex.gd` | [field-guide](../docs/systems/field-guide.md) |

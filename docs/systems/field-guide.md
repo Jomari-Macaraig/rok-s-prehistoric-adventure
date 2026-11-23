@@ -65,3 +65,7 @@ With the user's Encyclopedia / Dinosaurs scene kit (`../Assets/Rok_Scene_Polish_
 - the wooden roster frame behind the shelf, the kit's tabs (teal when chosen), the kit's cards (normal / selected / locked) with the orange NEW badge top right, the check top left on the chosen card and a padlock on locked ones; arrows at the roster's ends scroll it.
 
 Layout (`_layout_kit`): the kit's 1920×1080 reference scaled by the screen height; the book and roster anchored right and bottom, so a wide phone gets more room in the middle. Without the kit everything falls back to the drawn cave.
+
+## Cards tab
+
+The seventh tab lists every dinosaur card: the four originals, then the 28 expansion species (`Codex._cards_tab`, tiles `Card_<id>`). A card is found once you've had one (`Gear.cards` or `seen` "card_<id>"; they drop from wild dinosaurs and come in rare/epic chests, see [weapons-and-armor](weapons-and-armor.md)). A found card shows on the book's left page as the card itself (`CardView`): the user's card art (`assets/cards/<id>`, `tools/prepare_cards.py`; so far Raptor, Triceratops, Spinosaurus and Pterosaur = Pteranodon) with what it gives a weapon (`Gear.bonus_text`) written on its blank parchment (`cards.json` `text_box`), or for a dinosaur without art yet its portrait on the kit's card with the bonus below. The right page says what it gives the weapon, how many you have and where they come from. A card not found is "???" with where to look. Cards don't count toward "Discovered".

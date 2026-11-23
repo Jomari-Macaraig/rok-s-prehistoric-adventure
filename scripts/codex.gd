@@ -270,8 +270,8 @@ func _ready() -> void:
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 8)
 	shelf.add_child(tabs)
-	for i in 6:
-		var b := _button(["Dinosaurs", "Hazards & Terrain", "Items", "Power-Ups", "Zones", "Badges"][i], Vector2(0, 46))
+	for i in 7:
+		var b := _button(["Dinosaurs", "Hazards & Terrain", "Items", "Power-Ups", "Zones", "Badges", "Cards"][i], Vector2(0, 46))
 		b.toggle_mode = true
 		b.pressed.connect(func(): _show_tab(i))
 		tabs.add_child(b)
@@ -579,7 +579,35 @@ func _show_tab(i: int) -> void:
 		5:
 			for id in Badges.DATA:
 				_badge_card(id)
+		6:
+			_cards_tab()
 	select(0)
+
+
+## Every dinosaur card (the four originals, then the expansion species): a
+## found one shows its card (the user's art, or its portrait on a card) with
+## what it gives the weapon it's used on, how many you have and where they
+## come from; one not found yet is "???" with where to look.
+func _cards_tab() -> void:
+	var ids: Array = []
+	for f in Forms.ORDER:
+		if f != Forms.ROK:
+			ids.append(String(Forms.DATA[f].id))
+	ids.append_array(Dinos.ids())
+	for id in ids:
+		var have := int(Gear.cards.get(id, 0))
+		var found := have > 0 or seen.has("card_" + id)
+		var bonus := Gear.bonus_text(Gear.CARD_PREFIX + id)
+		var where := "Dropped by a wild %s: bonk one with ATTACK." % Herd.name_of(id) if Critters.DATA.has(id) else "Found in rare and epic treasure chests."
+		if found:
+			_card(CardView.icon(id), Herd.name_of(id) + " Card", "Use it on a weapon at the Camp: it gives the weapon %s." % bonus,
+					"You have x%d  ·  %s" % [have, where], false, false, Color(0.55, 0.32, 0.12))
+		else:
+			_card(CardView.icon(id), "???", "Not found yet. " + where, "", true, false)
+		var tile: Node = grid.get_child(grid.get_child_count() - 1)
+		tile.name = "Card_" + id
+		tile.set_meta("card", id)
+		tile.set_meta("card_text", bonus)
 
 
 ## Pick an entry off the shelf: the Elder tells you about it (its full page
@@ -632,15 +660,22 @@ func _fill_book(tile: Node, full: Control, locked: bool, nm: String) -> void:
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	left_page.add_child(name_l)
-	var pic := TextureRect.new()
-	pic.texture = tile.get_meta("tex", null)
-	pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	pic.custom_minimum_size = Vector2(0, bubble.size.y * 0.42)
-	pic.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	if locked:
-		pic.modulate = Color(0.12, 0.07, 0.03, 0.85)
-	left_page.add_child(pic)
+	if tile.has_meta("card"):   # a dinosaur card: drawn as the card, its bonus on the parchment
+		var cv := CardView.new(String(tile.get_meta("card")), String(tile.get_meta("card_text", "")), locked)
+		cv.name = "CardView"
+		cv.custom_minimum_size = Vector2(0, bubble.size.y * 0.58)
+		cv.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		left_page.add_child(cv)
+	else:
+		var pic := TextureRect.new()
+		pic.texture = tile.get_meta("tex", null)
+		pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		pic.custom_minimum_size = Vector2(0, bubble.size.y * 0.42)
+		pic.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		if locked:
+			pic.modulate = Color(0.12, 0.07, 0.03, 0.85)
+		left_page.add_child(pic)
 	var st := SceneKit.badge("✓ DISCOVERED" if not locked else "NOT YET FOUND", "status_pill_blank" if not locked else "button_secondary", 16)
 	if st:
 		st.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

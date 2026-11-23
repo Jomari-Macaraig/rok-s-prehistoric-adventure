@@ -28,7 +28,7 @@ func _initialize() -> void:
 	root.add_child(main)
 	# Encyclopedia: [tab index, entry title to open (or ""), file name]
 	for e in [[0, "Raptor", "dinosaurs"], [1, "Boulders", "hazards_terrain"], [2, "", "items"],
-			[3, "", "power_ups"], [4, "", "zones"], [5, "", "badges"]]:
+			[3, "", "power_ups"], [4, "", "zones"], [5, "", "badges"], [6, "Raptor Card", "cards"], [6, "Gallimimus Card", "cards_no_art"]]:
 		jobs.append(["enc"] + e)
 	# Camp: [tab, dinosaur to select (or "" = the equipped one), file name]
 	for cat in Herd.tabs():
@@ -46,6 +46,9 @@ func _progress() -> void:
 		if Dinos.ids().has(id) and not main.dinos_owned.has(id):
 			main.dinos_owned.append(id)
 	main.meat_bank = 640
+	for id in ["raptor", "triceratops", "gallimimus"]:   # some cards found
+		main.grant_card(id)
+		main.seen.append("card_" + id)
 	main.gear_owned.append("club")
 	main.equip_gear("rok", "weapon", "club")
 	for i in 40:
@@ -91,7 +94,7 @@ func _process(_d: float) -> bool:
 		_next()
 	if job >= 0 and job < jobs.size() and frame - job_frame == SETTLE:
 		var j: Array = jobs[job]
-		var name := "%s_%d_%s" % [j[0], job + 1 - (0 if j[0] == "enc" else 6), j[3]]
+		var name := "%s_%d_%s" % [j[0], job + 1 - (0 if j[0] == "enc" else 8), j[3]]
 		root.get_texture().get_image().save_png("%s/%s.png" % [out, name])
 		_next()
 	return job >= jobs.size() or frame > 60 * 120
