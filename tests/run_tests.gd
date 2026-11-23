@@ -1377,6 +1377,9 @@ func _feedback_checks() -> void:
 	check(main._break_materials(c_rock, c_rock.position).is_empty(), "...and only by chance")
 	main.mat_drop_override = -1.0
 	c_rock.queue_free()
+	var rw := Crafting.rarity_weighted({"wood": 1.0, "resin": 1.0, "primal_crystal": 1.0})
+	check(float(rw.wood) > float(rw.resin) * 3.0 and float(rw.resin) > float(rw.primal_crystal) * 3.0, "drop rarity: rarer materials drop far less often (config [drop_rarity])")
+	check(float(Crafting.num("break_drops", "chance")) <= 0.25 and float(Crafting.num("spots", "chance")) <= 0.1, "materials are rare in runs")
 	check(Chest.REWARDS.common.has("materials") and Chest.REWARDS.epic.has("materials"), "chests can hold materials")
 	var c_cm := Crafting.have("shell") + Crafting.have("fossil_shard") + Crafting.have("dino_scale") + Crafting.have("primal_crystal")
 	var c_chest := Pickup.new().setup("chest")
@@ -1466,6 +1469,17 @@ func _feedback_checks() -> void:
 	h.close_herd()
 	check(main.herd.find_child("Backdrop", true, false) != null and main.market.find_child("Backdrop", true, false) != null and main.codex.find_child("Backdrop", true, false) != null,
 			"the Camp, Market and Field Guide are their own full screens")
+	# the loading screen preloads what a run draws (the user's request)
+	check(main.loader == null, "test scripts skip the loading screen (only a normal launch shows it)")
+	var plc := Preloader.collect()
+	check((plc[0] as Array).any(func(x): return String(x).contains("characters/rok/run")) and (plc[1] as Array).any(func(x): return String(x).contains("attacks/")),
+			"the loading screen loads the forms' body and attack sheets")
+	var pl := Preloader.new()
+	main.add_child(pl)
+	pl.run_all()
+	check(pl._done == pl._total and Preloader.keep.size() >= (plc[0] as Array).size() and SpriteLib._cache.has("attack_raptor"),
+			"...loads everything and builds the run's animation frames")
+	pl.queue_free()
 	# the Dinosaur Camp's stage: the chosen one idles and now and then attacks
 	main.unlocked = Forms.ORDER.duplicate()
 	main.open_herd("runner")

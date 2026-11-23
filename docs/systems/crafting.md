@@ -51,6 +51,8 @@ All drops go straight into the bank (`grant_materials`). Materials found during 
 | Rare fossils (each also gives Fossil Shards) | the fossil pickup | `[fossils] shards` |
 | The Market: a bundle of a basic material (`mat_<id>`, Gear tab, bought again and again; never on sale before the bench opens) | `Market.items` / `main.buy` | `[materials] price / unlock_m`, `[market] bundle` |
 
+Run drops are **rare** (the user's rule): low chances (a broken obstacle 15%, a wild dinosaur 30%, 5% of reward spots), and every drop table is weighted by **drop rarity** (`[drop_rarity] weights` by the material's rarity, default 1 / 0.45 / 0.15 / 0.05 / 0.015 for Common .. Legendary; `Crafting.drop_pick` / `rarity_weighted`), so rare materials turn up far less often than common ones in the same table. Chests use it too.
+
 `mat_drop_override` (tests) pins the drop rolls.
 
 ## Screens (`Workshop`, one script, two modes)

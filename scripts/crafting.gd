@@ -55,14 +55,15 @@ const DEFAULTS := {
 	},
 	"salvage": {"share": 0.5, "bonus": ["", "", "resin", "fossil_shard", "primal_crystal"]},
 	"repair": {"share": 0.3},
-	"break_drops": {"chance": 0.55, "count": [1, 2],
+	"drop_rarity": {"weights": [1.0, 0.45, 0.15, 0.05, 0.015]},
+	"break_drops": {"chance": 0.15, "count": [1, 2],
 		"wood": {"wood": 3, "fiber": 1}, "fiber": {"fiber": 3, "wood": 1},
 		"rock_forest": {"stone": 4, "flint": 1}, "rock_desert": {"stone": 2, "flint": 3},
 		"rock_volcanic": {"stone": 2, "obsidian": 2}, "meteor": {"obsidian": 1}},
-	"wild_drops": {"chance": 0.7, "count": [1, 2],
+	"wild_drops": {"chance": 0.3, "count": [1, 2],
 		"land": {"hide": 6, "bone": 4, "dino_scale": 1.5, "shell": 0.3},
 		"flyer": {"bone": 3, "hide": 2, "dino_scale": 1.5}},
-	"spots": {"chance": 0.14, "count": [1, 3],
+	"spots": {"chance": 0.05, "count": [1, 3],
 		"forest": {"wood": 3, "fiber": 3, "stone": 1}, "desert": {"flint": 3, "bone": 2, "stone": 1},
 		"volcanic": {"obsidian": 2, "stone": 2, "flint": 1},
 		"deep_from_m": 2500, "deep_full_m": 6000, "deep_max": 0.5,
@@ -277,6 +278,21 @@ static func repair_cost(item: String, worn: int, mx: int) -> Dictionary:
 
 
 # ------------------------------------------------------------ drops
+
+## A drop table weighted by drop rarity ([drop_rarity] weights by each
+## material's rarity): what run drops actually roll.
+static func rarity_weighted(table: Dictionary) -> Dictionary:
+	var w: Array = num("drop_rarity", "weights")
+	var out := {}
+	for m in table:
+		out[m] = float(table[m]) * (float(w[clampi(mat_rarity(m), 0, w.size() - 1)]) if not w.is_empty() else 1.0)
+	return out
+
+
+## Pick a material a run drops from a table (drop rarity applied).
+static func drop_pick(table: Dictionary, roll := -1.0) -> String:
+	return pick(rarity_weighted(table), roll)
+
 
 ## Pick from a weights table {id: weight}.
 static func pick(table: Dictionary, roll := -1.0) -> String:

@@ -273,7 +273,7 @@ func _fill(kind: String, special: bool) -> String:
 		"mixed":
 			return "meat" if randf() < 0.5 else "amber"
 		"material":
-			var m := Crafting.pick(Crafting.spot_table(String(zone_at_x(_spot_x).id), metres))
+			var m := Crafting.drop_pick(Crafting.spot_table(String(zone_at_x(_spot_x).id), metres))
 			return Crafting.PICKUP_PREFIX + m if m != "" else ""
 	return kind
 

@@ -47,6 +47,7 @@ var _ranked := false
 var codex: Codex
 var market: Market
 var herd: Herd       # choose and compare the dinosaur on each button
+var loader: Preloader   # the loading screen while art preloads (normal launches only)
 var bench: Workshop  # the Crafting Bench (workshop.gd, mode "bench")
 var items: Workshop  # the Items screen (workshop.gd, mode "items")
 var summary: RunSummary   # the end-of-run summary card
@@ -263,6 +264,10 @@ func _ready() -> void:
 	audio.start_music()
 	_spawn_player()
 	_to_title()
+	if get_tree().current_scene == self:   # a normal launch (test and screenshot scripts skip it)
+		loader = Preloader.new()
+		loader.game = self
+		add_child(loader)
 
 
 func _spawn_player() -> void:
@@ -347,6 +352,7 @@ func _to_title() -> void:
 ## Starts a run. With intro (the default) the T-rex charges in and roars
 ## first; tests pass false to start running straight away.
 func start_run(intro := true) -> void:
+	Preloader.warm_forms()   # a dinosaur equipped since loading is ready before the run moves
 	if menu_tour != null:
 		menu_tour = null
 		hud.hide_coach()
@@ -741,6 +747,8 @@ func _check_unlocks() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.echo:
 		return
+	if is_instance_valid(loader):
+		return   # still loading
 	if codex.visible:
 		if event.is_action_pressed("pause") or event.is_action_pressed("codex"):
 			codex.close_guide()
@@ -838,6 +846,9 @@ func _unhandled_input(event: InputEvent) -> void:
 ## input_devices/pointing/emulate_touch_from_mouse, so desktop clicks work too.
 ## Each finger is tracked separately, so you can hold JUMP and tap a form.
 func _input(event: InputEvent) -> void:
+	if is_instance_valid(loader):
+		get_viewport().set_input_as_handled()   # still loading: taps wait
+		return
 	var t := event as InputEventScreenTouch
 	if t == null or _overlay_open():
 		return   # the Field Guide is ordinary GUI: let its buttons and scrolling have the touch
@@ -2689,7 +2700,7 @@ func salvage(copy: String) -> bool:
 func _drop_materials(table: Dictionary, n: int, at: Vector2) -> Dictionary:
 	var got := {}
 	for i in n:
-		var m := Crafting.pick(table)
+		var m := Crafting.drop_pick(table)
 		if m != "":
 			got[m] = int(got.get(m, 0)) + 1
 	if got.is_empty():
@@ -3082,7 +3093,7 @@ func _open_chest(k: Pickup, roll := -1.0, pick := "") -> void:
 		"materials":
 			var got := {}
 			for i in int(Crafting.num("chests", r + "_count")):
-				var m := Crafting.pick(Crafting.num("chests", r))
+				var m := Crafting.drop_pick(Crafting.num("chests", r))
 				if m != "":
 					got[m] = int(got.get(m, 0)) + 1
 			grant_materials(got)

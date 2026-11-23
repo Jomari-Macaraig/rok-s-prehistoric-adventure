@@ -92,3 +92,13 @@ Keyboard (desktop testing): Space = jump / go on, R = restart now, X = stop, C =
 - Viewport 1280×720 (wider on phones). Feet line `GROUND_Y` = 560 (raised from 604 so the buttons fit on the dirt); raised levels at 513 and 466. Grass tips sit `FEET_BELOW_GRASS` (8 px) above the feet line.
 - Rok stays at x = 335 (`PLAYER_X`). The world scrolls left at `speed`: 380 px/s, +3 px/s every second, capped at 900.
 - Character sheets are pre-scaled by 7/16: Rok 168×224 (pivot 84, 213.5), dinosaurs 224×168 (pivot 112, 157.5).
+
+## Loading screen (`scripts/preloader.gd`)
+
+The user's request: no hitches in the game itself. On a normal launch, main adds a `Preloader` over everything (CanvasLayer 100). It uses the boot splash's green, the app icon, a progress bar ("Loading... N%") and a random tip, and taps wait until it's done.
+1. **Load:** the forms on the buttons (Rok or the played hero, and the four equipped dinosaurs: body, attack and hit-reaction sheets) and whole folders (`WHOLE`: fx, hunters, the T-rex, traps, items, power-ups, flag, gear, wind, props, terrain, backgrounds). This runs on background threads, and everything is held in `Preloader.keep`.
+2. **Decode:** `SpriteLib.tex` for every character, attack and reaction sheet. It decodes the `@2x` twins on the main thread, `BUDGET_MS` per frame.
+3. **Build:** the run's SpriteFrames (`frame_jobs`): each form's body and death, attacks, reactions, the T-rex and zone hunters, the shapeshift burst and the power-up effects.
+
+Then it fades out and frees itself. It takes about 1.4 s on a Mac, and afterwards the first shapeshift and attack in a run take 0.4 ms instead of about 43 ms. `start_run` calls `Preloader.warm_forms()`, so a dinosaur equipped later is built during the intro. Test and screenshot scripts don't get it: main only adds it when it is the tree's `current_scene`.
+

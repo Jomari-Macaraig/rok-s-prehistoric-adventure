@@ -64,6 +64,7 @@ Each system is documented on its own in [docs/systems/](../docs/systems/README.m
 | `pickup.gd` | [pickups-and-loot](../docs/systems/pickups-and-loot.md) |
 | `platform.gd` | [obstacles-and-gates](../docs/systems/obstacles-and-gates.md) |
 | `player.gd` | [health-and-damage](../docs/systems/health-and-damage.md), [movement-and-forms](../docs/systems/movement-and-forms.md), [combat](../docs/systems/combat.md) |
+| `preloader.gd` | [run-loop](../docs/systems/run-loop.md#loading-screen-scriptspreloadergd) (the loading screen) |
 | `progression.gd` | [progression](../docs/systems/progression.md) |
 | `requires.gd` | [requirements](../docs/systems/requirements.md) |
 | `run_events.gd` | [long-run-events](../docs/systems/long-run-events.md) |
