@@ -57,8 +57,9 @@ for (`gear_ready()`).
 
 ## Durability and repair
 
-The user's design. Armor and cards don't wear.
+The user's design. Weapons and (since 2026-11-23) **armor** wear; cards don't. Every item's durability is in **`config/crafting.cfg` `[durability]`** (`Gear.max_durability`; `ITEMS` `durability` is the fallback), times its rarity's multiplier.
 
+0. **Armor** wears by 1 for every hit Rok takes wearing it, as a hero (not shapeshifted): `main._hurt` → `_wear_armor` → `wear_weapon`. At `WEAR_WARN` a banner warns; at 0 it breaks ("CRACK!", a banner, a news line) and gives no Armor until repaired. Repair works as for weapons (the Camp's Repair button, `[repair]` materials).
 1. Every ATTACK that connects (smash, bonk or CLANG) costs 1 hit (`_attack_hit` → `wear_weapon`, after that hit's Power is counted).
 2. At `WEAR_WARN` (5) hits left, a banner warns.
 3. At 0 the weapon is **broken** (`Gear.broken`): its own 8-frame shatter plays in the hand (`GearLayer.play_break`; frame 0 is the intact weapon), the `weapon_break` sound, "SNAP!", a banner and a news line. Any attack clip stops so the shatter shows.

@@ -237,7 +237,9 @@ func _ready() -> void:
 	combo.broken.connect(_on_combo_broken)
 	combo.frenzy_started.connect(_on_frenzy_started)
 	combo.frenzy_ended.connect(_on_frenzy_ended)
-	hud.set_sound_icon(audio.muted)
+	hud.settings_changed.connect(func(sfx: float, music: float):
+		audio.set_sfx_volume(sfx)
+		audio.set_music_volume(music))
 	codex = Codex.new()
 	add_child(codex)
 	codex.closed.connect(func(): audio.play("click", 0.0))
@@ -922,11 +924,11 @@ func _touch_pressed(a: String) -> void:
 		_dismiss_info()
 		return
 	if state == State.OVER:
-		if a != "sound":
+		if a != "settings":
 			audio.play("click", 0.0)
 			_to_title()   # the summary card leads to the main menu
 			return
-	if menu_tour != null and state == State.TITLE and a != "sound" and a != menu_tour.want():
+	if menu_tour != null and state == State.TITLE and a != "settings" and a != menu_tour.want():
 		menu_tour.stray_tap()   # only the highlighted button works during the tour
 		return
 	if a == "codex":
@@ -968,11 +970,19 @@ func _touch_pressed(a: String) -> void:
 		if state == State.PAUSED:
 			_toggle_tips()
 		return
-	if a == "sound":
-		audio.set_muted(not audio.muted)
-		hud.set_sound_icon(audio.muted)
+	if a == "settings":
 		audio.play("click", 0.0)
+		if hud.settings_open:
+			hud.close_settings()
+		else:
+			if state == State.PLAYING:
+				_pause()   # the run waits while you change them
+			if audio.muted:
+				audio.set_muted(false)   # (the old sound toggle's mute; the sliders do it now)
+			hud.open_settings(audio.sfx_volume, audio.music_volume)
 		return
+	if hud.settings_open:
+		return   # the Settings panel takes the taps (Done or the button closes it)
 	match state:
 		State.TITLE:
 			if hud.missions_open:
@@ -1764,6 +1774,7 @@ func _hurt(key: String, cause: String, pop := true) -> bool:
 	if state != State.PLAYING:
 		return false
 	health = maxi(health - Hearts.damage(key, Hearts.armor_of(player.data())), 0)
+	_wear_armor()
 	if pop:
 		hud.hearts_hit()
 	if health <= 0:
@@ -2724,6 +2735,11 @@ func wear_weapon(id: String) -> void:
 	gear_wear[id] = left
 	if left == Gear.WEAR_WARN:
 		hud.show_banner(Gear.name_of(id).to_upper() + " IS WEARING OUT", "%d hits left. Repair it at the Dinosaur Camp." % left, Color(1.0, 0.75, 0.4), 2.2)
+	elif left <= 0 and Gear.slot_of(id) == "armor":
+		audio.play("weapon_break", 0.05, 0.8)
+		fx.float_text(player.position + Vector2(-50, -230), "CRACK!", Color(1.0, 0.55, 0.4), 30)
+		hud.show_banner(Gear.name_of(id).to_upper() + " BROKE!", "No more protection until you repair it at the Dinosaur Camp.", Color(1.0, 0.5, 0.4), 2.8)
+		new_this_run.append(Gear.name_of(id) + " broke")
 	elif left <= 0:
 		if player.form == Forms.ROK:
 			player.attack_stop()   # back to the body sprite so the shatter shows
@@ -2738,7 +2754,48 @@ func wear_weapon(id: String) -> void:
 		player.refresh_form()   # its bonus is gone
 
 
-## Repair a worn or broken weapon to full for materials (Gear.repair_cost).
+## Sells one thing in the Market (Economy sell id) for Economy.sell_price
+## (80% of its value): gear that isn't equipped (its slotted card goes back
+## to the pile), one piece of a material, or one spare card. Returns the meat
+## paid (0 if it couldn't be sold).
+func sell(sid: String) -> int:
+	if not Economy.sellables(gear_owned, gear_equipped, materials).has(sid):
+		audio.play("denied", 0.0)
+		return 0
+	var price := Economy.sell_price(sid)
+	var kind := sid.get_slice(":", 1)
+	var what := sid.substr(Economy.PREFIX.length() + kind.length() + 1)
+	match kind:
+		"gear":
+			gear_owned.erase(what)
+			gear_sockets.erase(what)
+			gear_wear.erase(what)
+			gear_rarity.erase(what)
+		"mat":
+			materials[what] = int(materials.get(what, 0)) - 1
+			if int(materials[what]) <= 0:
+				materials.erase(what)
+		"card":
+			cards[what] = int(cards.get(what, 0)) - 1
+	meat_bank += price
+	SaveData.save_meat(meat_bank)
+	_save_gear()
+	audio.play("amber", 0.05, 0.9)
+	return price
+
+
+## Armor wears by 1 for every hit Rok takes wearing it (as a hero, not
+## shapeshifted; config/crafting.cfg [durability]). Broken armor gives no
+## Armor until it's repaired.
+func _wear_armor() -> void:
+	if player.form != Forms.ROK:
+		return
+	var a := Gear.slot_item(String(player.data().id), "armor")
+	if a != "" and Gear.max_durability(a) > 0 and not Gear.broken(a):
+		wear_weapon(a)
+
+
+## Repair worn or broken gear (a weapon or armor) to full for materials (Gear.repair_cost).
 ## Returns true if repaired.
 func repair_gear(id: String) -> bool:
 	var cost := Gear.repair_cost(id)
@@ -3723,7 +3780,7 @@ func _tutorial_allows(action: String) -> bool:
 		return true
 	if not tutorial_run.frozen:
 		return tutorial_run.allows(action)   # a move isn't usable before its lesson
-	if action in ["pause", "stop", "sound"]:
+	if action in ["pause", "stop", "settings"]:
 		return true
 	if tutorial_run.phase == "note":
 		if action == "note_back":

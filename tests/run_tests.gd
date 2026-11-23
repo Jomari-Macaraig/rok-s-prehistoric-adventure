@@ -1405,8 +1405,8 @@ func _feedback_checks() -> void:
 	var saved := SaveData.load_gear()
 	check((saved.owned as Array).has(axe) and saved.equipped.rok.weapon == axe and int(saved.materials.wood) == Crafting.have("wood"), "gear and materials are saved")
 	# --- weapon durability (each connecting ATTACK wears it; broken = no bonus until repaired)
-	check(Gear.durability(axe) == Gear.max_durability(axe) and Gear.max_durability(axe) > 0 and Gear.max_durability("shell_plate") == 0,
-			"a new weapon has full durability and armor doesn't wear")
+	check(Gear.durability(axe) == Gear.max_durability(axe) and Gear.max_durability(axe) > 0 and Gear.max_durability("shell_plate") > 0,
+			"a new weapon has full durability, and armor has durability too")
 	main.gear_wear[axe] = 2
 	main.wear_weapon(axe)
 	check(Gear.durability(axe) == 1 and not Gear.broken(axe) and is_equal_approx(Dinos.stat("rok", "power"), power0 + 2.0), "a hit wears a weapon down by one")
@@ -1633,6 +1633,60 @@ func _feedback_checks() -> void:
 	main.equip_gear("rok", "weapon", "")
 	main.equip_gear("rok", "armor", "")
 	check(not Gear.has_any("rok") and is_equal_approx(Dinos.stat("rok", "power"), power0), "emptying the slots takes the bonuses away")
+	# armor durability and repair (the user's system): armor wears by 1 per hit taken
+	main.grant_materials(Crafting.recipe("hide_vest"), false)
+	main.grant_materials(Crafting.recipe("hide_vest"), false)
+	var vest: String = main.craft("hide_vest", "", 0.0)
+	main.equip_gear("rok", "armor", vest)
+	main.start_run(false)
+	var arm0 := Dinos.stat("rok", "armor")
+	var vmax := Gear.max_durability(vest)
+	check(vmax == int(Crafting.num("durability", "hide_vest")) and vmax > 0, "armor has durability (config/crafting.cfg [durability])")
+	main.player.invuln = 0.0
+	main._hurt("small", "test")
+	check(Gear.durability(vest) == vmax - 1, "every hit taken wears the armor by 1")
+	main.gear_wear[vest] = 1
+	main._sync_gear()
+	main._hurt("small", "test")
+	check(Gear.broken(vest) and Dinos.stat("rok", "armor") < arm0, "at 0 the armor breaks and its Armor is gone")
+	var vcost := Gear.repair_cost(vest)
+	main.grant_materials(vcost, false)
+	check(not vcost.is_empty() and main.repair_gear(vest) and Gear.durability(vest) == vmax and is_equal_approx(Dinos.stat("rok", "armor"), arm0), "repairing it (materials) brings it back to full")
+	main.equip_gear("rok", "armor", "")
+	# selling in the Market at 80% of the value (config/economy.cfg)
+	check(is_equal_approx(float(Economy.num("sell", "share")), 0.8), "the Market pays 80% of an item's value")
+	main.grant_materials({"wood": 3}, false)
+	var sid_w := Economy.PREFIX + "mat:wood"
+	var w0 := Crafting.have("wood")
+	var bank_s: int = main.meat_bank
+	var paid: int = main.sell(sid_w)
+	check(paid == Economy.sell_price(sid_w) and paid == maxi(1, int(round(Economy.material_value("wood") * 0.8))) and Crafting.have("wood") == w0 - 1 and main.meat_bank == bank_s + paid,
+			"selling a material piece pays 80% of its value into the bank")
+	var sid_v := Economy.PREFIX + "gear:" + vest
+	check(Economy.sellables(main.gear_owned, main.gear_equipped, main.materials).has(sid_v), "unequipped gear can be sold")
+	main.equip_gear("rok", "armor", vest)
+	check(main.sell(sid_v) == 0 and main.gear_owned.has(vest), "equipped gear can't be sold")
+	main.equip_gear("rok", "armor", "")
+	main.gear_wear[vest] = int(vmax / 2)
+	main._sync_gear()
+	var half_v := Economy.gear_value(vest)
+	main.gear_wear.erase(vest)
+	main._sync_gear()
+	check(half_v < Economy.gear_value(vest), "worn gear is worth less")
+	var vp := Economy.sell_price(sid_v)
+	check(main.sell(sid_v) == vp and not main.gear_owned.has(vest), "selling gear removes it and pays its price")
+	main.open_market()
+	main.market.show_tab("sell")
+	var sells: Array = main.market.grid.get_children().filter(func(c): return c.has_meta("sell"))
+	check(not sells.is_empty() and sells.size() == Economy.sellables(main.gear_owned, main.gear_equipped, main.materials).size(), "the Market's Sell tab lists what you can sell")
+	var sid1: String = sells.filter(func(c): return String(c.get_meta("sell")).contains(":mat:"))[0].get_meta("sell")
+	var bank1s: int = main.meat_bank
+	main.market.select(sid1)
+	main.market.press_sell(sid1)
+	check(main.meat_bank == bank1s, "one tap only arms SELL")
+	main.market.press_sell(sid1)
+	check(main.meat_bank > bank1s, "the second sells it")
+	main.market.close_market()
 	# --- Camp: equipment and red dots
 	main.open_herd("rok")
 	var h: Herd = main.herd
@@ -2093,6 +2147,25 @@ func _variety_checks() -> void:
 			"Missions opens the daily and weekly lists")
 	main._touch_pressed("")
 	check(not hm.missions_open and main.state == main.State.TITLE and hm.center_panel.visible, "a tap closes it without starting a run")
+	# Settings (the user's request): sound-effect and music volumes, saved
+	main._touch_pressed("settings")
+	check(hm.settings_open and hm.settings_panel.visible and hm.sfx_slider != null and hm.music_slider != null, "the Settings button opens sound and music volumes")
+	hm.sfx_slider.value = 40
+	hm.music_slider.value = 0
+	check(is_equal_approx(main.audio.sfx_volume, 0.4) and main.audio.music_volume == 0.0 and is_equal_approx(SaveData.load_volume("sfx"), 0.4)
+			and AudioServer.is_bus_mute(AudioServer.get_bus_index("Music")) and not AudioServer.is_bus_mute(AudioServer.get_bus_index("SFX")),
+			"the sliders set each bus's volume (0 mutes it) and are saved")
+	main._touch_pressed("")
+	check(main.state == main.State.TITLE and hm.settings_open, "a tap while Settings is open doesn't start a run")
+	main._touch_pressed("settings")
+	check(not hm.settings_open and hm.center_panel.visible, "the button again (or Done) closes it")
+	main.audio.set_sfx_volume(1.0)
+	main.audio.set_music_volume(1.0)
+	main.start_run(false)
+	main._touch_pressed("settings")
+	check(main.state == main.State.PAUSED and hm.settings_open, "opening Settings in a run pauses it first")
+	hm.close_settings()
+	main._resume()
 	main.start_run(false)
 	main._refresh_hud()
 	check(not main.hud.missions_panel.visible and not main.hud.missions_button.visible, "...and nothing of it shows in a run")
@@ -3461,6 +3534,8 @@ func _market_checks() -> void:
 	# sections: Power-Ups, Dinosaurs, Other, each listing only its own items
 	var listed := 0
 	for t in Market.TABS:
+		if t == "sell":
+			continue   # the player's own things (checked with selling)
 		main.market.show_tab(t)
 		var in_tab: Array = main.market.grid.get_children().filter(func(x): return not x.is_queued_for_deletion() and not x.has_meta("empty"))
 		var shown: int = main.market.grid.get_children().filter(func(x): return not x.is_queued_for_deletion()).size()

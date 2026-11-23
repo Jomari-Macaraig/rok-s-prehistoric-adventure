@@ -163,3 +163,7 @@ and 1560×720).
 - The retired Card Pack still has code paths (`Gear.CARD_PACK`).
 - Hide Vest, Scale Mail and Bone Guards don't show on the hero yet (no fitted
   art; see [weapons-and-armor](weapons-and-armor.md)).
+
+## Selling (the user's economy, 2026-11-23)
+
+The **Sell** tab lists what the player can sell (`Economy.sellables`): crafted gear copies that aren't equipped (a slotted card goes back to the pile), one piece of any material, and spare dinosaur cards (not slotted). The merchant pays **80%** of an item's value (`config/economy.cfg` `[sell] share`; `Economy.sell_price`, at least 1 meat). Values (`[value]`): a material piece is its Market bundle price / the bundle size, or by rarity (`material_by_rarity`) if it isn't sold; gear is its recipe's material value × its rarity's bonus multiplier × the durability it has left (never below `gear_min_share`); a card by its dinosaur's tier (`card_by_tier`). Tapping a sell tile shows its value and the payout; SELL takes two taps (`Market.press_sell` → `main.sell`, the meat goes straight into the bank). Code: `scripts/economy.gd`, `Market._sell_card` / `_sell_detail`.

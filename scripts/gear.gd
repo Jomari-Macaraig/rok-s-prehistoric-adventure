@@ -165,11 +165,14 @@ static func bonus_text(id: String) -> String:
 	return ", ".join(parts)
 
 
-## How many hits a weapon takes in all (0 = it doesn't wear: armor, cards).
+## How many uses gear takes in all: weapons (ATTACKs that connect) and armor
+## (hits taken), from config/crafting.cfg [durability] (ITEMS' value if the
+## config leaves it out), times its rarity's multiplier. 0 = never wears (cards).
 static func max_durability(id: String) -> int:
 	if not ITEMS.has(base(id)):
 		return 0
-	return int(round(float(ITEMS[base(id)].get("durability", 0)) * Crafting.durability_mult(rarity_of(id))))
+	var b := float(Crafting.num("durability", base(id))) if Crafting.has_key("durability", base(id)) else float(ITEMS[base(id)].get("durability", 0))
+	return int(round(b * Crafting.durability_mult(rarity_of(id))))
 
 
 static func durability(id: String) -> int:

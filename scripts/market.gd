@@ -54,7 +54,7 @@ var selected := ""               # the item on the counter ("" = the merchant's 
 var _say := ""                   # a line the merchant says instead of the usual one (after a sale)
 var bank_label: Label
 ## Market sections, each its own tab: id -> label.
-const TABS := {"powerups": "Power-Ups", "gear": "Materials", "dinos": "Dinosaurs", "heroes": "Heroes", "other": "Other"}
+const TABS := {"powerups": "Power-Ups", "gear": "Materials", "dinos": "Dinosaurs", "heroes": "Heroes", "other": "Other", "sell": "Sell"}
 var tab := "powerups"
 var tab_buttons := {}     # tab id -> Button
 var _confirm := ""        # item waiting for its confirming tap
@@ -685,6 +685,10 @@ func refresh() -> void:
 		tb.text = TABS[t] + (" ●" if fresh > 0 else "")   # a dot: something new in there
 		_style_tab(tb, t == tab)
 	var n := 0
+	if tab == "sell":   # the player's own things, sold at 80% of their value (Economy)
+		for sid in Economy.sellables(game.gear_owned, game.gear_equipped, game.materials):
+			grid.add_child(_sell_card(sid))
+			n += 1
 	for id in items():
 		if category(id) == tab:
 			grid.add_child(_card(id))
@@ -755,6 +759,115 @@ const CARD_INSET := Vector2(16, 12)   # card contents clear of its frame (the ar
 
 ## One item card (the reference's parchment card): picture, name, and a price
 ## pill (or OWNED / LOCKED); the chosen one glows green, owned ones get a ✓.
+## A thing the player can sell: its picture, name (and how many) and the
+## meat the merchant pays (Economy.sell_price, 80% of its value).
+func _sell_card(sid: String) -> Control:
+	var b := Button.new()
+	b.name = sid.replace(":", "_").replace("#", "_")
+	b.set_meta("sell", sid)
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = _card_size
+	var chosen := sid == selected
+	var sb := _flat(Color(0.92, 0.8, 0.58), Color(0.3, 0.75, 0.35) if chosen else Color(0.42, 0.26, 0.12), 5 if chosen else 3, 16, 8)
+	var box: StyleBox = _ui_box("card_selected" if chosen else "card", sb)
+	for st in ["normal", "hover", "pressed", "hover_pressed"]:
+		b.add_theme_stylebox_override(st, box)
+	b.pressed.connect(func(): select(sid))
+	var vb := VBoxContainer.new()
+	vb.set_anchors_preset(Control.PRESET_FULL_RECT)
+	vb.offset_left = CARD_INSET.x
+	vb.offset_right = -CARD_INSET.x
+	vb.offset_top = CARD_INSET.y
+	vb.offset_bottom = -CARD_INSET.y - 2.0
+	vb.add_theme_constant_override("separation", 2)
+	b.add_child(vb)
+	var icon := TextureRect.new()
+	icon.texture = Economy.icon_of(sid)
+	icon.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	vb.add_child(icon)
+	var n := _sell_count(sid)
+	var label := Economy.name_of(sid) + ("  x%d" % n if n > 1 else "")
+	var nm := _text(label, 17 if label.length() <= 12 else 14, Color(1, 0.97, 0.88))
+	nm.add_theme_color_override("font_outline_color", Color(0.3, 0.15, 0.05))
+	nm.add_theme_constant_override("outline_size", 6)
+	nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	nm.clip_text = true
+	vb.add_child(nm)
+	var pill := PanelContainer.new()
+	pill.add_theme_stylebox_override("panel", _ui_box("price_pill", _flat(Color(0.25, 0.14, 0.07), Color(0.18, 0.09, 0.03), 2, 12, 3)))
+	vb.add_child(pill)
+	var prow := HBoxContainer.new()
+	prow.alignment = BoxContainer.ALIGNMENT_CENTER
+	prow.add_theme_constant_override("separation", 6)
+	pill.add_child(prow)
+	var coin := TextureRect.new()
+	coin.texture = load(MEAT)
+	coin.custom_minimum_size = Vector2(24, 24)
+	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	prow.add_child(coin)
+	prow.add_child(_text("+%d" % Economy.sell_price(sid), 20, Color(0.7, 1.0, 0.6)))
+	Herd._ignore_mouse(vb)
+	return b
+
+
+## How many of a sellable there are (materials and cards stack; gear is one copy).
+func _sell_count(sid: String) -> int:
+	var kind := sid.get_slice(":", 1)
+	var what := sid.substr(Economy.PREFIX.length() + kind.length() + 1)
+	match kind:
+		"mat": return int(game.materials.get(what, 0))
+		"card": return Gear.free_cards(what)
+	return 1
+
+
+## The Sell tab's strip: what it is, what it's worth and what the merchant
+## pays (80%), and SELL (a second tap confirms).
+func _sell_detail(sid: String) -> void:
+	var light := Color(1, 0.95, 0.82)
+	detail.add_child(_text(Economy.name_of(sid), 22, light))
+	var kind := sid.get_slice(":", 1)
+	var what := sid.substr(Economy.PREFIX.length() + kind.length() + 1)
+	var extra := ""
+	if kind == "gear":
+		extra = Gear.bonus_text(what) + (("  ·  Durability %d/%d" % [Gear.durability(what), Gear.max_durability(what)]) if Gear.max_durability(what) > 0 else "")
+		if Gear.socketed(what) != "":
+			extra += "  ·  its %s Card goes back to your pile" % Herd.name_of(Gear.socketed(what))
+	elif kind == "mat":
+		extra = "One piece (you have %d)." % _sell_count(sid)
+	else:
+		extra = "One card (%d spare)." % _sell_count(sid)
+	var d := _text("%s\nWorth %d meat: the merchant pays %d%%." % [extra, int(round(Economy.value(sid))), int(round(float(Economy.num("sell", "share")) * 100.0))], 15, Color(0.95, 0.88, 0.75))
+	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	d.name = "SellInfo"
+	detail.add_child(d)
+	var b := _buy_button("SURE?" if _confirm == sid else "SELL", str(Economy.sell_price(sid)), true, "Sell")
+	b.pressed.connect(func(): press_sell(sid))
+	buy_box.add_child(b)
+
+
+## First tap arms SELL, the second sells: the meat goes into the bank.
+func press_sell(sid: String) -> void:
+	if _drag_dist > 12.0:
+		return
+	if _confirm != sid:
+		_confirm = sid
+		selected = sid
+		_say = ""
+		game.audio.play("click", 0.0)
+	else:
+		_confirm = ""
+		var got: int = game.sell(sid)
+		if got > 0:
+			_say = "A fine trade! +%d meat." % got
+			scene.happy()
+			if not Economy.sellables(game.gear_owned, game.gear_equipped, game.materials).has(sid):
+				selected = ""
+	refresh()
+
+
 func _card(id: String) -> Control:
 	var have := owns(id)
 	var sale := on_sale(id, game.best_m)
@@ -1029,6 +1142,15 @@ func _build_detail() -> void:
 		buy_box.remove_child(c)
 		c.queue_free()
 	var id := selected
+	if id.begins_with(Economy.PREFIX):
+		on_counter.texture = Economy.icon_of(id)
+		on_counter.modulate = Color.WHITE
+		foot_icon.texture = on_counter.texture
+		foot_icon.modulate = Color.WHITE
+		_speak(_say if _say != "" else ("Selling? I'll give you %d meat for that." % Economy.sell_price(id)) if _confirm != id else "Sure? Tap SELL again.")
+		_place_bubble()
+		_sell_detail(id)
+		return
 	on_counter.texture = _icon_of(id) if id != "" else null
 	foot_icon.texture = on_counter.texture
 	if id == "":

@@ -28,6 +28,10 @@ var players: Array[AudioStreamPlayer] = []
 var music: AudioStreamPlayer                 # the forest track (kept for compatibility)
 var music_players: Array[AudioStreamPlayer] = []
 var muted := false
+## Settings (the Settings button, saved): sound-effect and music volumes, 0..1,
+## each on its own bus ("SFX", "Music"); 0 mutes that bus.
+var sfx_volume := 1.0
+var music_volume := 1.0
 ## The last sounds asked for (even while muted), newest last, for tests.
 var played: Array[String] = []
 var _next := 0
@@ -35,12 +39,18 @@ var _next := 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	for bus in ["SFX", "Music"]:
+		if AudioServer.get_bus_index(bus) == -1:
+			AudioServer.add_bus()
+			AudioServer.set_bus_name(AudioServer.bus_count - 1, bus)
+			AudioServer.set_bus_send(AudioServer.bus_count - 1, "Master")
 	for n in SFX:
 		var path := "res://assets/sounds/%s.wav" % n
 		if ResourceLoader.exists(path):   # rok_alarm waits for the user's recording
 			streams[n] = load(path)
 	for i in POOL:
 		var p := AudioStreamPlayer.new()
+		p.bus = "SFX"
 		add_child(p)
 		players.append(p)
 	for z in Zones.ZONES:
@@ -50,12 +60,37 @@ func _ready() -> void:
 		m.loop_begin = 0
 		m.loop_end = int(m.get_length() * m.mix_rate)
 		mp.stream = m
+		mp.bus = "Music"
 		mp.volume_db = -80.0
 		add_child(mp)
 		music_players.append(mp)
 	music = music_players[0]
 	music.volume_db = MUSIC_DB
 	set_muted(SaveData.load_muted())
+	set_sfx_volume(SaveData.load_volume("sfx"), false)
+	set_music_volume(SaveData.load_volume("music"), false)
+
+
+func _bus_volume(bus: String, v: float) -> void:
+	var i := AudioServer.get_bus_index(bus)
+	if i == -1:
+		return
+	AudioServer.set_bus_volume_db(i, linear_to_db(maxf(v, 0.0001)))
+	AudioServer.set_bus_mute(i, v <= 0.01)
+
+
+func set_sfx_volume(v: float, save := true) -> void:
+	sfx_volume = clampf(v, 0.0, 1.0)
+	_bus_volume("SFX", sfx_volume)
+	if save:
+		SaveData.save_volume("sfx", sfx_volume)
+
+
+func set_music_volume(v: float, save := true) -> void:
+	music_volume = clampf(v, 0.0, 1.0)
+	_bus_volume("Music", music_volume)
+	if save:
+		SaveData.save_volume("music", music_volume)
 
 
 func play(name: String, pitch_jitter := 0.06, pitch := 1.0, extra_db := 0.0) -> void:

@@ -37,3 +37,7 @@ Part of the [system docs](README.md).
 **Gameplay**: jump and double jump, slide, wing flaps, hard landing, shift, smash, `break_wood` / `break_rock`, `weapon_break`, amber, pepper, shield, power-ups (`powerup_pickup` / `powerup_activate` / `powerup_expire`, see [power-ups](power-ups.md#sounds)), hit, pit fall, run start, unlock, intro.
 
 **UI**: click, denied ("need amber"), Ugo's mumbles (`mumble_1..6`, see [marketplace](marketplace.md)).
+
+## Settings
+
+The top-left speaker became a **Settings** button (the user's request, 2026-11-23; a drawn cog until the user's art): it opens a panel (`Hud.open_settings`) with **Sound effects** and **Music** sliders, 0–100% in steps of 5 ("Off" at 0), and Done. Sound effects play on an `SFX` bus and the zone music on a `Music` bus (made by `Audio._ready`); each slider sets its bus's volume and mutes it at 0 (`Audio.set_sfx_volume` / `set_music_volume`), saved as `settings/sfx_volume` and `music_volume` (`SaveData.load/save_volume`). Opening it in a run pauses first; while it's open taps don't start a run. The old all-sound mute (`Audio.muted`) is cleared when Settings opens.

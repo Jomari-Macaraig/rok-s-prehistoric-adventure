@@ -17,6 +17,8 @@ Godot 4.7 (GDScript, Compatibility renderer) 2D endless runner with a prehistori
 
 **`config/missions.cfg`** sets the daily and weekly missions' counts, rewards and target sizes (behind the main menu's Missions button). See [docs/systems/goals.md](docs/systems/goals.md).
 
+**`config/economy.cfg`** sets what things are worth and what the Market pays when the player sells (80%). See [docs/systems/marketplace.md](docs/systems/marketplace.md).
+
 **`config/pickups.cfg`** sets the rules and odds for amber, meat, hearts, power-ups and fossils: what a reward spot holds (`[spots]`, `[counts]`), where spots go (`[placement]`: sky trail, floating islands, staircase, arc, heights), how they get richer deeper in a run (`[escalation]`), what broken obstacles drop (`[break_loot]`), which power-up turns up (`[power_ups]`) and the milestone chests' four rarities (`[chests]`: odds per milestone, meat, XP, reward lists). Its header explains the placement order. Read by `scripts/loot.gd`.
 
 ## Layout

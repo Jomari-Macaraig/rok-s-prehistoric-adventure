@@ -107,7 +107,8 @@ func _ready() -> void:
 	# --- top left: pause, sound, energy
 	pause_button = _button("pause", 64.0)
 	pause_button.icon = _icon_pause
-	sound_button = _button("sound", 64.0)
+	sound_button = _button("settings", 64.0)   # the Settings button (it was the sound toggle)
+	sound_button.icon = _icon_from(func(img: Image): _gear(img))
 	stop_button = _button("stop", 64.0)
 	stop_button.icon = _icon_from(func(img: Image):
 		img.fill_rect(Rect2i(16, 16, 32, 32), Color(0.45, 0.12, 0.08))
@@ -702,6 +703,21 @@ func _footprint(img: Image) -> void:
 		img.fill_rect(Rect2i(int(tip.x) - 2, int(tip.y) - 2, 4, 4), c)
 
 
+## A cog (the Settings button until the user's art).
+func _gear(img: Image) -> void:
+	var c := Color(0.45, 0.24, 0.1)
+	var ctr := Vector2(32, 32)
+	for y in 64:
+		for x in 64:
+			var p := Vector2(x + 0.5, y + 0.5) - ctr
+			var r := p.length()
+			var a := atan2(p.y, p.x)
+			var tooth := fposmod(a / TAU * 8.0, 1.0) < 0.5
+			var outer := 24.0 if tooth else 19.0
+			if r < outer and r > 8.0:
+				img.set_pixel(x, y, c if r > 16.0 or r < 10.0 else Color(0.62, 0.4, 0.2))
+
+
 func _speaker(img: Image, on: bool) -> void:
 	var c := Color(0.45, 0.24, 0.1)
 	img.fill_rect(Rect2i(8, 24, 12, 16), c)
@@ -991,9 +1007,111 @@ func refresh_form_icons() -> void:
 		b.queue_redraw()
 
 
-func set_sound_icon(muted: bool) -> void:
-	sound_button.icon = _icon_sound_off if muted else _icon_sound_on
-	sound_button.queue_redraw()
+func set_sound_icon(_muted: bool) -> void:
+	pass   # the top-left button is Settings now (sound and music volumes inside)
+
+
+# ------------------------------------------------------------ settings
+
+signal settings_changed(sfx: float, music: float)
+var settings_panel: PanelContainer
+var settings_open := false
+var sfx_slider: HSlider
+var music_slider: HSlider
+
+
+## The Settings panel (the user's request: for now sound effects and music):
+## a slider for each, 0-100%, and Done. Built on first open.
+func open_settings(sfx: float, music: float) -> void:
+	if settings_panel == null:
+		_build_settings()
+	sfx_slider.set_value_no_signal(roundf(sfx * 100.0))
+	music_slider.set_value_no_signal(roundf(music * 100.0))
+	_settings_values()
+	settings_open = true
+	settings_panel.visible = true
+	center_panel.visible = false
+
+
+func close_settings() -> void:
+	if settings_panel == null or not settings_open:
+		return
+	settings_open = false
+	settings_panel.visible = false
+	center_panel.visible = true
+
+
+func _build_settings() -> void:
+	var cc := CenterContainer.new()
+	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	cc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(cc)
+	settings_panel = PanelContainer.new()
+	settings_panel.name = "Settings"
+	settings_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.16, 0.08, 0.03, 0.92)
+	sb.set_corner_radius_all(24)
+	sb.border_color = Color(0.55, 0.32, 0.12, 0.9)
+	sb.set_border_width_all(3)
+	for side in ["left", "right"]:
+		sb.set("content_margin_" + side, 36)
+	sb.content_margin_top = 20
+	sb.content_margin_bottom = 24
+	settings_panel.add_theme_stylebox_override("panel", sb)
+	cc.add_child(settings_panel)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 18)
+	settings_panel.add_child(v)
+	var t := _label(40, Color(1.0, 0.85, 0.4))
+	t.text = "SETTINGS"
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t.add_theme_font_override("font", SpriteLib.ui_font("heading"))
+	v.add_child(t)
+	sfx_slider = _settings_row(v, "Sound effects", "SfxSlider")
+	music_slider = _settings_row(v, "Music", "MusicSlider")
+	var done := Button.new()
+	done.name = "Done"
+	done.text = "Done"
+	done.focus_mode = Control.FOCUS_NONE
+	done.custom_minimum_size = Vector2(200, 58)
+	done.add_theme_font_size_override("font_size", 26)
+	done.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	done.pressed.connect(close_settings)
+	v.add_child(done)
+	settings_panel.visible = false
+
+
+func _settings_row(parent: Control, label: String, nm: String) -> HSlider:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 18)
+	var l := _label(26)
+	l.text = label
+	l.custom_minimum_size = Vector2(200, 0)
+	row.add_child(l)
+	var s := HSlider.new()
+	s.name = nm
+	s.min_value = 0
+	s.max_value = 100
+	s.step = 5
+	s.focus_mode = Control.FOCUS_NONE
+	s.custom_minimum_size = Vector2(340, 48)
+	s.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	s.value_changed.connect(func(_x): _settings_values())
+	row.add_child(s)
+	var pct := _label(24)
+	pct.name = nm + "Pct"
+	pct.custom_minimum_size = Vector2(80, 0)
+	row.add_child(pct)
+	parent.add_child(row)
+	return s
+
+
+func _settings_values() -> void:
+	for s in [sfx_slider, music_slider]:
+		var pct := s.get_parent().get_node(String(s.name) + "Pct") as Label
+		pct.text = "Off" if s.value <= 0 else "%d%%" % int(s.value)
+	settings_changed.emit(sfx_slider.value / 100.0, music_slider.value / 100.0)
 
 
 ## Show health (in quarter hearts) as hearts filled in quarters, with as many

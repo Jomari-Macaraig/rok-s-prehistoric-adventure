@@ -34,6 +34,15 @@ static func save_muted(m: bool) -> void:
 	_write("settings", "muted", m)
 
 
+## The Settings screen's volumes ("sfx", "music"), 0..1.
+static func load_volume(kind: String) -> float:
+	return clampf(float(_read("settings", kind + "_volume", 1.0)), 0.0, 1.0)
+
+
+static func save_volume(kind: String, v: float) -> void:
+	_write("settings", kind + "_volume", v)
+
+
 static func load_best_m() -> int:
 	return int(_read("score", "best_m", 0))
 
