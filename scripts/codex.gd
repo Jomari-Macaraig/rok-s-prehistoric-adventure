@@ -817,7 +817,7 @@ func _show_tab(i: int) -> void:
 				_card(load(icons[zi]), z.name, z.blurb,
 						"From %d m, then every %d m after" % [start, int(Zones.ZONE_LEN_M * Zones.ZONES.size())],
 						false, _new_ids.has("zone_" + z.id), Color(0.55, 0.35, 0.15))
-			_card(load("res://assets/props/Other_07.png"), "Day & Night",
+			_card(SpriteLib.tex("res://assets/props/Other_07.png"), "Day & Night",
 					"Night falls every %d m and lasts a while. At night the world dims, stars and the moon come out, and fireflies glow in the forest." % int(Zones.DAY_CYCLE_M),
 					"Hazards work the same, but they're harder to spot!", false, false, Color(0.3, 0.35, 0.6))
 		5:

@@ -93,6 +93,6 @@ The Camp still equips gear. Its Change list shows each copy by full name in its 
 
 ## Art still to come (placeholders drawn in code)
 - `assets/scenes/crafting_bench.png`: a stone workbench with tools, transparent, about 420 × 260 px at 1x, in the scene-kit style.
-- Material icons: 33 of the 45 are the user's art (`tools/prepare_materials.py` → `assets/materials/`). The 12 original materials (Wood … Primal Crystal) still use the code-drawn placeholder (a coloured lump on a rarity ring, `Crafting.icon`) until their icons arrive.
+- Material icons: all 45 are the user's art (`tools/prepare_materials.py` → `assets/materials/`); a material without one falls back to a code-drawn lump on a rarity ring (`Crafting.icon`).
 - Rarity frames for tiles (grey, green, blue, purple, gold) as 9-slice. Until then a coloured border is drawn.
 - Title plaques for "Crafting Bench" and "Items". Until then the scene kit's blank plaque is used with text.

@@ -2292,7 +2292,7 @@ func _introduce_thing(key: String, kind: String) -> void:
 		title = FIRST_SIGHT[key][0]
 		text = FIRST_SIGHT[key][1]
 		col = FIRST_SIGHT[key][2]
-		icon = load(Hud.MEAT_ICON) if kind == "big_meat" else load("res://assets/props/Other_07.png")
+		icon = load(Hud.MEAT_ICON) if kind == "big_meat" else SpriteLib.tex("res://assets/props/Other_07.png")
 	else:
 		title = String(Boosters.DATA[kind].name).to_upper()
 		text = String(Boosters.DATA[kind].desc) + " Grab it to put it in a booster slot."

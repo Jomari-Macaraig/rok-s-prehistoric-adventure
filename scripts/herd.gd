@@ -155,6 +155,7 @@ func _ready() -> void:
 		else:
 			stage_atk = a
 	stage_atk.animation_finished.connect(_stage_idle)
+	stage_body.animation_finished.connect(_stage_body_done)
 	if _kit:
 		scene.visible = false   # the painted camp has its own fire, tent and forest
 
@@ -509,6 +510,13 @@ static func stage_info(id: String) -> Dictionary:
 	var sf := SpriteFrames.new()
 	sf.remove_animation("default")
 	SpriteLib._sheet_frames(sf, "idle", SpriteLib.tex(path), d.frame, times, true)
+	var moves: Array = []   # the one-shot moves it can show off: jump, slide (and attack below)
+	for mv in ["jump", "slide"]:
+		var mp := "res://assets/characters/%s/%s.png" % [d.id, mv]
+		var t: Variant = (d.times as Dictionary).get(mv) if d.get("species", false) else SpriteLib.CHAR_ANIMS.get(mv)
+		if ResourceLoader.exists(mp) and t is Array:
+			SpriteLib._sheet_frames(sf, mv, SpriteLib.tex(mp), d.frame, t, false)
+			moves.append(mv)
 	var clip := "attack"
 	if Heroes.is_hero(id):
 		var w := Gear.slot_item(id, "weapon")
@@ -516,7 +524,9 @@ static func stage_info(id: String) -> Dictionary:
 	var atk := SpriteLib.attacks(String(d.id))
 	if atk == null or clip == "" or not atk.has_animation(clip):
 		clip = ""
-	return {"id": String(d.id), "idle": sf, "frame": Vector2(d.frame), "pivot": Vector2(d.pivot), "attack": atk, "clip": clip}
+	if clip != "":
+		moves.append("attack")
+	return {"id": String(d.id), "idle": sf, "frame": Vector2(d.frame), "pivot": Vector2(d.pivot), "attack": atk, "clip": clip, "moves": moves}
 
 
 ## Fit the staged character in its box: feet at the bottom centre, as tall
@@ -534,7 +544,34 @@ func _place_stage() -> void:
 		a.scale = Vector2(k * face, k)
 
 
-## Now and then the staged character shows off its attack, then idles again.
+## Now and then the staged character shows off a move (the user's pick: an
+## attack, a jump or a slide, at random), then idles again.
+func _stage_move(force := "") -> String:
+	if _stage_info.is_empty() or (_stage_info.moves as Array).is_empty():
+		return ""
+	var mv: String = force if force != "" else (_stage_info.moves as Array).pick_random()
+	if mv == "attack":
+		_stage_attack()
+		return mv
+	stage_body.play(mv)
+	if mv == "jump":   # a hop: up and back down over the clip
+		var dur := 0.0
+		for i in stage_body.sprite_frames.get_frame_count("jump"):
+			dur += stage_body.sprite_frames.get_frame_duration("jump", i) / 1000.0
+		var y0 := stage_body.position.y
+		var tw := stage_body.create_tween()
+		tw.tween_property(stage_body, "position:y", y0 - stage.size.y * 0.22, dur * 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tw.tween_property(stage_body, "position:y", y0, dur * 0.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	return mv
+
+
+func _stage_body_done() -> void:
+	if String(stage_body.animation) != "idle":
+		stage_body.play("idle")
+		_place_stage()
+		_stage_wait = randf_range(Tuning.CAMP_ATTACK_EVERY.x, Tuning.CAMP_ATTACK_EVERY.y)
+
+
 func _stage_attack() -> void:
 	if _stage_info.is_empty() or String(_stage_info.clip) == "":
 		return
@@ -958,10 +995,10 @@ func _input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if not visible:
 		return
-	if stage_body.visible and not stage_atk.visible:
+	if stage_body.visible and not stage_atk.visible and String(stage_body.animation) == "idle":
 		_stage_wait -= delta
 		if _stage_wait <= 0.0:
-			_stage_attack()
+			_stage_move()
 			_stage_wait = randf_range(Tuning.CAMP_ATTACK_EVERY.x, Tuning.CAMP_ATTACK_EVERY.y)
 	for a in _anim:
 		a[3] -= delta

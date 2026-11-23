@@ -98,7 +98,7 @@ Keyboard (desktop testing): Space = jump / go on, R = restart now, X = stop, C =
 The user's request: no hitches in the game itself. On a normal launch, main adds a `Preloader` over everything (CanvasLayer 100). It uses the boot splash's green, the app icon, a progress bar ("Loading... N%") and a random tip, and taps wait until it's done.
 1. **Load:** the forms on the buttons (Rok or the played hero, and the four equipped dinosaurs: body, attack and hit-reaction sheets) and whole folders (`WHOLE`: fx, hunters, the T-rex, traps, items, power-ups, flag, gear, wind, props, terrain, backgrounds). This runs on background threads, and everything is held in `Preloader.keep`.
 2. **Decode:** `SpriteLib.tex` for every character, attack and reaction sheet. It decodes the `@2x` twins on the main thread, `BUDGET_MS` per frame.
-3. **Build:** the run's SpriteFrames (`frame_jobs`): each form's body and death, attacks, reactions, the T-rex and zone hunters, the shapeshift burst and the power-up effects.
+3. **Build:** the run's SpriteFrames (`frame_jobs`): each form's body and death, attacks, reactions, the T-rex and zone hunters, the shapeshift burst, the power-up effects, Elder Numa, the milestone chest and meat loop (`Pickup.warm`; the chest stuttered on first sight) and every power-up's loop. Props, traps, items and gear also have their `@2x` twins decoded (`SHARP_WHOLE`).
 
 **Hints** (the user's request) come from **`config/hints.cfg`**: about 35 hints, each `[text, needs]`. Only hints the player is ready for are shown (`hint_ready`), so nothing is spoiled. "needs" can be:
 - a best distance,

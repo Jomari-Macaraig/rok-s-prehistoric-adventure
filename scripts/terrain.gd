@@ -516,10 +516,10 @@ func _bridge(f: Dictionary, sturdy: bool) -> void:
 	while x < f.x1 + 14.0:
 		var s := Sprite2D.new()
 		if sturdy:
-			s.texture = load("res://assets/props/%s.png" % ["Logs_03", "Logs_04"].pick_random())
+			s.texture = SpriteLib.tex("res://assets/props/%s.png" % ["Logs_03", "Logs_04"].pick_random())
 			s.scale = Vector2.ONE * 0.8
 		else:
-			s.texture = load("res://assets/props/Logs_05.png")   # thin twigs
+			s.texture = SpriteLib.tex("res://assets/props/Logs_05.png")   # thin twigs
 			s.scale = Vector2.ONE * 0.95
 			s.rotation = randf_range(-0.12, 0.12)
 			s.modulate = Color(0.85, 0.75, 0.62)

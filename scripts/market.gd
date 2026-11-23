@@ -53,7 +53,7 @@ var selected := ""               # the item on the counter ("" = the merchant's 
 var _say := ""                   # a line the merchant says instead of the usual one (after a sale)
 var bank_label: Label
 ## Market sections, each its own tab: id -> label.
-const TABS := {"powerups": "Power-Ups", "gear": "Gear", "dinos": "Dinosaurs", "heroes": "Heroes", "other": "Other"}
+const TABS := {"powerups": "Power-Ups", "gear": "Materials", "dinos": "Dinosaurs", "heroes": "Heroes", "other": "Other"}
 var tab := "powerups"
 var tab_buttons := {}     # tab id -> Button
 var _confirm := ""        # item waiting for its confirming tap

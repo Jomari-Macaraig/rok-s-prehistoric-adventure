@@ -59,8 +59,8 @@ func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tile = SpriteLib.tex("res://assets/terrain/mid_a.png")
 	_dirt = SpriteLib.tex("res://assets/terrain/dirt.png")
-	_log = load("res://assets/props/Logs_03.png")
-	_sign = load("res://assets/props/Signs_01.png")
+	_log = SpriteLib.tex("res://assets/props/Logs_03.png")
+	_sign = SpriteLib.tex("res://assets/props/Signs_01.png")
 	_cave = load(CAVE_ART) if ResourceLoader.exists(CAVE_ART) else null
 	_merchant = load(MERCHANT_ART) if ResourceLoader.exists(MERCHANT_ART) else null
 	_font = ThemeDB.fallback_font

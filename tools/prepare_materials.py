@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""The user's crafting material icons (../Assets/Rok_Missing_Material_Assets).
+"""The user's crafting material icons (../Assets/Rok_Complete_Material_Assets: all 45;
+Rok_Missing_Material_Assets: the first 33).
 
 The pack's icons are named "<number>_<material id>.png" (e.g. 04_fern_frond.png)
 in icons_512/<rarity>/ and icons_128/<rarity>/: transparent, no frame or text
@@ -19,7 +20,9 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-PACKS = [ROOT.parent / "Assets" / "Rok_Missing_Material_Assets" / "Rok_Material_Assets"]
+# newest first: an id found in an earlier pack isn't overwritten by a later one
+PACKS = [ROOT.parent / "Assets" / "Rok_Complete_Material_Assets" / "Rok_Material_Assets",
+         ROOT.parent / "Assets" / "Rok_Missing_Material_Assets" / "Rok_Material_Assets"]
 OUT = ROOT / "assets" / "materials"
 
 
@@ -43,6 +46,8 @@ def main() -> None:
             mid = re.sub(r"^\d+_", "", f.stem)
             if mid not in ids:
                 unknown.append(mid)
+                continue
+            if mid in done:
                 continue
             big = Image.open(f).convert("RGBA").resize((256, 256), Image.LANCZOS)
             big.save(OUT / f"{mid}@2x.png", optimize=True)

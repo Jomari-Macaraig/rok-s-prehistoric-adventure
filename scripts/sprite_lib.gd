@@ -424,7 +424,7 @@ static func trap(name: String, part := "") -> SpriteFrames:
 	var frames := SpriteFrames.new()
 	frames.remove_animation("default")
 	var file := name if part == "" else "%s_%s" % [name, part]
-	var sheet_tex: Texture2D = load("res://assets/traps/%s.png" % file)
+	var sheet_tex: Texture2D = tex("res://assets/traps/%s.png" % file)
 	var fs: Array = m.frame if part == "" else m[part]
 	_sheet_frames(frames, "a", sheet_tex, Vector2(fs[0], fs[1]), m.duration_ms, m.loop)
 	_cache[key] = frames

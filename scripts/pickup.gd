@@ -25,6 +25,15 @@ const CHEST_META := "res://assets/items/chest.json"   # the animated chest (tool
 static var _chest_sf: SpriteFrames
 
 
+## Build the chest's and meat's frames ahead of time (the loading screen:
+## the chest decodes its @2x sheet, a stutter the first time one appears).
+static func warm() -> void:
+	if FileAccess.file_exists(CHEST_META):
+		_chest_frames(JSON.parse_string(FileAccess.get_file_as_string(CHEST_META)))
+	if ResourceLoader.exists(MEAT_IDLE):
+		_meat_frames()
+
+
 ## The chest's clips from chest_anim.png (4 across): closed, open (once), sparkle (loop).
 static func _chest_frames(meta: Dictionary) -> SpriteFrames:
 	if _chest_sf:
@@ -111,7 +120,7 @@ func setup(k: String) -> Pickup:
 			st.texture = Crafting.icon(k.substr(Crafting.PICKUP_PREFIX.length()))
 			st.scale = Vector2.ONE * (56.0 / maxf(st.texture.get_width(), st.texture.get_height()))
 		else:
-			st.texture = load("res://assets/props/Other_07.png")
+			st.texture = SpriteLib.tex("res://assets/props/Other_07.png")
 			st.scale = Vector2.ONE * 0.55
 		sprite = st
 	add_child(sprite)

@@ -20,7 +20,12 @@ Part of the [system docs](README.md).
 
 ## The screen
 
-- **Scene** (`_draw_camp`): a hide hut, a campfire and a log; title banner DINOSAURS, sign CAMP. Your hero stands at the left; the chosen dinosaur (or another hero) stands by the hut. It plays its real idle loop (`stage_body`, from `assets/characters/<id>/idle.png`) and every few seconds its attack clip (`stage_atk`, `_stage_attack`; a hero swings its equipped weapon, and one with none just idles), then idles again (`Tuning.CAMP_ATTACK_FIRST` / `CAMP_ATTACK_EVERY`). Its feet sit at the bottom of the `stage` box, fitted to it and mirrored to face the hero (`_place_stage`, `stage_info`). Without its art it falls back to a still portrait in `stage`. It's a dark silhouette if not owned.
+- **Scene** (`_draw_camp`): a hide hut, a campfire and a log; title banner DINOSAURS, sign CAMP. Your hero stands at the left; the chosen dinosaur (or another hero) stands by the hut. It plays its real idle loop (`stage_body`, from `assets/characters/<id>/idle.png`) and every few seconds a random move (`_stage_move`, the user's pick):
+- its **attack** clip (`stage_atk`, `_stage_attack`; a hero swings its equipped weapon and has no attack without one),
+- a **jump** (its jump clip, plus a hop up and back down),
+- a **slide** (its slide clip).
+
+Then it idles again (`Tuning.CAMP_ATTACK_FIRST` / `CAMP_ATTACK_EVERY`). Its feet sit at the bottom of the `stage` box, fitted to it and mirrored to face the hero (`_place_stage`, `stage_info`). Without its art it falls back to a still portrait in `stage`. It's a dark silhouette if not owned.
 - **Tabs** (`Herd.tabs()`): Heroes first (Rok, Nira, Boro), then one per category with how many of its 8 you own ("Runner 4/8").
 - **Shelf** (`list`): a sideways row of tiles (`_row`): picture, name, tier and level, a tag (EQUIPPED / OWNED / MARKET / LOCKED), and `LevelReady`. Members: the button's original first, then the Market dinosaurs in on-sale order (`Herd.members(cat)`).
 - **Board** (`board`, `detail` inside the scrolling `dscroll`): the level-up, compare and gear panel.

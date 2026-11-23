@@ -25,6 +25,9 @@ const BG := Color(0.07, 0.16, 0.1)   # the boot splash's colour (project.godot)
 const BUDGET_MS := 12                 # main-thread work per frame
 ## Folders loaded whole (relative to res://assets/).
 const WHOLE := ["fx", "hunters", "characters/trex", "traps", "items", "powerups", "best_flag", "gear", "wind", "props", "terrain", "bg"]
+## Whole folders drawn through SpriteLib.tex in a run (props and traps: the
+## polished art's @2x twins), decoded on the loading screen too.
+const SHARP_WHOLE := ["props", "traps", "items", "gear"]
 ## Folders whose sheets go through SpriteLib.tex (the @2x twins).
 const TEX_DIRS := ["characters", "attacks", "reactions"]
 ## The hints (the user's request): config/hints.cfg, each [text, needs];
@@ -389,7 +392,14 @@ static func collect() -> Array:
 			tex_keys.append(p)
 	for w in WHOLE:
 		for p in pngs("res://assets/" + w):
-			if not load_paths.has(p):
+			if p.contains("@2x"):
+				continue
+			var hi: String = p.get_basename() + "@2x.png"
+			if w in SHARP_WHOLE and ResourceLoader.exists(hi):
+				if not load_paths.has(hi):
+					load_paths.append(hi)
+				tex_keys.append(p)   # drawn through SpriteLib.tex: decode its @2x twin now
+			elif not load_paths.has(p):
 				load_paths.append(p)
 	return [load_paths.filter(func(p): return ResourceLoader.exists(p)), tex_keys]
 
@@ -407,6 +417,9 @@ static func frame_jobs() -> Array:
 	jobs.append(SpriteLib.transform_fx)
 	jobs.append(SpriteLib.powerup_fx)
 	jobs.append(Codex.numa_frames)   # Elder Numa's clips (the Encyclopedia)
+	jobs.append(Pickup.warm)   # the milestone chest (it stuttered on first sight) and the meat loop
+	for k in Boosters.DATA:
+		jobs.append(Boosters.frames.bind(k))
 	for h in Hunters.DATA:
 		if h != "trex":
 			jobs.append(Hunters.frames.bind(h))

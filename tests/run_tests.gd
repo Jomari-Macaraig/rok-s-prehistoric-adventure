@@ -479,7 +479,7 @@ func _gate_checks() -> void:
 	check(main.state == main.State.DYING and main.death_cause == "caught", "T-rex catches Rok when the gap closes")
 	# low ledges use the floating-island art and keep slide clearance
 	var l := c.ledge(p.position.x + 900.0)
-	check((l.get_child(0) as Sprite2D).texture.resource_path.ends_with("forest_overhead.png"), "forest ledge is a branch with vines")
+	check((l.get_child(0) as Sprite2D).texture == SpriteLib.tex("res://assets/traps/forest_overhead.png"), "forest ledge is a branch with vines")
 	check(absf(l.hitbox().end.y - (Tuning.GROUND_Y - Tuning.LEDGE_CLEARANCE)) < 1.0, "ledge underside at the slide clearance")
 	main.start_run(false)
 
@@ -1503,6 +1503,7 @@ func _feedback_checks() -> void:
 	var pl := Preloader.new()
 	main.add_child(pl)
 	pl.run_all()
+	check(Pickup._chest_sf != null and SpriteLib._tex_cache.has("res://assets/items/chest_anim.png"), "...including the milestone chest's opening")
 	check(pl._done == pl._total and Preloader.keep.size() >= (plc[0] as Array).size() and SpriteLib._cache.has("attack_raptor"),
 			"...loads everything and builds the run's animation frames")
 	pl.queue_free()
@@ -1524,6 +1525,15 @@ func _feedback_checks() -> void:
 	check(hs.stage_atk.visible and not hs.stage_body.visible and String(hs.stage_atk.animation) == "attack", "...and now and then its attack")
 	hs._stage_idle()
 	check(hs.stage_body.visible and not hs.stage_atk.visible, "...then idles again")
+	check((hs._stage_info.moves as Array).has("jump") and (hs._stage_info.moves as Array).has("slide") and (hs._stage_info.moves as Array).has("attack"),
+			"...its moves are attack, jump and slide")
+	hs._stage_move("jump")
+	check(String(hs.stage_body.animation) == "jump", "...it jumps")
+	hs.stage_body.animation_finished.emit()
+	check(String(hs.stage_body.animation) == "idle", "...and lands back in its idle")
+	hs._stage_move("slide")
+	check(String(hs.stage_body.animation) == "slide", "...and slides")
+	hs.stage_body.animation_finished.emit()
 	check(hs.find_child("TitleBanner", true, false) != null and (not SceneKit.has() or (hs.find_child("TitleBanner", true, false).get_child(0) as Label).text == "DINOSAUR CAMP"),
 			"the screen is called the Dinosaur Camp")
 	hs.close_herd()
@@ -2048,7 +2058,7 @@ func _trap_checks() -> void:
 	# zone skins
 	c.metres = Zones.ZONE_LEN_M * 1.1
 	var dl := c.ledge(p.position.x + 900.0)
-	check((dl.get_child(0) as Sprite2D).texture.resource_path.ends_with("desert_fossil_arch.png"), "desert ledge is a fossil arch")
+	check((dl.get_child(0) as Sprite2D).texture == SpriteLib.tex("res://assets/traps/desert_fossil_arch.png"), "desert ledge is a fossil arch")
 	var dw := c.boulder_wall(p.position.x + 1300.0)
 	check((dw.get_child(0) as AnimatedSprite2D).sprite_frames == SpriteLib.trap("desert_wall_break"), "desert Triceratops gate is cracked sandstone")
 	check(dw.hitbox().position.y <= 0.0, "the sandstone barricade reaches the top of the screen")

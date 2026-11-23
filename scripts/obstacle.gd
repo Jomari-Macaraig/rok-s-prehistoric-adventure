@@ -56,7 +56,7 @@ func setup(k: String, parts: Array, scale_factor: float) -> Obstacle:
 	var y := 0.0
 	var w := 0.0
 	for p in parts:
-		var tex: Texture2D = load(p)
+		var tex: Texture2D = SpriteLib.tex(p)   # the @2x twin when there is one (sharp on high-DPI)
 		var s := Sprite2D.new()
 		s.texture = tex
 		s.centered = false
@@ -149,7 +149,7 @@ func setup_ledge(pieces: int, scale_factor: float, zone_id := "forest") -> Obsta
 func setup_overhead_static(name: String, scale_factor: float) -> Obstacle:
 	kind = "overhead"
 	var s := Sprite2D.new()
-	s.texture = load("res://assets/traps/%s.png" % name)
+	s.texture = SpriteLib.tex("res://assets/traps/%s.png" % name)
 	s.centered = false
 	s.scale = Vector2.ONE * scale_factor
 	var sz := s.texture.get_size() * scale_factor
