@@ -33,7 +33,7 @@ Part of the [system docs](README.md).
 | Form `chase_rate` | Raptor +40/s, Pteranodon +25/s; the hunter gains 8/s on the Triceratops, 14/s on the Spinosaurus |
 | Climbing (`Terrain.slope_at()` < 0) | − `UPHILL_LOSS` (not for `fast` forms: the Raptor); pace × `UPHILL_PACE` |
 | Sliding downhill | + `SLIDE_DOWNHILL_GAIN`; pace × `DOWNHILL_SLIDE_PACE` |
-| Dino Egg | + `EGG_CHASE_GAIN` (90/s) for `EGG_BOOST_TIME` (2.5 s), world speed × `EGG_BOOST_PACE`, streaks and glow |
+| Blaze Pepper | + `PEPPER_CHASE_GAIN` (90/s) for `PEPPER_BOOST_TIME` (2.5 s), world speed × `PEPPER_BOOST_PACE`, streaks and glow |
 | Time Crystal | builds a lead (see [power-ups](power-ups.md)) |
 | Stumbles | thorn bush `STUMBLE_THORN`, shield hit `STUMBLE_SHIELD`, small rock `STUMBLE_ROCK`, mushroom `STUMBLE_MUSHROOM` |
 | A charge | − the hunter's `charge_rate` while it lasts |
@@ -66,4 +66,4 @@ A lead can grow up to `CHASE_GAP_FAR` (480: hunter off-screen) and stays until a
 3. For `CHARGE_TIME` the hunter gains its `CHARGE_RATE` extra (T-rex: 4 s at 45/s).
 4. Surviving shows "Escaped!" and counts for the Escape Artist badge.
 
-Balance: as Rok with no stumbles the gap drops from 250 to about 70; a Runner roughly holds it; an egg or a downhill slide escapes.
+Balance: as Rok with no stumbles the gap drops from 250 to about 70; a Runner roughly holds it; a pepper or a downhill slide escapes.

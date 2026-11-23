@@ -55,7 +55,7 @@ static func save_unlocked(a: Array) -> void:
 
 ## Banner keys already shown once (so intro banners don't repeat every run).
 static func load_seen() -> Array:
-	return _read("progress", "seen", [])
+	return _renamed(_read("progress", "seen", []))
 
 
 static func save_seen(a: Array) -> void:
@@ -64,7 +64,7 @@ static func save_seen(a: Array) -> void:
 
 ## Field Guide entries already viewed (for the NEW tags / button badge).
 static func load_viewed() -> Array:
-	return _read("progress", "guide_viewed", [])
+	return _renamed(_read("progress", "guide_viewed", []))
 
 
 static func save_viewed(a: Array) -> void:
@@ -74,11 +74,17 @@ static func save_viewed(a: Array) -> void:
 ## Power-ups the player owns (only these spawn in a run). Starts with the
 ## starter boosters; the planned market adds to it.
 static func load_unlocked_boosters() -> Array:
-	var a: Array = _read("progress", "boosters", Boosters.starters())
+	var a: Array = _renamed(_read("progress", "boosters", Boosters.starters()))
 	for k in Boosters.starters():
 		if not a.has(k):
 			a.append(k)
 	return a
+
+
+## Old saves: the Dino Egg power-up became the Blaze Pepper ("egg" -> "pepper"),
+## so a player who already met it isn't taught it again.
+static func _renamed(a: Array) -> Array:
+	return a.map(func(k): return "pepper" if k == "egg" else k)
 
 
 static func save_unlocked_boosters(a: Array) -> void:

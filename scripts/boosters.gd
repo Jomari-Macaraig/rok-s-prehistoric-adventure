@@ -28,9 +28,12 @@ const MARKET_SLOT := 2
 ## id -> data. "art" names the sprites in assets/powerups (<art>_idle.png
 ## animated loop, <art>.png icon). Order = Field Guide order.
 const DATA := {
-	"egg": {
-		"art": "dino_egg", "name": "Dino Egg", "score": 250, "starter": true,
-		"desc": "A 2.5-second burst of speed that pulls away from the T-rex.",
+	"pepper": {
+		# The speed boost (the user's change, 2026-11-23: it replaced the Dino
+		# Egg, whose art waits in assets/powerups for another idea). One still
+		# picture until it has an idle loop (tools/prepare_assets.py blaze_pepper).
+		"art": "blaze_pepper", "name": "Blaze Pepper", "score": 250, "starter": true,
+		"desc": "A fiery 2.5-second burst of speed that pulls away from the T-rex.",
 	},
 	# Primal Amber (id kept from the old Amber Shield, so saves and prices carry
 	# over; the user's change): a usable amber that refills PRIMAL energy. Its

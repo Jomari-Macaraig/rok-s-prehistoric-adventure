@@ -76,6 +76,6 @@ Loot drops where the obstacle stood.
 
 ## Which power-up
 
-`[power_ups]`: the Dino Egg `egg_share` (0.5) of the time, otherwise one of
+`[power_ups]`: the Blaze Pepper `pepper_share` (0.5) of the time, otherwise one of
 the other owned power-ups by weight (unlisted ones weigh 1). Used by reward
 spots, break loot and chests (`Course._booster()`).

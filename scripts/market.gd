@@ -1,7 +1,7 @@
 class_name Market
 extends CanvasLayer
 ## The Market, laid out like the user's reference (Rok's cave marketplace
-## with Dino Egg): the cave room on the left (Rok facing the merchant across
+## with Blaze Pepper): the cave room on the left (Rok facing the merchant across
 ## his counter, MarketScene), a log-framed shop panel on the right with pill
 ## tabs, a grid of parchment item cards with price pills, and a details strip
 ## with a big green BUY. The merchant talks in a bubble over his head and

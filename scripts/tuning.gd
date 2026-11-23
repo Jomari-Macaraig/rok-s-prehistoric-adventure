@@ -113,12 +113,12 @@ const SNAG_HOLD := 0.35          # seconds the vine holds Rok (struggle loop) be
 const DIZZY_JUMP := 0.8          # jumps are this much lower while dizzy
 const STUMBLE_SHIELD := 70.0     # a shield hit staggers him
 const CHASE_DANGER := 110.0      # below this: red edge pulse
-const CHASE_GAP_FAR := 480.0     # the biggest lead (downhill slides, the Raptor, eggs): kept until a stumble or charge
-# Eggs: a short burst of speed
-const EGG_BOOST_TIME := 2.5      # seconds
-## Every run offers an egg at Progression.intro_m("egg") (config [introductions] egg).
-const EGG_BOOST_PACE := 1.3      # world speed during the boost
-const EGG_CHASE_GAIN := 90.0     # px/s pulled away from the T-rex during the boost
+const CHASE_GAP_FAR := 480.0     # the biggest lead (downhill slides, the Raptor, peppers): kept until a stumble or charge
+# Peppers: a short burst of speed
+const PEPPER_BOOST_TIME := 2.5      # seconds
+## Every run offers a pepper at Progression.intro_m("pepper") (config [introductions] pepper).
+const PEPPER_BOOST_PACE := 1.3      # world speed during the boost
+const PEPPER_CHASE_GAIN := 90.0     # px/s pulled away from the T-rex during the boost
 const UPHILL_LOSS := 85.0        # px/s the hunter gains while Rok (or a slow dino) climbs; the Raptor doesn't lose ground
 const SLIDE_DOWNHILL_GAIN := 170.0  # px/s gained sliding down a slope
 const UPHILL_PACE := 0.86        # world speed while climbing
@@ -134,7 +134,7 @@ const INTRO_ROAR_GAP := 90.0     # snout-to-Rok distance while it roars
 # Score
 const SCORE_PER_PX := 0.02
 const SMASH_SCORE := 50
-const EGG_SCORE := 250
+const PEPPER_SCORE := 250
 const AMBER_SCORE := 25
 const MEAT_SCORE := 25
 # Reward spots (amber arcs, floating islands, sky trails) hold one kind each:
@@ -160,7 +160,7 @@ const BERRY_TIME := 8.0          # Primal Berry: free, instant shapeshifting
 const GOLD_TIME := 10.0          # Golden Fossil
 ## Pitch of the shared activation sound (powerup_activate) per power-up, so
 ## each one sounds a little different (missing = 1.0).
-const POWERUP_SOUND_PITCH := {"egg": 1.0, "amber_shield": 0.9, "fossil_magnet": 1.15,
+const POWERUP_SOUND_PITCH := {"pepper": 1.0, "amber_shield": 0.9, "fossil_magnet": 1.15,
 		"time_crystal": 0.75, "primal_berry": 1.25, "golden_fossil": 1.05}
 const GOLD_MULT := 2.0           # points multiplier
 

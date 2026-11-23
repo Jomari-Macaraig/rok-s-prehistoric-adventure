@@ -25,7 +25,7 @@ Part of the [system docs](README.md).
 
 | Thing | Checked in | Effect when not met |
 |---|---|---|
-| `pickup.<kind>` (amber, meat, heart, fossil, egg, a power-up id) | `Course._pickup` (every pickup: reward spots, under ledges, gate and sand caches, events, break loot, chests' drops) and `main._break_loot` | it doesn't spawn (a drop counts as nothing) |
+| `pickup.<kind>` (amber, meat, heart, fossil, pepper, a power-up id) | `Course._pickup` (every pickup: reward spots, under ledges, gate and sand caches, events, break loot, chests' drops) and `main._break_loot` | it doesn't spawn (a drop counts as nothing) |
 | `intro.<key>` (a hazard, terrain feature or gate key from `[introductions]`) | `Progression.available` | it doesn't appear yet |
 | `event.<id>` (golden_hour, meteor_shower, amber_storm, stampede_rush) | `RunEvents.pool` | that event isn't picked |
 | `power.<id>` | `Course._booster` | that power-up doesn't turn up in spots and drops |
@@ -53,7 +53,7 @@ a dinosaur unlocked
 
 Before the first dinosaur (1600 m) reward spots that would hold amber are
 simply empty, so early runs have fewer pickups: meat, hearts, power-ups and
-the starter egg still come. The training run's amber step comes after it lends
+the starter pepper still come. The training run's amber step comes after it lends
 the Raptor.
 
 ## Adding a rule

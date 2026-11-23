@@ -4,7 +4,7 @@ class_name Requires
 ## with no entry has no requirement.
 ##
 ## Things (the left side), checked where they happen:
-##   pickup.<kind>    a pickup spawning (Course._pickup): amber, meat, heart, fossil, egg, any power-up id
+##   pickup.<kind>    a pickup spawning (Course._pickup): amber, meat, heart, fossil, pepper, any power-up id
 ##   intro.<key>      a hazard / terrain feature / gate appearing (Progression.available)
 ##   event.<id>       a mid-run event (RunEvents.pool): golden_hour, meteor_shower, amber_storm, stampede_rush
 ##   power.<id>       a power-up turning up in a reward spot or a drop (Course._booster)

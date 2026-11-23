@@ -13,7 +13,7 @@ class_name Progression
 ## config/progression.cfg ([introductions]).
 const INTRO_TEXT := {
 	"small": ["Rocks & Mushrooms", "Tap JUMP to leap over them. Hit a rock and you trip (the T-rex gains); a mushroom makes you dizzy", -1, ""],
-	"egg": ["Dino Eggs", "Grab it! It goes in a booster slot: tap the slot for a burst of speed. You start with 1 booster slot; reach %d m for a second, and a third comes from the Market", -1, ""],
+	"pepper": ["Blaze Peppers", "Grab it! It goes in a booster slot: tap the slot for a burst of speed. You start with 1 booster slot; reach %d m for a second, and a third comes from the Market", -1, ""],
 	"hill": ["", "", -1, ""],
 	"log": ["Logs", "Jump over them. Hold JUMP for a higher leap", -1, ""],
 	"thorn_bush": ["Thorn Bushes", "Jump them! Stumbling lets the T-rex catch up", Forms.SPINOSAURUS, "or trample them as Spinosaurus"],
@@ -48,7 +48,7 @@ const INTRO_TEXT := {
 const DEFAULT_INTRO_M := {
 	"small": 0,
 	"hill": 240,
-	"egg": 600,
+	"pepper": 600,
 	"log": 160,
 	"ledge": 300,
 	"pit": 1150,
@@ -351,7 +351,7 @@ static func hint(key: String, unlocked: Array) -> String:
 	if e.is_empty():
 		return ""
 	var h: String = e[3]
-	if key == "egg":
+	if key == "pepper":
 		h = h % int(SLOT_UNLOCK_M)
 	if e[4] != -1 and unlocked.has(e[4]):
 		h += ", " + e[5]

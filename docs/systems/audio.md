@@ -34,6 +34,6 @@ Part of the [system docs](README.md).
 - Roars every `TREX_ROAR_EVERY` s, more often and louder the closer it is (with shake).
 - Growls once whenever it gets within `CHASE_DANGER`.
 
-**Gameplay**: jump and double jump, slide, wing flaps, hard landing, shift, smash, `break_wood` / `break_rock`, `weapon_break`, amber, egg, shield, power-ups (`powerup_pickup` / `powerup_activate` / `powerup_expire`, see [power-ups](power-ups.md#sounds)), hit, pit fall, run start, unlock, intro.
+**Gameplay**: jump and double jump, slide, wing flaps, hard landing, shift, smash, `break_wood` / `break_rock`, `weapon_break`, amber, pepper, shield, power-ups (`powerup_pickup` / `powerup_activate` / `powerup_expire`, see [power-ups](power-ups.md#sounds)), hit, pit fall, run start, unlock, intro.
 
 **UI**: click, denied ("need amber"), Ugo's mumbles (`mumble_1..6`, see [marketplace](marketplace.md)).

@@ -644,29 +644,29 @@ func _hill_chase_checks() -> void:
 	check(main.chase_gap == raptor_lead, "back in Rok's form the Raptor's lead is kept (the hunter only matches his pace)")
 	main._stumble(Tuning.STUMBLE_ROCK, "Trip!")
 	check(main.chase_gap < raptor_lead, "only a stumble takes distance away")
-	# eggs: a short speed boost that pulls away
+	# peppers: a short speed boost that pulls away
 	main.start_run(false)
 	main.chase_gap = 150.0
 	main.course._ground = Tuning.GROUND_Y
-	main.course._pickup("egg", main.player.position + Vector2(0, -60))
+	main.course._pickup("pepper", main.player.position + Vector2(0, -60))
 	main._collide()
-	check(main.slots[0] == "egg" and main.boost_t == 0.0, "picking up an egg puts it in a booster slot (no automatic boost)")
+	check(main.slots[0] == "pepper" and main.boost_t == 0.0, "picking up a pepper puts it in a booster slot (no automatic boost)")
 	main._refresh_hud()
 	var sb: TouchButton = main.hud.slot_buttons[0]
-	check(sb.enabled and sb.icon != null, "the slot button shows the egg")
+	check(sb.enabled and sb.icon != null, "the slot button shows the pepper")
 	check(main.hud.slot_buttons.size() == 3, "three booster slot buttons")
 	check(main.slot_count == 1, "a fresh save has one booster slot open")
 	check(main.hud.slot_buttons[1].locked and main.hud.slot_buttons[1].lock_text == "%d m" % int(Progression.SLOT_UNLOCK_M), "the second slot shows its unlock distance")
 	check(main.hud.slot_buttons[2].locked and main.hud.slot_buttons[2].lock_text == "Market", "the third slot is marked for the Market")
 	main._touch_pressed("slot_0")
-	check(main.slots[0] == "" and main.boost_t > 0.0, "tapping the slot eats the egg for a speed boost")
+	check(main.slots[0] == "" and main.boost_t > 0.0, "tapping the slot eats the pepper for a speed boost")
 	main.use_slot(0)
 	check(main.boost_t > 0.0 and main.slots[0] == "", "an empty slot does nothing")
 	for i in 30:
 		main._play_step(1.0 / 60.0)
 	check(main.speed_mod > 1.05, "the boost speeds Rok up (%.2f)" % main.speed_mod)
 	check(main.chase_gap > 150.0, "the boost pulls away from the T-rex")
-	for i in int(Tuning.EGG_BOOST_TIME * 60.0) + 60:
+	for i in int(Tuning.PEPPER_BOOST_TIME * 60.0) + 60:
 		main.player.invuln = 99.0
 		main._play_step(1.0 / 60.0)
 	check(main.boost_t == 0.0, "the boost wears off")
@@ -674,10 +674,10 @@ func _hill_chase_checks() -> void:
 	main.slots = ["", "", ""]
 	check(not main.collect_booster("amber_shield", Vector2.ZERO) and main.slots == ["", "", ""], "a locked power-up can't be collected")
 	# kart-style slots: only open slots take boosters (any type, even one already held)
-	check(main.collect_booster("egg", Vector2.ZERO), "a booster fills a free slot")
-	check(not main.collect_booster("egg", Vector2.ZERO) and main.slots.count("egg") == 1 and main.slots[1] == "", "with every open slot full a booster is just points")
+	check(main.collect_booster("pepper", Vector2.ZERO), "a booster fills a free slot")
+	check(not main.collect_booster("pepper", Vector2.ZERO) and main.slots.count("pepper") == 1 and main.slots[1] == "", "with every open slot full a booster is just points")
 	var owned_before: Array = main.boosters_owned
-	main.boosters_owned = ["egg", "amber_shield", "fossil_magnet"]
+	main.boosters_owned = ["pepper", "amber_shield", "fossil_magnet"]
 	check(not main.collect_booster("amber_shield", Vector2.ZERO), "with one slot open, a full slot takes nothing more")
 	var unlocked_before: Array = main.unlocked.duplicate()
 	main.unlocked = Forms.ORDER.duplicate()   # only the slot can unlock here
@@ -687,7 +687,7 @@ func _hill_chase_checks() -> void:
 	main.distance = 99999.0 * Tuning.PX_PER_M
 	main._check_unlocks()
 	check(main.slot_count == 2, "distance never unlocks the third (Market) slot")
-	check(main.collect_booster("egg", Vector2.ZERO) and main.slots[0] == "egg" and main.slots[1] == "egg", "a free slot takes a booster you already hold")
+	check(main.collect_booster("pepper", Vector2.ZERO) and main.slots[0] == "pepper" and main.slots[1] == "pepper", "a free slot takes a booster you already hold")
 	main.slots[1] = ""
 	check(main.collect_booster("amber_shield", Vector2.ZERO) and main.slots[1] == "amber_shield", "the second slot takes a different booster")
 	check(not main.collect_booster("fossil_magnet", Vector2.ZERO) and main.slots[2] == "", "the locked Market slot stays empty")
@@ -700,19 +700,19 @@ func _hill_chase_checks() -> void:
 	main.slots = ["", "", ""]
 	main._info_queue.clear()
 	main.hud.hide_info()
-	# every run offers an egg early on (it now comes after the Raptor: keep
+	# every run offers a pepper early on (it now comes after the Raptor: keep
 	# the dinosaurs unlocked here so no unlock or gate interrupts, then put
 	# the fresh save back)
-	var egg_unlocked: Array = main.unlocked.duplicate()
+	var pepper_unlocked: Array = main.unlocked.duplicate()
 	main.unlocked = Forms.ORDER.duplicate()
 	main.start_run(false)
-	main.distance = (Progression.intro_m("egg") + 1.0) * Tuning.PX_PER_M
+	main.distance = (Progression.intro_m("pepper") + 1.0) * Tuning.PX_PER_M
 	for i in 10:
 		main.player.invuln = 99.0
 		main._play_step(1.0 / 60.0)
-	check(main.course.pickups.any(func(k): return k.kind == "egg"), "an egg appears early in every run")
-	main.unlocked = egg_unlocked
-	SaveData.save_unlocked(egg_unlocked)
+	check(main.course.pickups.any(func(k): return k.kind == "pepper"), "a pepper appears early in every run")
+	main.unlocked = pepper_unlocked
+	SaveData.save_unlocked(pepper_unlocked)
 	main.start_run(false)
 
 
@@ -940,7 +940,7 @@ func _milestone_checks() -> void:
 			"xp": rewards[r] = float(main.dino_xp.get("rok", 0.0)) > xp0
 			"heart": rewards[r] = main.health == hp0 + Hearts.QUARTERS
 			"full_heal": rewards[r] = main.health == main.max_health()
-			"booster": rewards[r] = main.slots.has("egg")
+			"booster": rewards[r] = main.slots.has("pepper")
 			"frenzy": rewards[r] = main.combo.in_frenzy() and main.frenzies == 1
 	check(rewards.values().all(func(v): return v), "every chest reward works: %s" % rewards)
 	check(main.combo.count >= Chest.combo_weight(), "a chest adds to the combo")
@@ -1174,7 +1174,7 @@ func _feedback_checks() -> void:
 	check(all_keys, "config/pickups.cfg lists every pickup setting")
 	Loot.set_value("spots", "heart", 1.0)
 	check(c._spot_kind() == "heart", "a spot's kind follows the config's odds")
-	Loot.set_value("power_ups", "egg_share", 0.0)
+	Loot.set_value("power_ups", "pepper_share", 0.0)
 	for k in Boosters.DATA:
 		Loot.set_value("power_ups", k, 1.0 if k == "golden_fossil" else 0.0)
 	var keep_owned: Array = c.boosters_owned
@@ -2341,10 +2341,10 @@ func _guide_scroll_check() -> void:
 func _guide_checks() -> void:
 	check(Codex.known_ids([Forms.ROK], 0.0, []) == ["dino_0", "trex", "islands", "zone_forest"], "fresh guide knows Rok, the T-rex, floating islands and the Forest")
 	check(not Codex.ITEMS.any(func(it): return it.name == "Floating Islands"), "floating islands are terrain, not an item")
-	check(not Codex.ITEMS.any(func(it): return it.name == "Dino Egg"), "the egg lives in the Power-Ups section, not Items")
-	# power-ups: six in the catalogue, only the egg owned; the rest locked
+	check(not Codex.ITEMS.any(func(it): return it.name == "Blaze Pepper"), "the pepper lives in the Power-Ups section, not Items")
+	# power-ups: six in the catalogue, only the pepper owned; the rest locked
 	check(Boosters.DATA.size() == 6, "six power-ups in the catalogue")
-	check(main.boosters_owned == ["egg"], "a fresh save owns only the Dino Egg")
+	check(main.boosters_owned == ["pepper"], "a fresh save owns only the Blaze Pepper")
 	main.codex.boosters_owned = main.boosters_owned
 	main.codex.open_guide(main.unlocked, main.best_m, main.seen, main.guide_viewed)
 	main.codex._show_tab(3)
@@ -2695,7 +2695,7 @@ func _fun_checks() -> void:
 	var pwp: Player = main.player
 	main.slots = ["", "", ""]
 	main.audio.played.clear()
-	main.collect_booster("egg", pwp.position)
+	main.collect_booster("pepper", pwp.position)
 	check(pwp.pfx_once.visible and String(pwp.pfx_once.animation) == "pickup", "collecting a power-up plays the pickup effect")
 	check(main.audio.played.has("powerup_pickup"), "...and the pickup sound")
 	main.use_slot(0)
@@ -3183,7 +3183,7 @@ func _market_checks() -> void:
 	# the Market sells the third slot and every non-starter power-up, at config prices
 	var c := ConfigFile.new()
 	c.load(Progression.CONFIG_PATH)
-	check(Market.items().size() == 6 + 3 + 28 + 2 + Crafting.market_ids().size() and Market.items().has(Market.SLOT_ID) and not Market.items().has("egg"), "the Market sells the third slot, 3 Heart Containers, the five locked power-ups, 28 dinosaurs, 2 heroes and basic crafting materials (no gear, no card packs)")
+	check(Market.items().size() == 6 + 3 + 28 + 2 + Crafting.market_ids().size() and Market.items().has(Market.SLOT_ID) and not Market.items().has("pepper"), "the Market sells the third slot, 3 Heart Containers, the five locked power-ups, 28 dinosaurs, 2 heroes and basic crafting materials (no gear, no card packs)")
 	# the Dinosaur Expansion
 	check(Dinos.ids().size() == 28 and Dinos.ids().all(func(id): return Market.items().has(id)), "all 28 expansion dinosaurs are for sale")
 	check(Dinos.ids().all(func(id): return Market.price(id) == int(c.get_value("market", id, -1)) and Market.unlock_m(id) == int(c.get_value("market_unlocks", id, -1))), "dinosaur prices and distances come from the config")
@@ -3243,7 +3243,7 @@ func _market_checks() -> void:
 	main._refresh_hud()
 	check(main.hud.meat_label.text == "1", "the HUD shows the meat collected this run")
 	check(main.hud.meat_pill.visible, "the meat counter shows during a run")
-	main.course.boosters_owned = ["egg"]
+	main.course.boosters_owned = ["pepper"]
 	# reward spots: one kind each, mostly amber; meat, lone power-ups and
 	# mixed amber+meat spots are rarer
 	var spots := {"amber": 0, "meat": 0, "power": 0, "mixed": 0, "heart": 0, "material": 0}
@@ -3255,7 +3255,7 @@ func _market_checks() -> void:
 			and near.call(spots.meat, Tuning.MEAT_SPOT_CHANCE), "meat, power-up and mixed spots follow their chances: %s" % str(spots))
 	check(spots.heart > 0 and spots.heart < spots.power * 0.5, "heart spots are rare: %s" % str(spots))
 	check(main.course._fill("heart", true) == "heart" and main.course._fill("heart", false) == "", "a heart spot holds just one heart")
-	check(main.course._fill("power", false) == "" and main.course._fill("power", true) == "egg", "a power spot holds just one power-up")
+	check(main.course._fill("power", false) == "" and main.course._fill("power", true) == "pepper", "a power spot holds just one power-up")
 	var counts := {}
 	var total := 0
 	for i in 4000:

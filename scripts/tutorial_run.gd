@@ -22,7 +22,7 @@ extends RefCounted
 ## the menu tour (menu_tour.gd: Marketplace, Camp, Encyclopedia).
 ##
 ## Steps (STEPS): jump a rock, hold JUMP over a log, double-jump a wall, slide
-## under a ledge, ATTACK a rock, an egg and its slot, become the Raptor for its
+## under a ledge, ATTACK a rock, a pepper and its slot, become the Raptor for its
 ## crumbling bridge and back to Rok, amber (it only exists once a dinosaur is
 ## unlocked: config/requirements.cfg), then a card about the Market,
 ## Camp and Encyclopedia. Afterwards coach hints (tutorial.gd) cover the rest.
@@ -57,8 +57,8 @@ const STEPS := [
 		"card": ["SMASH THROUGH!", "Tap [ATTACK] to break small obstacles."]},
 	{"id": "meat", "intro": true, "spawn": "meat", "title": "GRAB THE MEAT", "hint": "Meat is your money. Run through it!",
 		"notes": [["meat", "[MEAT] you collected this run. Spend it\nin the MARKETPLACE after the run."]]},
-	{"id": "booster", "intro": true, "spawn": "egg", "button": "slot_0", "title": "POWER-UPS", "hint": "Grab the Dino Egg. It waits in a slot until you use it.",
-		"card": ["USE YOUR POWER-UP", "Tap the [EGG] slot for a burst of speed."]},
+	{"id": "booster", "intro": true, "spawn": "pepper", "button": "slot_0", "title": "POWER-UPS", "hint": "Grab the Blaze Pepper. It waits in a slot until you use it.",
+		"card": ["USE YOUR POWER-UP", "Tap the [PEPPER] slot for a burst of speed."]},
 	{"id": "shift", "spawn": "raptor_gate", "button": "form_1", "at": 520.0,
 		"card": ["BECOME THE RAPTOR", "Tap the [RAPTOR] to cross the crumbling bridge."],
 		"back": ["BACK TO ROK", "Tap [ROK] to save your PRIMAL energy."]},
@@ -107,7 +107,7 @@ func step(delta: float) -> void:
 	g.chase_gap = Tuning.CHASE_GAP_MAX   # and the hunter can't catch up
 	g.speed = Tuning.START_SPEED
 	g.course.holding = true              # no random hazards
-	g.course.starter_egg = false
+	g.course.starter_pepper = false
 	g.terrain.calm = true                # flat ground only
 	if String(step_data().id) == "shift":
 		g.energy = maxf(g.energy, 60.0)  # the lent Raptor mustn't tire out on its bridge
@@ -164,7 +164,7 @@ func step(delta: float) -> void:
 				if g.slots[0] != "":
 					_freeze(s.button, s.card)
 				elif thing == null or not is_instance_valid(thing) or (g.course.pickups.has(thing) and thing.position.x < Tuning.PLAYER_X - 150.0):
-					_repeat()   # missed the egg
+					_repeat()   # missed the pepper
 				return
 			if s.id == "shift":
 				var mk = _gate_marker()
@@ -365,7 +365,7 @@ func _advance() -> void:
 	thing = null
 
 
-## Rok was hit (or missed the egg): the same step again.
+## Rok was hit (or missed the pepper): the same step again.
 func _repeat() -> void:
 	game.hud.show_banner("TRY AGAIN!", "Wait for the hint, then tap.", Color(1.0, 0.7, 0.5), 1.6)
 	phase = "start"
@@ -409,8 +409,8 @@ func _spawn(s: Dictionary):
 				var t := k / 4.0
 				c._pickup("amber", Vector2(x + k * 70.0, c._ground - 90.0 - sin(t * PI) * 60.0))
 			return c.pickups[-1]
-		"egg":
-			c._pickup("egg", Vector2(x, c._ground - 70.0))
+		"pepper":
+			c._pickup("pepper", Vector2(x, c._ground - 70.0))
 			return c.pickups[-1]
 		"meat":
 			_meat = []

@@ -366,6 +366,25 @@ def powerups() -> None:
         save(Image.open(POWERUPS / "png" / "128" / f"{pid}.png").convert("RGBA"), f"powerups/{pid}.png")
 
 
+BLAZE_PEPPER = SRC / "Golden-flame blaze pepper.png"
+
+
+def blaze_pepper() -> None:
+    """The Blaze Pepper power-up (the speed boost; it replaced the Dino Egg):
+    one still picture, trimmed and fitted to 104 px on a 128 px canvas like the
+    other power-up icons. Until it has an idle loop, the 4x2 idle sheet is that
+    same picture eight times (the pickup still bobs in code)."""
+    img = trimmed(Image.open(BLAZE_PEPPER).convert("RGBA"))
+    img.thumbnail((104, 104), Image.LANCZOS)
+    icon = Image.new("RGBA", (128, 128), (0, 0, 0, 0))
+    icon.alpha_composite(img, ((128 - img.width) // 2, (128 - img.height) // 2))
+    save(icon, "powerups/blaze_pepper.png")
+    sheet = Image.new("RGBA", (512, 256), (0, 0, 0, 0))
+    for i in range(8):
+        sheet.alpha_composite(icon, ((i % 4) * 128, (i // 4) * 128))
+    save(sheet, "powerups/blaze_pepper_idle.png")
+
+
 MEAT_ART = SRC / "Rok_Meat_Currency" / "meat_128.png"   # the real art (tools/prepare_meat.gd does the same without Pillow)
 MEAT_IDLE = SRC / "Rok_Meat_Currency" / "animations" / "128" / "spritesheets" / "meat_idle.png"
 
@@ -432,6 +451,7 @@ if __name__ == "__main__":
     traps()
     deaths()
     powerups()
+    blaze_pepper()
     meat()
     props()
     wind()

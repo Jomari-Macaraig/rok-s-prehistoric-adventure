@@ -1,7 +1,7 @@
 class_name Pickup
 extends Node2D
 ## Amber crystal (energy), meat (Market currency), a heart (heals one, rare;
-## Hearts) or a booster (see Boosters, e.g. the dino egg). Bobs gently.
+## Hearts) or a booster (see Boosters, e.g. the blaze pepper). Bobs gently.
 ## Escalating pickups (later in a run, Course._pickup): big meat (the meat
 ## art at BIG_MEAT_SCALE, worth BIG_MEAT_VALUE) and rare fossils (FOSSIL_MEAT
 ## meat + FOSSIL_SCORE). A milestone chest ("chest") sits still on the ground

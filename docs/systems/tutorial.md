@@ -91,7 +91,7 @@ used (the game keeps its own HUD).
 | 5 | Attack | a rock | 60 px: ATTACK "Tap to smash it!" |
 | 5b | Meat | 3 meat | once every piece is grabbed or passed: HUD note on the meat counter (freezing on the first piece looked broken) |
 | 6 | Amber | an arc of 5 amber | once collected or passed: HUD note on the PRIMAL bar |
-| 7 | Power-up | a Dino Egg | once it's in slot 1: the slot "Use your power-up!" |
+| 7 | Power-up | a Blaze Pepper | once it's in slot 1: the slot "Use your power-up!" |
 | 8 | Shapeshift | the Raptor's crumbling bridge (`force_gate`) | 520 px before the gap: Raptor button; once the whole bridge is behind, Rok's button "Back to Rok to save energy" |
 | 9 | Finish | – | an info card: YOU'RE READY! (the Marketplace, the Camp, the Encyclopedia) |
 
@@ -114,14 +114,14 @@ box instead of a ring (`CoachMarker._draw`).
 first-sight cards during it (they came mid-lesson); a quick second tap right
 after closing a note isn't a jump (`tap_grace`, 0.35 s); hearts refill every frame, the hunter's gap is
 pinned, speed stays at `START_SPEED`, random hazards are held
-(`course.holding`), the ground stays flat (`terrain.calm`), the starter egg
+(`course.holding`), the ground stays flat (`terrain.calm`), the starter pepper
 and hazard info cards are off, and the Raptor is **lent** for step 8 (energy
 kept topped up). Every jump counts as held for at least `MIN_HOLD` (0.2 s): a
 0.07 s first-time tap is too small a hop to clear even the small rock.
 
 **At the end** (`end_tutorial`): the lessons it taught are marked learned
 (the coach won't repeat them); on a finish, rocks, logs, walls, ledges and the
-egg count as taught (no info cards for them later); the lent Raptor goes back;
+pepper count as taught (no info cards for them later); the lent Raptor goes back;
 straight to the main menu (no summary, no best distance recorded). A
 finished run (not a skipped one) then starts the menu tour.
 

@@ -6,7 +6,7 @@ extends Node
 ## supplies, imported by tools/prepare_voice.py; silent until it exists.
 
 const SFX := ["jump", "double_jump", "land", "shift", "form_rok", "form_raptor",
-		"form_triceratops", "form_spinosaurus", "form_pteranodon", "flap", "smash", "amber", "egg", "shield",
+		"form_triceratops", "form_spinosaurus", "form_pteranodon", "flap", "smash", "amber", "pepper", "shield",
 		"hit", "fall", "click", "denied", "start", "slide", "intro", "unlock", "trex_roar", "stomp", "bite",
 		"trex_growl", "step_rok", "step_raptor", "step_heavy", "step_grass", "step_sand", "step_rock",
 		"jump_raptor", "jump_heavy", "land_heavy", "death_jingle", "rok_alarm",

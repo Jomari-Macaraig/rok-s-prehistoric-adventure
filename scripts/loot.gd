@@ -57,7 +57,7 @@ const DEFAULTS := {
 		"rewards_legendary": ["meat", "xp", "frenzy", "full_heal", "card", "materials"],
 	},
 	"power_ups": {
-		"egg_share": 0.5,
+		"pepper_share": 0.5,
 	},
 }
 

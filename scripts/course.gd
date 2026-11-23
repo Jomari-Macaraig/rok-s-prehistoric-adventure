@@ -8,7 +8,7 @@ var obstacles: Array[Obstacle] = []
 var debris: Array[Node2D] = []   # smashed obstacles playing their break animation
 var platforms: Array[FloatingPlatform] = []
 var pickups: Array[Pickup] = []
-var boosters_owned: Array = ["egg"]   # set by main: only owned power-ups spawn
+var boosters_owned: Array = ["pepper"]   # set by main: only owned power-ups spawn
 var _next_gap := 600.0   # px until next spawn
 signal introduced(key: String)   # first spawn of a pattern this run
 
@@ -36,7 +36,7 @@ var unlocked: Array = [Forms.ROK]   # set by main
 var introduce_ok: Callable          # main: may this not-yet-taught hazard be introduced now?
 var markers: Array[Node2D] = []     # floating dino icons over gates
 var next_gate_m := 0.0
-var starter_egg := true          # every run offers an egg early on
+var starter_pepper := true          # every run offers a pepper early on
 var forced_gate := ""            # set on a dino unlock: its gate comes next
 var holding := false             # no regular hazards until the forced gate is passed
 var _hold_marker: Node2D = null
@@ -67,7 +67,7 @@ func reset() -> void:
 	_zone_idx = 0
 	_zone_gate_counts.clear()
 	_last_platform_end = -INF
-	starter_egg = true
+	starter_pepper = true
 	forced_gate = ""
 	holding = false
 	_hold_marker = null
@@ -102,8 +102,8 @@ func scroll(spd: float, delta: float) -> void:
 	for m in markers:
 		m.position.x -= dx
 	_last_platform_end -= dx
-	if starter_egg and metres >= Progression.intro_m("egg"):
-		_spawn_starter_egg()
+	if starter_pepper and metres >= Progression.intro_m("pepper"):
+		_spawn_starter_pepper()
 	_cull()
 	_next_gap -= dx
 	if holding:
@@ -279,13 +279,13 @@ func _fill(kind: String, special: bool) -> String:
 	return kind
 
 
-## Which power-up a reward spot (or a break drop) holds: the egg
-## [power_ups] egg_share of the time, otherwise another power-up the player
+## Which power-up a reward spot (or a break drop) holds: the pepper
+## [power_ups] pepper_share of the time, otherwise another power-up the player
 ## owns (bought in the Market), picked by its weight (config/pickups.cfg).
 func _booster() -> String:
-	var others := boosters_owned.filter(func(k): return k != "egg" and Loot.booster_weight(k) > 0.0 and Requires.ok("power." + k))
-	if others.is_empty() or randf() < float(Loot.num("power_ups", "egg_share")):
-		return "egg"
+	var others := boosters_owned.filter(func(k): return k != "pepper" and Loot.booster_weight(k) > 0.0 and Requires.ok("power." + k))
+	if others.is_empty() or randf() < float(Loot.num("power_ups", "pepper_share")):
+		return "pepper"
 	var r: float = randf() * others.reduce(func(a, k): return a + Loot.booster_weight(k), 0.0)
 	for k in others:
 		r -= Loot.booster_weight(k)
@@ -555,16 +555,16 @@ func _try_gate(spd: float) -> bool:
 	return not as_terrain
 
 
-## An egg at running height early in every run, so the speed boost is
+## A pepper at running height early in every run, so the speed boost is
 ## discovered straight away (with a "NEW" banner the first time).
-func _spawn_starter_egg() -> void:
+func _spawn_starter_pepper() -> void:
 	var x := view_width() + 120.0
 	var gy := terrain.height_at(x)
 	if gy >= Terrain.PIT:
 		return   # over a pit: try again next frame
-	starter_egg = false
-	_pickup("egg", Vector2(x, gy - 85.0))
-	introduced.emit("egg")
+	starter_pepper = false
+	_pickup("pepper", Vector2(x, gy - 85.0))
+	introduced.emit("pepper")
 
 
 ## A dino was just unlocked: make its gate the very next hazard. Hazards

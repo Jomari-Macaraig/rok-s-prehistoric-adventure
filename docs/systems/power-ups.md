@@ -22,7 +22,7 @@ can't stack (`booster_ready`), tint Rok while running, and a new run clears them
 
 | Power-up | Effect | How you get it |
 |---|---|---|
-| Dino Egg | 2.5 s speed boost that pulls away from the hunter | owned from the start; every run offers one at 140 m |
+| Blaze Pepper | 2.5 s speed boost that pulls away from the hunter | owned from the start; every run offers one at `[introductions] pepper` (600 m). It replaced the Dino Egg (the user's change, 2026-11-23; id `pepper`, old saves' `egg` is renamed on load by `SaveData._renamed`); the egg art stays in `assets/powerups/dino_egg*` for another idea. Art: the user's still picture (`tools/prepare_assets.py` `blaze_pepper()`), no idle loop yet |
 | Primal Amber (id `amber_shield`; it was the Amber Shield) | refills PRIMAL energy to full; usable only when it isn't full. Pictured as the amber pickup until it has its own art (`Boosters.DATA` `still`) | Market, from 0 m **once a dinosaur is unlocked** ([dependency tree](requirements.md)); it doesn't spawn before one either |
 | Fossil Magnet | 7 s: pickups within `MAGNET_RADIUS` fly to Rok (`Pickup.pull_toward`) | Market, 1800 m + Amber Hoarder Bronze |
 | Time Crystal | 4 s: world pace × `SLOW_PACE`, the gap grows `SLOW_CHASE_GAIN` | Market, 3000 m (before the first charge) |
@@ -51,7 +51,7 @@ info card the first time one appears.
 
 - Power-ups come in their own reward spots (`[spots] power`), never mixed with amber or meat, at the spot's best place.
 - Also from break loot and chests.
-- Which one: the egg `egg_share` (half) of the time, else another owned power-up by weight (`Course._booster()`).
+- Which one: the pepper `pepper_share` (half) of the time, else another owned power-up by weight (`Course._booster()`).
 
 ## Adding a power-up
 
@@ -67,11 +67,11 @@ The user's power-up effects (`../Assets/Rok_Powerup_FX_Preview/Rok_Powerup_FX`, 
 |---|---|---|
 | pickup | a power-up goes into a slot (`collect_booster`) | `Player.pfx_once`, over the body |
 | activation | a slot is used (`activate_booster`) | `pfx_once` |
-| aura (loop) | while any power-up runs: the egg's boost or a timed one (`_power_step` → `Player.set_power_aura`) | `Player.pfx_aura`, behind the body (follows a shapeshift's size) |
+| aura (loop) | while any power-up runs: the pepper's boost or a timed one (`_power_step` → `Player.set_power_aura`) | `Player.pfx_aura`, behind the body (follows a shapeshift's size) |
 | expire | when the last one ends | `pfx_once` |
 
 A new run clears them.
 
 ### Sounds
 Each effect has a synthesised sound (`make_sounds.py` `powerup_sounds()`; `make_sounds.py powerups` writes just these):
-`powerup_pickup` (a rising pentatonic sparkle) in `collect_booster`; `powerup_activate` (a rising whoosh into a major chord) in `activate_booster`, pitched per power-up by `Tuning.POWERUP_SOUND_PITCH`; `powerup_expire` (a falling chime and fizzle) in `_power_step` when the aura turns off. The egg boost still adds its own `shift` whoosh.
+`powerup_pickup` (a rising pentatonic sparkle) in `collect_booster`; `powerup_activate` (a rising whoosh into a major chord) in `activate_booster`, pitched per power-up by `Tuning.POWERUP_SOUND_PITCH`; `powerup_expire` (a falling chime and fizzle) in `_power_step` when the aura turns off. The pepper boost still adds its own `shift` whoosh.

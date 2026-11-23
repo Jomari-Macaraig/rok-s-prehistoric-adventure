@@ -13,16 +13,19 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Decisions (the user)
 
+- [ ] **Eggs:** the user's new idea for the egg art (to be described).
 - [ ] **Cards:** should a dinosaur card add to a weapon instead of replacing it in the weapon slot?
 - [ ] **Stomps:** which wild species are stompable, and does a stomp bounce Rok?
 
 ## Art (the user)
 
+- [ ] **Rok's 11 bigger sheets redrawn at his run's size** (idle, walk, duck, trip, dizzy, snag, the 5 standing styles; same 4×2 grid, 384×512 cells, feet at y 488): they're ~15% bigger than run, jump, slide and the running styles. Re-import with `prepare_form_art.py`, the reactions importer and `prepare_styles.py`, then check with the size-check image.
 - [ ] **Optional: Nira's and Boro's running style attacks redrawn over their in-game run** (`Rok_New_Heroes_Nira_Boro/<hero>/spritesheets/run.png`): their packs used a different, ~10% taller run, so the game fits them; legs only match exactly for Rok.
 - [ ] **UI:** an Armor stat icon (kit glyph style); "Crafting Bench", "Items" and "DINOSAUR CAMP" title plaques.
 - [ ] **Card art** for the 12 balanced-pack dinosaurs (Deinonychus … Dsungaripterus).
 - [ ] **Attacks** for those 12 dinosaurs.
 - [ ] **Break-by-material sheets:** wood, stone, bone, obsidian, metal, cord.
+- [ ] **Optional: a Blaze Pepper idle loop** (it bobs as a still picture today).
 - [ ] **Long-run items:** the fossil pickup and the bonus-zone portal (drawn in code today).
 - [ ] **Body-armor patterns** (Hide Vest, Bone Guards, Scale Mail), once the outfit shader is built.
 
@@ -33,8 +36,11 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Unused art
 
+- The Dino Egg power-up art (`assets/powerups/dino_egg*`, `Rok_Powerups`): the Blaze Pepper replaced it as the speed boost (2026-11-23); the user has another idea for eggs.
+
 - The tutorial vine pieces in `Rok_Polished_Assets` (imported, not placed anywhere yet).
 
 ## Done recently
 
+- 2026-11-23: the Blaze Pepper replaced the Dino Egg as the speed-boost power-up (id `pepper`; old saves renamed on load).
 - 2026-11-23: Desert and Volcanic biome obstacles with breaks, Forest twig and mushroom breaks; all five attack styles for Rok, Nira and Boro, standing and running (bare hands = Fist); the Canyon zone (4th, from the user's canyon pack; timeline probe: every zone lesson lands in its zone); Point Hunter and Seasoned medals; day/night icon on the HUD; chest rarities; bug-proof tutorial; Kora's lines and name plank; Ugo's name plank; Camp meat counter hidden; Rok's Swing pilot (approved); [NEW_ITEM_ART.md](NEW_ITEM_ART.md).

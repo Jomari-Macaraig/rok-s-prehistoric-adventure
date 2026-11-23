@@ -21,7 +21,7 @@ var best_m := 0
 var unlocked: Array = [Forms.ROK]
 var seen: Array = []          # intro banners already shown once
 var guide_viewed: Array = []  # Field Guide entries already looked at
-var boosters_owned: Array = ["egg"]   # power-ups unlocked (market later); only these appear
+var boosters_owned: Array = ["pepper"]   # power-ups unlocked (market later); only these appear
 var badge_stats := {}        # Badges stat -> value (saved)
 var badge_tiers := {}:       # badge id -> tiers earned 0-3 (saved)
 	set(v):
@@ -66,7 +66,7 @@ var _info_t := 0.0
 var last_new_m := -INF          # metres where the last new thing was shown (marination)
 var _was_night := false
 var speed_mod := 1.0   # hills: <1 climbing, >1 sliding downhill
-var boost_t := 0.0     # egg speed boost time left
+var boost_t := 0.0     # pepper speed boost time left
 var power_t := {}      # Market power-up -> seconds left (fossil_magnet, time_crystal, primal_berry, golden_fossil)
 var run_meat := 0     # meat collected this run, banked for the Market when it ends
 var meat_bank := 0    # Market currency (saved)
@@ -727,7 +727,7 @@ func _check_unlocks() -> void:
 		new_this_run.append("2nd booster slot")
 		var body := "You can now carry 2 different boosters at once. A third slot will be sold in the Market."
 		if pause_for_info:
-			queue_info("NEW BOOSTER SLOT!", body, Boosters.icon("egg"), Color(1.0, 0.8, 0.35))
+			queue_info("NEW BOOSTER SLOT!", body, Boosters.icon("pepper"), Color(1.0, 0.8, 0.35))
 		else:
 			hud.show_banner("NEW BOOSTER SLOT!", body, Color(1.0, 0.85, 0.5), 3.2)
 		hud.pulse_slot(1)
@@ -1268,7 +1268,7 @@ func _process(delta: float) -> void:
 ## climbing (UPHILL_LOSS, except the `fast` Raptor) and hunter charges take
 ## distance. Each form adds its speed (Forms `chase_rate`): the Raptor and
 ## Pteranodon pull away, while the heavy Triceratops and Spinosaurus let the
-## hunter gain. Sliding downhill, an egg boost and the Time Crystal pull away.
+## hunter gain. Sliding downhill, a pepper boost and the Time Crystal pull away.
 ## Any lead you build is kept (up to CHASE_GAP_FAR).
 func _update_chase(delta: float, slope: float) -> void:
 	var d := player.data()
@@ -1279,7 +1279,7 @@ func _update_chase(delta: float, slope: float) -> void:
 	if slope > 0.05 and player.is_low():
 		rate += Tuning.SLIDE_DOWNHILL_GAIN
 	if boost_t > 0.0:
-		rate += Tuning.EGG_CHASE_GAIN
+		rate += Tuning.PEPPER_CHASE_GAIN
 	if power_on("time_crystal"):
 		rate += Tuning.SLOW_CHASE_GAIN
 	if charge_state == "charge":
@@ -1386,7 +1386,7 @@ func _play_step(delta: float) -> void:
 		pace = Tuning.DOWNHILL_SLIDE_PACE
 	if boost_t > 0.0:
 		boost_t = maxf(boost_t - delta, 0.0)
-		pace *= Tuning.EGG_BOOST_PACE
+		pace *= Tuning.PEPPER_BOOST_PACE
 		_boost_fx(delta)
 	if power_on("time_crystal"):
 		pace *= Tuning.SLOW_PACE
@@ -1866,7 +1866,7 @@ func _course_badges() -> void:
 ## T-rex charges at set distances (config [trex]): a roar and a warning, then
 ## for the hunter's charge_time it gains its charge_rate extra per second
 ## (Hunters.DATA, see _update_chase).
-## A Runner roughly holds it off; an egg boost or a downhill slide escapes.
+## A Runner roughly holds it off; a pepper boost or a downhill slide escapes.
 ## The first one ever pauses on a card explaining how to survive it.
 func _charge_step(delta: float) -> void:
 	if charge_state == "" and metres() >= _next_charge and bonus_t <= 0.0 and portal == null:
@@ -1881,7 +1881,7 @@ func _charge_step(delta: float) -> void:
 		get_tree().create_timer(Tuning.CHARGE_ALARM_DELAY, false).timeout.connect(func():
 			if charge_state == "warn":
 				audio.play("rok_alarm", 0.0))
-		var hint := "Run as a Runner, use an egg or slide downhill to escape!"
+		var hint := "Run as a Runner, use a pepper or slide downhill to escape!"
 		var title := "THE %s CHARGES!" % String(Hunters.DATA[hunter_id].name).to_upper()
 		if pause_for_info and not seen.has("trex_charge"):
 			queue_info(title, "Every so often the hunter behind you roars and charges, gaining on you fast for a few seconds.\n" + hint,
@@ -2091,10 +2091,10 @@ func use_slot(i: int) -> void:
 	_coach_done("booster")
 
 
-## Can this booster be used right now? (e.g. one egg boost at a time)
+## Can this booster be used right now? (e.g. one pepper boost at a time)
 func booster_ready(kind: String) -> bool:
 	match kind:
-		"egg":
+		"pepper":
 			return boost_t <= 0.0
 		"amber_shield":
 			return energy < Tuning.ENERGY_MAX - 0.5   # Primal Amber: only when there's energy to refill
@@ -2107,8 +2107,8 @@ func activate_booster(kind: String) -> void:
 	player.powerup_fx("activation")
 	audio.play("powerup_activate", 0.0, Tuning.POWERUP_SOUND_PITCH.get(kind, 1.0))
 	match kind:
-		"egg":
-			_egg_boost()
+		"pepper":
+			_pepper_boost()
 		"amber_shield":   # Primal Amber: PRIMAL energy back to full
 			energy = Tuning.ENERGY_MAX
 			fx.float_text(at, "PRIMAL AMBER!", Color(1.0, 0.75, 0.3), 36)
@@ -2255,7 +2255,7 @@ func _combo_step(delta: float) -> void:
 
 ## New things are introduced before they can be picked up or used (the
 ## user's rule): the first time ever a big meat, a rare fossil, a milestone
-## chest, a bonus portal or a power-up other than the starter egg comes on
+## chest, a bonus portal or a power-up other than the starter pepper comes on
 ## screen, an info card (or a banner while cards are off) explains it, and
 ## the Field Guide reveals it (`seen` key).
 const FIRST_SIGHT := {
@@ -2275,7 +2275,7 @@ func _first_sight_step() -> void:
 			continue
 		if FIRST_SIGHT.has(k.kind):
 			_introduce_thing(k.kind, k.kind)
-		elif Boosters.is_booster(k.kind) and k.kind != "egg":
+		elif Boosters.is_booster(k.kind) and k.kind != "pepper":
 			_introduce_thing("power_" + k.kind, k.kind)
 	if portal != null and is_instance_valid(portal) and portal.position.x < view_w - 30.0:
 		_introduce_thing("bonus", "bonus")
@@ -3096,7 +3096,7 @@ func _open_chest(k: Pickup, roll := -1.0, pick := "") -> void:
 			text = "+%d XP for %s" % [int(gx), Herd.name_of(did)]
 		"booster":
 			var owned := boosters_owned.duplicate()
-			var kind: String = owned.pick_random() if not owned.is_empty() else "egg"
+			var kind: String = owned.pick_random() if not owned.is_empty() else "pepper"
 			if collect_booster(kind, k.position):
 				text = Boosters.DATA[kind].name + "!"
 			else:   # no free slot: meat instead
@@ -3211,9 +3211,9 @@ func _on_frenzy_ended() -> void:
 	audio.play("shift", 0.0, 0.8)
 
 
-## Eating an egg: a short burst of speed that pulls away from the T-rex.
-func _egg_boost() -> void:
-	boost_t = Tuning.EGG_BOOST_TIME
+## Eating a pepper: a short burst of speed that pulls away from the T-rex.
+func _pepper_boost() -> void:
+	boost_t = Tuning.PEPPER_BOOST_TIME
 	fx.float_text(player.position + Vector2(-80, -240), "SPEED BOOST!", Color(1.0, 0.85, 0.3), 36)
 	audio.play("shift", 0.0, 1.4)
 
@@ -3544,7 +3544,7 @@ func start_tutorial(step := 0) -> void:
 	next_chest_m = INF      # no starter chest (it came mid-lesson with its own card)
 	preview_done = true     # nor the wild-dinosaur preview
 	course.holding = true
-	course.starter_egg = false
+	course.starter_pepper = false
 	terrain.calm = true
 	hud.hide_coach()
 
@@ -3594,7 +3594,7 @@ func end_tutorial(skipped: bool) -> void:
 		if Tutorial.LESSONS.has(id):
 			tutorial.learn(id)
 	if not skipped:
-		for key in ["small", "log", "wall", "ledge", "egg"]:
+		for key in ["small", "log", "wall", "ledge", "pepper"]:
 			if not seen.has(key):
 				seen.append(key)
 		SaveData.save_seen(seen)

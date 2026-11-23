@@ -37,8 +37,8 @@ func tick() -> void:
 			ledges_slid += 1
 			_sliding_under = null
 	var hb := p.hitbox()
-	if main.slots.has("egg") and main.chase_gap < 140.0:
-		main.use_slot(main.slots.find("egg"))   # eat the egg booster when the T-rex gets close
+	if main.slots.has("pepper") and main.chase_gap < 140.0:
+		main.use_slot(main.slots.find("pepper"))   # eat the pepper booster when the T-rex gets close
 	if p.on_ground and p.low == Player.Low.NONE and main.terrain.slope_at(p.position.x + 40.0) > 0.05:
 		p.press_slide()   # slide downhill to pull away from the T-rex
 		p.release_slide()

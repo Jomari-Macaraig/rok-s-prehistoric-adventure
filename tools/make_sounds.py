@@ -207,7 +207,7 @@ def sfx():
     am = mix(bell(1318.5, 0.35), np.concatenate([np.zeros(int(SR * 0.07)), bell(1975.5, 0.45)]))
     write("amber", am, 0.55)
     eg = mix(*[np.concatenate([np.zeros(int(SR * 0.07 * i)), bell(f, 0.5)]) for i, f in enumerate((1046.5, 1318.5, 1568, 2093))])
-    write("egg", eg, 0.6)
+    write("pepper", eg, 0.6)   # the Blaze Pepper power-up (was the Dino Egg)
     # shield: metallic clang + falling tone
     d = 0.6
     n = int(SR * d)

@@ -53,8 +53,8 @@ static func icon(key: String, zid := "") -> Texture2D:
 	for h in Codex.HAZARDS + Codex.TERRAIN:
 		if h.key == key:
 			return from_spec(h.icon, zid)
-	if key == "egg":
-		return load(P % "Other_04")
+	if key == "pepper":
+		return Boosters.icon("pepper")
 	return null
 
 

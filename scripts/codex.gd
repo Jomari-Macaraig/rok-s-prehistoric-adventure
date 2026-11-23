@@ -16,7 +16,7 @@ const P := "res://assets/props/%s.png"
 ## Hazards and terrain, in the order they are taught.
 const HAZARDS := [
 	{"key": "trex", "name": "The T-rex", "icon": "res://assets/portraits/trex.png", "always": true, "facts": "trex",
-		"text": "Always on Rok's tail, running at exactly his pace. Only stumbles (trips, snags, dizziness, thorns, shield hits), climbing hills and its charges let it close in; on flat ground as Rok you never lose ground. If it reaches him, it's over.", "counter": "Pull away with a fast dino (Raptor, Pteranodon), by sliding downhill, or with an egg booster. Any lead you build is yours to keep."},
+		"text": "Always on Rok's tail, running at exactly his pace. Only stumbles (trips, snags, dizziness, thorns, shield hits), climbing hills and its charges let it close in; on flat ground as Rok you never lose ground. If it reaches him, it's over.", "counter": "Pull away with a fast dino (Raptor, Pteranodon), by sliding downhill, or with a pepper booster. Any lead you build is yours to keep."},
 	{"key": "small", "name": "Rocks & Mushrooms", "icon": "Stones_03",
 		"text": "Low and easy. A single jump clears them. They won't end your run: Rok trips over a rock and the T-rex gains on him, and a mushroom squashes, its spores making him dizzy for a few seconds (lower jumps).", "counter": "Every form can jump them. Triceratops and Spinosaurus smash them."},
 	{"key": "thorn_bush", "name": "Thorn Bushes", "icon": "Grasses_16",
@@ -54,9 +54,9 @@ const HAZARDS := [
 	{"key": "rolling_boulder", "name": "Rolling Boulders", "icon": "res://assets/props/Stones_05.png",
 		"text": "Glowing volcanic boulders rolling straight at you, faster than you'd think.", "counter": "Jump or fly over, or smash as Triceratops."},
 	{"key": "hunter_carnotaurus", "name": "Carnotaurus (Desert hunter)", "icon": "res://assets/portraits/carnotaurus.png", "facts": "carnotaurus",
-		"text": "In the Desert the Carnotaurus takes over the hunt. It keeps your pace, but its charges are short and fierce.", "counter": "When it charges, turn Runner or use an egg right away."},
+		"text": "In the Desert the Carnotaurus takes over the hunt. It keeps your pace, but its charges are short and fierce.", "counter": "When it charges, turn Runner or use a pepper right away."},
 	{"key": "hunter_allosaurus", "name": "Allosaurus (Volcanic hunter)", "icon": "res://assets/portraits/allosaurus.png", "facts": "allosaurus",
-		"text": "In the Volcanic Badlands the Allosaurus hunts you. It's relentless: its charges last longest of all.", "counter": "Save eggs and Runner energy for the badlands; slide downhill to win back ground."},
+		"text": "In the Volcanic Badlands the Allosaurus hunts you. It's relentless: its charges last longest of all.", "counter": "Save peppers and Runner energy for the badlands; slide downhill to win back ground."},
 	{"key": "stampede", "name": "Stampedes", "icon": "res://assets/portraits/gallimimus.png",
 		"text": "Wild dinosaurs running straight at you, a different one in each zone: a head-down Pachycephalosaurus in the forest, a lightning-fast Gallimimus in the desert, a spiky Kentrosaurus in the badlands. Running into one bumps Rok and the T-rex gains, but once it's past you the T-rex stops to eat it.", "counter": "Jump over them."},
 	{"key": "swooper", "name": "Swoopers", "icon": "res://assets/portraits/dimorphodon.png",
@@ -75,7 +75,7 @@ const HAZARDS := [
 
 const TERRAIN := [
 	{"key": "islands", "name": "Floating Islands", "icon": "Terrain-variation_03", "always": true,
-		"text": "Floating ground you can land on. Amber and eggs often wait on top, and some come as staircases."},
+		"text": "Floating ground you can land on. Amber and peppers often wait on top, and some come as staircases."},
 	{"key": "hill", "name": "Hills", "icon": "res://assets/terrain/slope_up.png",
 		"text": "Gentle bumps. Rok runs right over them."},
 	{"key": "slope", "name": "Slopes & Plateaus", "icon": "res://assets/terrain/mid_a.png",
@@ -83,7 +83,7 @@ const TERRAIN := [
 	{"key": "drop", "name": "Drops", "icon": "res://assets/terrain/drop.png",
 		"text": "Sudden steps down. Watch for hazards at the bottom."},
 	{"key": "sky_trail", "name": "Sky Trails", "icon": "Other_07",
-		"text": "High waves of amber that end in an egg. Easiest to collect by flying."},
+		"text": "High waves of amber that end in a pepper. Easiest to collect by flying."},
 ]
 
 static var ITEMS := [
@@ -113,7 +113,7 @@ var unlocked: Array = []
 var best_m := 0.0
 var seen: Array = []
 var viewed: Array = []      # entry ids already looked at in the guide
-var boosters_owned: Array = ["egg"]   # set by main: unlocked power-ups
+var boosters_owned: Array = ["pepper"]   # set by main: unlocked power-ups
 ## Expansion dinosaurs the player owns (main.dinos_owned): their pages are revealed.
 static var species_owned: Array = []
 ## Badge progress (main.badge_stats / badge_tiers), and whether a tier was
@@ -599,7 +599,7 @@ const NUMA_LINES := {
 	],
 	"tab_3": [
 		"Powers from the old earth. Use them at the right moment.",
-		"An egg, a crystal, a berry... small wonders for hard runs.",
+		"A pepper, a crystal, a berry... small wonders for hard runs.",
 		"Save your power-ups for when the hunter is closest.",
 		"The Time Crystal slows the world. I wish it slowed my aching knees.",
 		"A wise runner carries a power-up. A wiser one uses it.",
@@ -1094,7 +1094,7 @@ func _powerup_cards() -> void:
 		var d: Dictionary = Boosters.DATA[kind]
 		var owned := boosters_owned.has(kind)
 		var body: String = d.desc
-		if kind == "egg":
+		if kind == "pepper":
 			body += " Carry it in a booster slot (1 of each type) and tap the slot to use it."
 		var meta := "+%d points when picked up" % d.score if owned else ("LOCKED · in the Market for %d meat" % Market.price(kind)) + ("" if Market.on_sale(kind, best_m) else " (on sale from %d m)" % Market.unlock_m(kind))
 		_card(Boosters.icon(kind), d.name, body, meta, false, false,
