@@ -45,6 +45,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Done recently
 
+- 2026-11-23: the Encyclopedia's Weapons, Armor and Card Slots pages, and the Crafting tour's equipment step.
 - 2026-11-23: Settings (sound and music volumes); armor durability and repair; selling in the Market at 80% (`config/economy.cfg`).
 - 2026-11-23: a Missions button with daily and weekly missions (`config/missions.cfg`); one font (Baloo 2) everywhere; the Encyclopedia lists drops (from the config) and how to unlock locked entries; a Crafting tour after the run that opens the bench; Canyon rock drops fixed.
 - 2026-11-23: rarer cards and chests (higher tiers rarer, `[cards]`, `[chests] appear`); the Canyon arch's legs in front of Rok; wild dinosaurs follow the ground and hop pits; the main screen resets hearts, energy and cooldowns after a run.

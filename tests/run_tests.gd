@@ -1711,6 +1711,12 @@ func _feedback_checks() -> void:
 	check(Drops.for_wild("gallimimus").contains(Crafting.mat_name("hide")) and Drops.for_wild("gallimimus").contains("card") and Drops.wild_zones("gallimimus").contains("Desert"),
 			"a wild dinosaur's page lists its materials, its card's chance and where it runs wild")
 	check(Drops.for_hazard("trex").contains(Crafting.mat_name(Crafting.trophy("trex"))) and Drops.for_chests().contains("legendary"), "hunters list their trophy, and chests their odds and rewards")
+	main.open_guide()
+	main.codex.best_m = float(Crafting.bench_m())
+	main.codex._show_tab(2)
+	var gear_pages := ["Weapons", "Armor", "Card Slots"].map(func(n): return main.codex.grid.get_children().any(func(t): return t.has_meta("title") and String(t.get_meta("title")) == n))
+	check(not gear_pages.has(false), "the Encyclopedia's Items tab explains weapons, armor and card slots")
+	main.codex.close_guide()
 	main.codex.unlocked = [Forms.ROK]
 	main.codex.best_m = 0.0
 	check(main.codex.unlock_hint("boulder").begins_with("Run past %d m" % int(Progression.intro_m("boulder"))) and main.codex.unlock_hint("quicksand").contains("Desert"),
@@ -1733,6 +1739,9 @@ func _feedback_checks() -> void:
 	main.menu_tour.step(0.1)
 	check(main.menu_tour.i == 1, "...on the bench it explains the recipes and CRAFT")
 	main.bench.close_screen()
+	main.menu_tour.step(0.1)
+	main.menu_tour.step(0.1)
+	check(main.menu_tour.i == 2 and main.menu_tour.phase == "inside" and main.herd.visible, "...back in the Camp it explains equipment: weapons, armor, wear, repair and the card slot")
 	main.herd.close_herd()
 	main.menu_tour.step(0.1)
 	check(main.menu_tour == null and main.seen.has("craft_tour"), "...and Back ends it, for good")

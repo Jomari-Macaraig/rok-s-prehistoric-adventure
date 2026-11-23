@@ -30,7 +30,10 @@ const CRAFT_STEPS := [
 		"text": "The CRAFTING BENCH is open! Kora makes gear\nfrom the materials you find. Tap the Camp!",
 		"target": "BenchButton", "inside": "Tap CRAFTING to visit Kora's bench.", "advance_on": "bench"},
 	{"button": "", "screen": "bench", "target": "Craft",
-		"inside": "Pick a recipe on the shelf. With its materials,\ntap CRAFT twice: every craft rolls a rarity.\nEquip it at the Camp. Tap Back when done."},
+		"inside": "Pick a recipe on the shelf. With its materials,\ntap CRAFT twice: every craft rolls a rarity.\nThen tap Back to equip it."},
+	# back in the Camp: the weapon, armor and card slot systems (the user's request)
+	{"button": "", "screen": "herd", "target": "EquipmentHead",
+		"inside": "EQUIPMENT: Change puts a weapon or armor on\nyour hero. Weapons wear with each hit you land,\narmor with each hit you take: Repair them here.\nA weapon's Card slot takes a dinosaur card\nfor a bonus. The Encyclopedia's Items tab\nexplains it all. Tap Back when done."},
 ]
 const SKIP_TIME := 3.0   # s a second stray tap has to skip the tour
 
@@ -95,8 +98,19 @@ func step(delta: float) -> void:
 					phase = "point" if String(steps[i].button) != "" else "inside"
 			elif _shown != "inside%d" % i and open:
 				var back: Control = _screen().find_child(String(s.get("target", "Back")), true, false)
+				if back != null:
+					_scroll_to(back)   # a target down a scrolling panel comes into view first
 				if back != null and back.is_visible_in_tree() and game.hud.coach_control(back, String(s.inside), true):
 					_shown = "inside%d" % i
+
+
+func _scroll_to(c: Control) -> void:
+	var p := c.get_parent()
+	while p != null:
+		if p is ScrollContainer:
+			(p as ScrollContainer).ensure_control_visible(c)
+			return
+		p = p.get_parent()
 
 
 ## A tap on the menu that isn't the highlighted button: the first asks, a
