@@ -15,8 +15,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 - [ ] **Campaign mode** (the user's idea, parked 2026-11-23): a Campaign button beside an Endless Run button on the main menu. Design to come (levels, goals, rewards).
 
-- [ ] **Pet system (future):** the user plans pets; design to come. The eggs' new use (to be described) may tie in.
-- [ ] **Eggs:** the user's new idea for the egg art (to be described).
+- [ ] **Pet system (future):** the user plans pets, and this is where eggs are used (confirmed 2026-11-23): eggs hatch into pets. Design to come (how eggs are found, how they hatch, what a pet does in a run, levelling, where pets live at the Camp). The Dino Egg art is kept for it (`assets/powerups/dino_egg*`).
 - [ ] **Stomps:** which wild species are stompable, and does a stomp bounce Rok?
 
 ## Art (the user)
@@ -42,7 +41,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Unused art
 
-- The Dino Egg power-up art (`assets/powerups/dino_egg*`, `Rok_Powerups`): the Blaze Pepper replaced it as the speed boost (2026-11-23); the user has another idea for eggs.
+- The Dino Egg power-up art (`assets/powerups/dino_egg*`, `Rok_Powerups`): the Blaze Pepper replaced it as the speed boost (2026-11-23); eggs are for the pet system (see Decisions).
 
 - The tutorial vine pieces in `Rok_Polished_Assets` (imported, not placed anywhere yet).
 
