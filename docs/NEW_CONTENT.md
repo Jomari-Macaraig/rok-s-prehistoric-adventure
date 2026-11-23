@@ -79,6 +79,8 @@ Art conventions shared by everything:
 
 ## Weapon
 
+> Planned change: weapons move to **attack styles** (heroes drawn empty-handed once per style, with weapons placed by guide sheets), so a new weapon will need only its icon. See [ITEM_ART_PLAN.md](ITEM_ART_PLAN.md). Until that lands, the list below is what a weapon needs today.
+
 ### Art
 
 | Piece | Needed for | Notes |

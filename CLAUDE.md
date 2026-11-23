@@ -35,6 +35,7 @@ Each gameplay system has its own doc in [docs/systems/](docs/systems/README.md);
 - **Presentation**: [Audio](docs/systems/audio.md), [Rendering, sprites and effects](docs/systems/rendering-and-fx.md)
 
 ## Subsystem Documentation
+- [docs/ITEM_ART_PLAN.md](docs/ITEM_ART_PLAN.md): the step-by-step plan for weapons, armor and accessories without drawing every hero holding every item (attack styles, guide sheets, outfit masks): what exists, what to generate, in order.
 - [docs/NEW_CONTENT.md](docs/NEW_CONTENT.md): what a new dinosaur, hero, weapon, armor or obstacle needs (animations, card, icons, config entries). Keep it current when a system starts needing something new.
 - [scripts/CLAUDE.md](scripts/CLAUDE.md): the scene tree and which system doc covers each script.
 - [tests/CLAUDE.md](tests/CLAUDE.md): smoke test, autopilot and screenshots.
