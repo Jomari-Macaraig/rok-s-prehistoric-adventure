@@ -14,7 +14,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Decisions (the user)
 
-- [ ] **Rethink hero and dinosaur levels** (the user's request, 2026-11-24): make levelling more intuitive and fun. Today: 1 XP per metre run as that character, levels 1-10 needing 450 x (1+...+L-1) XP, then meat at the Camp, and each level adds about half a point to one attribute the player picks (docs/systems/leveling.md). To plan on its own wayfinding map. The Campaign map's "When the campaign opens" (hero level 3) and "How recommended strength is worked out" lean on it.
+- [ ] **Rethink levels, gear, durability and the Market** (the user's request, 2026-11-24): now part of the Campaign wayfinding map ([docs/wayfinder/campaign/MAP.md](wayfinder/campaign/MAP.md)): "Rethink hero and dinosaur levels", "Weapons, armor and accessories: what gear is for", "Durability and repair: keep, change or drop", "What the Market is for".
 
 - [ ] **Campaign mode**: being planned on a wayfinding map, [docs/wayfinder/campaign/MAP.md](wayfinder/campaign/MAP.md) (decide first, then build).
 

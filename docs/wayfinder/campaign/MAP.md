@@ -15,8 +15,11 @@ Answers are written into the question's file, and the question is closed.
 
 A build-ready spec of the Campaign mode in `docs/systems/campaign.md`: its
 layout, what stages ask of the player, what they cost and pay, how the
-campaign cycles with endless runs, and its screens. Decide everything first;
-build afterwards.
+campaign cycles with endless runs, and its screens; **plus the progression it
+runs on**, redesigned to be intuitive and fun: hero and dinosaur levels,
+gear (weapons, armor, accessories), durability and repair, and the Market
+(widened by the user, 2026-11-24; the changes go into those systems' docs).
+Decide everything first; build afterwards.
 
 ## Notes
 
@@ -78,11 +81,6 @@ build afterwards.
   and checking it with a bot (like the endless-run autopilot).
 
 ## Out of scope
-
-- **Redesigning hero and dinosaur levels**: the user wants levelling to be
-  more intuitive and fun (2026-11-24); it gets its own map. Until it's done,
-  "How recommended strength is worked out" should wait for it, and the
-  "hero level 3" in "When the campaign opens" may need revisiting.
 
 - **Pets in the campaign**: the user wants pets to join stages later; that
   belongs to the pet system's own map. Stage settings shouldn't make it
