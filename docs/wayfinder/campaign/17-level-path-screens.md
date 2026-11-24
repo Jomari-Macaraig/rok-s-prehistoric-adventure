@@ -2,7 +2,7 @@
 title: The level path and skill tree screens
 label: wayfinder:prototype
 status: open
-assignee: 
+assignee: claude
 blocked_by: []
 ---
 
