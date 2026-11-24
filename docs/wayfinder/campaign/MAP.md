@@ -86,6 +86,12 @@ Decide everything first; build afterwards.
   milestone rewards and evolve at 10 and 20; heroes spend skill points in
   their own skill tree (free reset); a level path at the Camp; old meat
   refunded.
+- [Weapons, armor and accessories: what gear is for](12-gear-slots.md):
+  three slots (weapon = attack, armor = defence and bonus hearts, accessory
+  = one special effect); crafting plus boss materials for boss gear sets
+  with set bonuses; no gear in the Market; upgrades +1 to +10, risky from
+  +7 (a fail drops a level, from +8 a small chance to break), protection
+  charms; dinosaurs wear no gear.
 
 ## Not yet specified
 
@@ -104,9 +110,10 @@ Decide everything first; build afterwards.
 - **Balance**: how hard the first stages are, how fast difficulty climbs,
   and checking it with a bot (like the endless-run autopilot).
 
-- **What's in each milestone and skill tree**: the actual milestone rewards
-  per species (tricks, perks, looks) and each hero's skills. Content to
-  write once gear and the Market are settled, so perks don't overlap them.
+- **What's in each milestone, skill tree, accessory and set**: the actual
+  milestone rewards per species, each hero's skills, the accessory list and
+  each boss set's bonus. Content to write once the Market is settled, so
+  perks, skills and accessories don't overlap.
 - **The level path and skill tree screens**: how they look at the Camp
   (joins the campaign screens prototype).
 

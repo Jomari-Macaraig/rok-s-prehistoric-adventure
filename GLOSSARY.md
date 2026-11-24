@@ -67,6 +67,28 @@ _Avoid_: Chaser, pursuer
 The dinosaur Rok fights in a boss stage: it runs ahead of him and he wears down its health with ATTACK. Any species can be a Boss, big or small; a hunter species used this way is called the Boss in that stage.
 _Avoid_: Hunter (when it's the one being fought), enemy
 
+## Gear
+
+**Accessory**:
+A hero's third gear piece, giving one special effect rather than attribute points.
+_Avoid_: Trinket, charm (a protection charm is something else)
+
+**Upgrade**:
+A gear piece's +1 to +10 strength steps, bought at Kora's bench; from +7 an upgrade can fail.
+_Avoid_: Enhance, level (Level is a character's rank)
+
+**Boss Material**:
+What a Boss drops, used to craft its Boss Set.
+_Avoid_: Trophy (trophies are the hunters' charge drops), loot
+
+**Boss Set**:
+A Boss's three matching gear pieces (weapon, armor, accessory); wearing all three gives a set bonus.
+_Avoid_: Kit, outfit
+
+**Protection Charm**:
+A rare item ("Kora's Blessing") that stops a failed Upgrade from dropping or breaking the piece.
+_Avoid_: Insurance, catalyst (catalysts change crafting odds)
+
 ## Growth
 
 **Level**:
