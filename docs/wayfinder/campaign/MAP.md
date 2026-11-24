@@ -67,6 +67,11 @@ Decide everything first; build afterwards.
   and puzzle-only goals; no time limits); stars add up across tries; shown
   in the briefing and a run tracker; stars never lock, star totals open
   bonus chests.
+- [What settings define a stage](06-stage-settings.md): the same course
+  every try; `config/campaign.cfg` for general settings and bosses, one file
+  per chapter for stages; per stage: kind, zone, length, difficulty,
+  hazards, wild dinosaurs and hunter, suggested dinosaurs, two star goals,
+  rewards, recommended strength; boss and puzzle extras.
 
 ## Not yet specified
 
