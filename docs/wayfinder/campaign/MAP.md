@@ -38,6 +38,10 @@ build afterwards.
   stages, a boss at the end, growing later with every species; recommended
   strength, not locks; opens at a distance and level; costs energy/tickets
   (ads later); big first-clear reward; 3 stars; stages from config.
+- [How other mobile games charge for levels](07-runner-energy-research.md):
+  lives (pay only on failure) or stamina (about a day's refill); the fair
+  trend is charging on success, never on failure; ads refill one life or
+  some energy; runners usually charge nothing.
 
 ## Not yet specified
 

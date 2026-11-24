@@ -21,6 +21,16 @@ _Avoid_: World, act
 One Campaign challenge.
 _Avoid_: Level (that word is the character level), mission (that's a daily or weekly goal)
 
+## Dinosaurs in a run
+
+**Hunter**:
+The big dinosaur that chases Rok from behind (the T-rex in the Forest, the Carnotaurus in the Desert, the Allosaurus in the Volcanic Badlands); if it catches him, the run ends.
+_Avoid_: Chaser, pursuer
+
+**Boss**:
+The dinosaur Rok fights in a boss stage: it runs ahead of him and he wears down its health with ATTACK. Any species can be a Boss, big or small; a hunter species used this way is called the Boss in that stage.
+_Avoid_: Hunter (when it's the one being fought), enemy
+
 ## Growth
 
 **Level**:
