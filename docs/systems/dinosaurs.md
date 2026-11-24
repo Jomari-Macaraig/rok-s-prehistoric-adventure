@@ -73,7 +73,9 @@ Raptor's Speed reaches 7). Heroes don't evolve. Until evolved art exists the
 form glows (`Player.evo_tint`: gold after the first, violet after the second;
 hit flashes and the level-up burst fade back to it).
 
-**The Raptor** (built; the other three originals are tickets 05 and 06):
+**The Raptor, Triceratops and Spinosaurus** are built (the Pteranodon and the expansion dinosaurs are ticket 06).
+
+**The Raptor**:
 
 | Lv | Milestone | In the game |
 |---|---|---|
@@ -83,6 +85,28 @@ hit flashes and the level-up burst fade back to it).
 | 13 | Trick **Pounce** | an ATTACK bonk on a wild dinosaur bounces it up like a free jump (`_attack_hit`) |
 | 15 | Trait **Pack Instinct** | its ×2 score becomes ×2.5 (`form_data` `score_mult`) |
 | 18 | Trick **Triple Jump** | +1 air jump (`form_data` `air_jumps`) |
+
+**The Triceratops** (ticket 05):
+
+| Lv | Milestone | In the game |
+|---|---|---|
+| 3 | Trait **Thick Skull** | small rocks always break on contact, no Power roll (`_collide`); logs are in its breaks already |
+| 5 | Trick **Charge** | hold ATTACK 0.35 s: 1.5 s smashing through everything its ATTACK could break (not tall fences), 6 s cooldown (`_milestone_step`, `start_charge`, `_collide`) |
+| 8 | Trait **Wide Horns** | a successful ATTACK also breaks the next obstacle within 220 px behind the target (`_wide_horns`) |
+| 13 | Trick **Stomp** | landing breaks small hazards up to 180 px ahead (`_stomp`) |
+| 15 | Trait **Unstoppable** | each smash adds 5 px of chase gap. (The spec said "smashing never slows it", but smashing never slowed anyone, so it gains instead.) |
+| 18 | Trick **Earthshaker** | Charge also breaks tall fences. (The spec said walls, but the Triceratops already crumbles walls by running into them.) |
+
+**The Spinosaurus** (ticket 05):
+
+| Lv | Milestone | In the game |
+|---|---|---|
+| 3 | Trait **Deep Diver** | world pace × 1.12 while swimming |
+| 5 | Trick **Tail Sweep** | ATTACK also clears thorns and wild dinosaurs from 140 px behind to just past its reach (`_tail_sweep`) |
+| 8 | Trait **Regrowing Scales** | a broken shield comes back 10 s later, once per shapeshift |
+| 13 | Trick **Sail Brace** | pressing SLIDE braces: the next hit within 1 s is free, 6 s cooldown (`_press_slide`) |
+| 15 | Trait **River King** | +40 px/s of chase gap while swimming |
+| 18 | Trick **Double Shield** | each shapeshift starts with 2 shields (`form_data` `armor`) |
 
 **Shown**: a new milestone or evolution floats "NEW: Raptor learned Double
 Dash" mid-run, is run news, and gets a green **NEW** card on the summary

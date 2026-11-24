@@ -83,6 +83,7 @@ func _process(_delta: float) -> bool:
 		_guide_scroll_check()
 		_skill_checks()
 		_dino_milestone_checks()
+		_tri_spino_milestone_checks()
 		main.start_run(false)
 		check(main.unlocked == [Forms.ROK], "fresh save: only Rok unlocked")
 		main.distance = (Progression.UNLOCKS[Forms.RAPTOR] + 10.0) * Tuning.PX_PER_M
@@ -4278,6 +4279,141 @@ func _dino_milestone_checks() -> void:
 	check(is_equal_approx(float(Forms.get_data(Forms.RAPTOR).score_mult), float(Milestones.value("pack_instinct"))), "Pack Instinct: its x2 score becomes x2.5")
 	check(Milestones.knows("raptor", "light_step") and Milestones.knows("raptor", "pounce"), "Light Step and Pounce come at 8 and 13")
 	main._shift(Forms.ROK)
+	main.unlocked = unlocked_keep
+	main.shift_cd = 0.0
+	main.dino_xp = xp_keep
+	Dinos.xp = main.dino_xp
+	SaveData.save_dino_xp(xp_keep)
+	Forms.clear_cache()
+	main.player.refresh_form()
+
+
+func _clear_obstacles() -> void:
+	for o in main.course.obstacles.duplicate():
+		main.course.remove_obstacle(o)
+	main.player.invuln = 0.0
+
+
+## Start a run as `form` with its species at `level`.
+func _play_as(form: int, level: int) -> void:
+	var id: String = Forms.DATA[form].id
+	main.dino_xp[id] = Dinos.xp_for(level)
+	Dinos.xp = main.dino_xp
+	Forms.clear_cache()
+	main.start_run(false)
+	main.state = main.State.PLAYING
+	main.unlocked = Forms.ORDER.duplicate()
+	main.energy = 100.0
+	main.shift_cd = 0.0
+	main._shift(form)
+	main.health = main.max_health()
+	main.chase_gap = Tuning.CHASE_GAP_START
+	_clear_obstacles()
+
+
+## The Triceratops's and Spinosaurus's six milestones in a run.
+func _tri_spino_milestone_checks() -> void:
+	var xp_keep: Dictionary = main.dino_xp.duplicate()
+	var unlocked_keep: Array = main.unlocked.duplicate()
+	main.unequip("smasher")
+	main.unequip("tank")
+	var p: Player = main.player
+	check(Milestones.of("triceratops").size() == 6 and Milestones.of("spinosaurus").size() == 6, "the Triceratops and Spinosaurus have six milestones each")
+	# Thick Skull
+	_play_as(Forms.TRICERATOPS, 3)
+	p = main.player
+	check((Forms.get_data(Forms.TRICERATOPS).breaks as Array).has("wood"), "Thick Skull: it breaks logs")
+	main.roll_override = 0.99   # the Power roll would fail
+	main.course.small(p.position.x)
+	var h0: int = main.health
+	main._collide()
+	check(main.health == h0 and main.course.obstacles.is_empty(), "Thick Skull: small rocks always break, no Power roll")
+	main.roll_override = -1.0
+	# Charge: hold ATTACK
+	_play_as(Forms.TRICERATOPS, 5)
+	p = main.player
+	Input.action_press("attack")
+	main._milestone_step(0.4)
+	Input.action_release("attack")
+	check(main._charge_t > 0.0 and not main.start_charge(), "Charge: holding ATTACK starts a charge (with a cooldown)")
+	main.course._named(main.course.fence(p.position.x, true), "tall_fence")
+	main._collide()
+	check(main.health < main.max_health(), "...which doesn't break tall fences before Earthshaker")
+	# Wide Horns
+	_play_as(Forms.TRICERATOPS, 8)
+	p = main.player
+	var a: Obstacle = main.course.small(p.position.x + 70.0)
+	var b: Obstacle = main.course.small(p.position.x + 190.0)
+	main.attack_cd = 0.0
+	main._attack()
+	check(not main.course.obstacles.has(a) and not main.course.obstacles.has(b), "Wide Horns: one ATTACK breaks two obstacles in a row")
+	# Stomp
+	_play_as(Forms.TRICERATOPS, 13)
+	p = main.player
+	main.course.small(p.position.x + 100.0)
+	p.on_ground = true
+	main._prev_ground = false
+	main._milestone_step(0.01)
+	check(main.course.obstacles.is_empty(), "Stomp: landing breaks small hazards just ahead")
+	# Unstoppable
+	_play_as(Forms.TRICERATOPS, 15)
+	p = main.player
+	var g0: float = main.chase_gap
+	main._smash(main.course.boulder(p.position.x + 600.0), Color.WHITE)
+	check(absf(main.chase_gap - g0 - float(Milestones.value("unstoppable"))) < 0.01, "Unstoppable: every smash gains on the hunter")
+	# Earthshaker
+	_play_as(Forms.TRICERATOPS, 18)
+	p = main.player
+	main.start_charge()
+	main.course._named(main.course.fence(p.position.x, true), "tall_fence")
+	main._collide()
+	check(main.health == main.max_health() and main.course.obstacles.is_empty(), "Earthshaker: Charge breaks tall fences too")
+	main._charge_t = 0.0
+	# --- Spinosaurus
+	_play_as(Forms.SPINOSAURUS, 5)
+	p = main.player
+	var t1: Obstacle = main.course.thorn_bush(p.position.x + 90.0)
+	var t2: Obstacle = main.course.thorn_bush(p.position.x - 100.0)
+	main.attack_cd = 0.0
+	main._attack()
+	check(not main.course.obstacles.has(t1) and not main.course.obstacles.has(t2), "Tail Sweep: ATTACK clears thorns in front and close behind")
+	_play_as(Forms.SPINOSAURUS, 8)
+	p = main.player
+	p.armor = 1
+	main.course.boulder(p.position.x)
+	main._collide()
+	check(p.armor == 0 and is_equal_approx(main._scales_t, float(Milestones.value("regrowing_scales"))), "Regrowing Scales: a broken shield starts regrowing")
+	main._milestone_step(float(Milestones.value("regrowing_scales")) + 0.1)
+	check(p.armor == 1, "...and comes back")
+	p.invuln = 0.0
+	main.course.boulder(p.position.x)
+	main._collide()
+	main._milestone_step(20.0)
+	check(p.armor == 0, "...only once a shapeshift")
+	_play_as(Forms.SPINOSAURUS, 13)
+	p = main.player
+	p.armor = 0
+	main._press_slide()
+	check(main._brace_t > 0.0, "Sail Brace: SLIDE braces")
+	main.course.boulder(p.position.x)
+	main._collide()
+	check(main.health == main.max_health() and main._brace_t == 0.0, "...and the next hit is free")
+	p.release_slide()
+	main._press_slide()
+	check(main._brace_t == 0.0, "...with a cooldown")
+	_play_as(Forms.SPINOSAURUS, 15)
+	p = main.player
+	p.swimming = true
+	g0 = main.chase_gap
+	main._milestone_step(0.5)
+	check(absf(main.chase_gap - g0 - 0.5 * float(Milestones.value("river_king"))) < 0.01, "River King: gains on the hunter while swimming")
+	p.swimming = false
+	check(Milestones.knows("spinosaurus", "deep_diver"), "Deep Diver comes at level 3")
+	_play_as(Forms.SPINOSAURUS, 18)
+	p = main.player
+	check(int(Forms.get_data(Forms.SPINOSAURUS).armor) == 2 and p.armor == 2, "Double Shield: each shapeshift starts with 2 shields")
+	main._shift(Forms.ROK)
+	_clear_obstacles()
 	main.unlocked = unlocked_keep
 	main.shift_cd = 0.0
 	main.dino_xp = xp_keep

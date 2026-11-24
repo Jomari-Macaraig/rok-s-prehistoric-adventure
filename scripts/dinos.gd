@@ -488,6 +488,10 @@ static func form_data(slot: int, id: String) -> Dictionary:
 	d.stumble_mult = 1.0 - delta.call("armor") * 0.05
 	if stat(id, "armor") >= ARMOR_SHIELD and int(d.armor) == 0:
 		d.armor = 1
+	if Milestones.knows(id, "thick_skull") and not (d.breaks as Array).has("wood"):
+		d.breaks = (d.breaks as Array) + ["wood"]   # Thick Skull: logs too, no Power roll
+	if Milestones.knows(id, "double_shield"):
+		d.armor = maxi(int(d.armor), int(Milestones.value("double_shield", 2)))
 	if Milestones.knows(id, "triple_jump"):
 		d.air_jumps = int(d.air_jumps) + int(Milestones.value("triple_jump", 1))
 	if Milestones.knows(id, "pack_instinct"):

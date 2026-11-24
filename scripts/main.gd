@@ -49,6 +49,14 @@ var _last_hit_m := 0.0            # metres at the last hit (Patch Up)
 var run_milestones: Array = []    # "Raptor learned Double Dash" lines this run (the summary's card)
 var _quick_start_t := 0.0         # Quick Start's burst left (s)
 var _dashed := false              # Double Dash used in this jump
+var _charge_t := 0.0              # Charge left (s): smashing through what ATTACK could break
+var _charge_cd := 0.0             # until the next Charge (s)
+var _attack_hold_t := 0.0         # how long ATTACK has been held (s)
+var _prev_ground := true          # on the ground last frame (Stomp lands)
+var _scales_t := 0.0              # Regrowing Scales: until the shield comes back (s)
+var _scales_used := false         # ...once per shapeshift
+var _brace_t := 0.0               # Sail Brace: the next hit within this is free (s)
+var _brace_cd := 0.0              # until the next brace (s)
 var run_dino_m: Dictionary = {}    # this run: id -> metres run as it (the summary card)
 var run_rank: Array = Tuning.RUN_RANKS[0]   # this run's rank (RunSummary.rank_for): its multiplier boosts meat and XP
 var run_bonus_meat := 0
@@ -471,6 +479,12 @@ func start_run(intro := true) -> void:
 	run_levelups.clear()
 	run_milestones.clear()
 	_quick_start_t = 0.0
+	_charge_t = 0.0
+	_charge_cd = 0.0
+	_scales_t = 0.0
+	_scales_used = false
+	_brace_t = 0.0
+	_brace_cd = 0.0
 	if levels_refund > 0:
 		new_this_run.append("Levels now come by themselves: %d meat refunded" % levels_refund)
 		levels_refund = 0
@@ -893,7 +907,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif event.is_action_pressed("booster_3"):
 				use_slot(2)
 			elif event.is_action_pressed("slide"):
-				player.press_slide()
+				_press_slide()
 			elif event.is_action_released("slide"):
 				player.release_slide()
 			elif event.is_action_pressed("attack"):
@@ -1030,7 +1044,7 @@ func _touch_pressed(a: String) -> void:
 			elif a.begins_with("form_"):
 				_request_form(int(a.substr(5)))
 			elif a == "slide":
-				player.press_slide()
+				_press_slide()
 			elif a == "attack":
 				_attack()
 			elif a.begins_with("slot_"):
@@ -1380,6 +1394,8 @@ func _shift(f: int) -> void:
 		_coach_done("shift")
 	var from: Dictionary = player.data()
 	player.shift_to(f)
+	_scales_used = false
+	_scales_t = 0.0
 	if f != Forms.ROK and Milestones.knows(String(Forms.get_data(f).id), "quick_start"):
 		_quick_start_t = 1.0   # Quick Start: a 1 s burst that gains on the hunter
 	shift_cd = 0.0 if power_on("primal_berry") else Tuning.SHIFT_COOLDOWN
@@ -1555,6 +1571,8 @@ func _play_step(delta: float) -> void:
 		_boost_fx(delta)
 	if power_on("time_crystal"):
 		pace *= Tuning.SLOW_PACE
+	if player.swimming and Milestones.knows(String(d.id), "deep_diver"):
+		pace *= float(Milestones.value("deep_diver", 1.0))   # Deep Diver swims faster
 	speed_mod = lerpf(speed_mod, pace, minf(delta * 6.0, 1.0))
 	var eff := speed * speed_mod
 	bg.scroll(eff, delta)
@@ -1705,6 +1723,15 @@ func _collide() -> void:
 		if combo.in_frenzy():
 			_frenzy_smash(o)
 			continue
+		if _charge_t > 0.0 and player.form == Forms.TRICERATOPS and o.gate_form == -1 and o.kind != "overhead" and o.kind != "steam" \
+				and ((attack_breaks(o, attack_power()) and o.hit_key() != "tall_fence") or (o.hit_key() == "tall_fence" and Milestones.knows(String(d.id), "earthshaker"))):
+			if o.critter != "":
+				o.bumped = true
+				course.remove_obstacle(o)
+				fx.smash(o.position + Vector2(0, -40), Color(0.75, 0.55, 0.4))
+			else:
+				_smash(o, Color(1.0, 0.6, 0.3))   # Charge: straight through
+			continue
 		if o.kind == "steam":
 			if player.invuln <= 0.0:
 				_stumble(Tuning.STUMBLE_STEAM, "Steam!")
@@ -1712,8 +1739,16 @@ func _collide() -> void:
 			continue
 		if o.kind in d.breaks:
 			_smash(o, player.data().color)
-		elif _small_hazard(o) and player.invuln <= 0.0 and _roll() < Dinos.break_chance(String(d.id), player.form):
-			_power_break(o)   # Power won the roll: straight through, no trip/dizzy/snag
+		elif _small_hazard(o) and player.invuln <= 0.0 and (_roll() < Dinos.break_chance(String(d.id), player.form) \
+				or (o.kind == "small" and Milestones.knows(String(d.id), "thick_skull"))):
+			_power_break(o)   # Power won the roll (or Thick Skull): straight through, no trip/dizzy/snag
+		elif _brace_t > 0.0 and player.invuln <= 0.0 and o.gate_form == -1 and player.form == Forms.SPINOSAURUS:
+			_brace_t = 0.0   # Sail Brace: this hit is free
+			player.invuln = 0.8
+			if o.kind != "overhead" and o.critter == "":
+				_smash(o, Color(0.6, 0.85, 1.0))
+			fx.float_text(player.position + Vector2(-50, -220), "BRACED!", Color(0.6, 0.85, 1.0), 28)
+			audio.play("shield", 0.0, 0.9)
 		elif o.mushroom:
 			_mushroom(o)
 		elif player.invuln > 0.0:
@@ -1729,6 +1764,9 @@ func _collide() -> void:
 		elif player.armor > 0 and o.gate_form == -1:
 			player.armor -= 1
 			player.invuln = 0.8
+			if player.form == Forms.SPINOSAURUS and not _scales_used and Milestones.knows(String(d.id), "regrowing_scales"):
+				_scales_used = true   # Regrowing Scales: back once, after a while
+				_scales_t = float(Milestones.value("regrowing_scales", 10.0))
 			_smash(o, Color(0.6, 0.9, 1.0))
 			audio.play("shield", 0.0)
 			chase_gap -= Tuning.STUMBLE_SHIELD
@@ -3128,6 +3166,8 @@ func _attack() -> Obstacle:
 	attack_cd_max = attack_cd
 	if player.form == Forms.ROK and Skills.has("ground_pound") and player.is_low():
 		_ground_pound()
+	if player.form == Forms.SPINOSAURUS and Milestones.knows(String(player.data().id), "tail_sweep"):
+		_tail_sweep()
 	if player.form != Forms.ROK and not player.on_ground and not _dashed and Milestones.knows(String(player.data().id), "double_dash"):
 		_dashed = true   # Double Dash: once a jump, a dash forward that gains on the hunter
 		chase_gap = minf(chase_gap + float(Milestones.value("double_dash", 30.0)), Tuning.CHASE_GAP_FAR)
@@ -3283,8 +3323,33 @@ func _attack_hit(target: Obstacle) -> Obstacle:
 	else:
 		_smash(target, Color(1.0, 0.6, 0.45))
 		fx.float_text(target.position + Vector2(-40, -target.size.y - 30.0), "WHACK!", Color(1.0, 0.75, 0.35), 28)
+	if player.form == Forms.TRICERATOPS and Milestones.knows(String(player.data().id), "wide_horns"):
+		_wide_horns(target, power)
 	fx.add_shake(3.0)
 	return target
+
+
+## Wide Horns: the same ATTACK breaks the next obstacle behind the first.
+func _wide_horns(first: Obstacle, power: float) -> void:
+	var x0 := first.hitbox().end.x
+	var reach := float(Milestones.value("wide_horns", 220.0))
+	var next: Obstacle = null
+	for o in course.obstacles:
+		if o == first or o.bumped or o.get_meta("meteor", false):
+			continue
+		var ox: float = o.hitbox().position.x
+		if ox >= x0 - 1.0 and ox - x0 <= reach and (next == null or ox < next.hitbox().position.x):
+			next = o
+	if next == null or not attack_breaks(next, power):
+		return
+	if next.critter != "":
+		next.bumped = true
+		course.remove_obstacle(next)
+		fx.smash(next.position + Vector2(0, -40), Color(0.75, 0.55, 0.4))
+	elif _small_hazard(next):
+		_power_break(next)
+	else:
+		_smash(next, Color(1.0, 0.6, 0.45))
 
 
 ## A quick claw/club arc in front of Rok that fades (placeholder attack art).
@@ -3586,6 +3651,88 @@ func _milestone_step(delta: float) -> void:
 		chase_gap = minf(chase_gap + float(Milestones.value("quick_start", 60.0)) * delta, Tuning.CHASE_GAP_FAR)
 	if player.on_ground:
 		_dashed = false
+	var fid := String(player.data().id)
+	# Charge (Triceratops): hold ATTACK
+	var holding: bool = (is_instance_valid(hud) and hud.attack_button.held) or Input.is_action_pressed("attack")
+	_attack_hold_t = _attack_hold_t + delta if holding else 0.0
+	_charge_cd = maxf(_charge_cd - delta, 0.0)
+	if _attack_hold_t >= 0.35 and player.form == Forms.TRICERATOPS and Milestones.knows(fid, "charge"):
+		start_charge()
+	if _charge_t > 0.0:
+		_charge_t = maxf(_charge_t - delta, 0.0) if player.form == Forms.TRICERATOPS else 0.0
+		if int(_charge_t * 20.0) % 2 == 0:
+			fx.speed_line(player.position + Vector2(-50.0, -randf_range(20.0, 110.0)))
+	# Stomp (Triceratops): landing breaks small hazards just ahead
+	if player.on_ground and not _prev_ground and player.form == Forms.TRICERATOPS and Milestones.knows(fid, "stomp"):
+		_stomp()
+	_prev_ground = player.on_ground
+	# Regrowing Scales (Spinosaurus): the shield comes back once
+	if _scales_t > 0.0:
+		_scales_t -= delta
+		if _scales_t <= 0.0 and player.form == Forms.SPINOSAURUS:
+			player.armor += 1
+			fx.float_text(player.position + Vector2(-60, -220), "SCALES REGROWN!", Color(0.45, 0.8, 1.0), 26)
+			audio.play("shield", 0.0, 1.2)
+	_brace_t = maxf(_brace_t - delta, 0.0)
+	_brace_cd = maxf(_brace_cd - delta, 0.0)
+	# River King (Spinosaurus): gains on the hunter while swimming
+	if player.swimming and Milestones.knows(fid, "river_king"):
+		chase_gap = minf(chase_gap + float(Milestones.value("river_king", 40.0)) * delta, Tuning.CHASE_GAP_FAR)
+
+
+## Charge (a Triceratops Trick): for 1.5 s it smashes through everything its
+## ATTACK could break (walls too with Earthshaker). Returns true if started.
+func start_charge() -> bool:
+	if _charge_t > 0.0 or _charge_cd > 0.0 or player.form != Forms.TRICERATOPS or not Milestones.knows(String(player.data().id), "charge"):
+		return false
+	_charge_t = float(Milestones.value("charge", 1.5))
+	_charge_cd = 6.0
+	fx.float_text(player.position + Vector2(-60, -220), "CHARGE!", Color(1.0, 0.6, 0.3), 32)
+	audio.play("form_triceratops", 0.05, 1.1)
+	fx.add_shake(4.0)
+	return true
+
+
+## Stomp: break the small hazards just ahead on landing.
+func _stomp() -> void:
+	var r := float(Milestones.value("stomp", 180.0))
+	var any := false
+	for o in course.obstacles.duplicate():
+		var dx: float = o.position.x - player.position.x
+		if _small_hazard(o) and dx > -20.0 and dx < r:
+			_power_break(o)
+			any = true
+	if any:
+		fx.dust(player.position, true)
+		fx.add_shake(4.0)
+
+
+## Tail Sweep (a Spinosaurus Trick): ATTACK also clears thorns and wild
+## dinosaurs in front and close behind.
+func _tail_sweep() -> void:
+	var behind := float(Milestones.value("tail_sweep", 140.0))
+	var front := attack_reach() + 60.0
+	for o in course.obstacles.duplicate():
+		var dx: float = o.position.x - player.position.x
+		if dx < -behind or dx > front or o.bumped:
+			continue
+		if o.critter != "":
+			o.bumped = true
+			course.remove_obstacle(o)
+			fx.smash(o.position + Vector2(0, -40), Color(0.75, 0.55, 0.4))
+			combo.feat()
+		elif o.kind == "thorns" and o.gate_form == -1:
+			_smash(o, Color(0.6, 0.9, 0.5))
+	fx.float_text(player.position + Vector2(-60, -200), "TAIL SWEEP!", Color(0.6, 0.9, 1.0), 26)
+
+
+## SLIDE (button or key). As a Spinosaurus with Sail Brace it also braces:
+## the next hit within 1 s is free.
+func _press_slide() -> void:
+	player.press_slide()
+	if player.form == Forms.SPINOSAURUS and _brace_cd <= 0.0 and Milestones.knows(String(player.data().id), "sail_brace"):
+		_brace_t = 1.0
+		_brace_cd = float(Milestones.value("sail_brace", 6.0))
 
 
 func _skill_step() -> void:
@@ -3643,6 +3790,8 @@ func _smash(o: Obstacle, color: Color) -> void:
 	fx.sparkle(pos, color)
 	score += Tuning.SMASH_SCORE * points_mult()
 	fx.float_text(pos + Vector2(-20, -40), "+%d" % int(Tuning.SMASH_SCORE * points_mult()))
+	if player.form == Forms.TRICERATOPS and Milestones.knows(String(player.data().id), "unstoppable"):
+		chase_gap = minf(chase_gap + float(Milestones.value("unstoppable", 5.0)), Tuning.CHASE_GAP_FAR)   # Unstoppable
 	_break_loot(pos)
 	_break_materials(o, pos)
 	course.shatter_obstacle(o)
