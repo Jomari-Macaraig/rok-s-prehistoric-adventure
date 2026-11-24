@@ -21,6 +21,14 @@ _Avoid_: World, act
 One Campaign challenge.
 _Avoid_: Level (that word is the character level), mission (that's a daily or weekly goal)
 
+**Trail**:
+A short side path of Stages about one species, in its Home Zone, that pays one random reward from its pool each time it's cleared, until the pool is empty.
+_Avoid_: Side quest, species chapter
+
+**Home Zone**:
+The zone a species belongs to: where it runs wild and where its Trail is.
+_Avoid_: Habitat, biome (biome obstacles are a zone's look)
+
 **Puzzle Stage**:
 A Stage built from a fixed list of puzzle pieces, slower and with no Hunter, ending at a finish line.
 _Avoid_: Puzzle level, brain stage

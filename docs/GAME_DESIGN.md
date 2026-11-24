@@ -22,6 +22,9 @@ system's doc in [systems/](systems/README.md) says how what's built works, and
 ## Pets
 
 - **Hatching**: pets come from eggs (the Dino Egg art is kept for it).
+  Eggs first drop from campaign Trails (decided 2026-11-24); they wait in
+  the player's items until the pet system is built, which comes right after
+  the campaign.
 - **Care**: the player tends their pets (feeding, playing, keeping them
   happy). Neglect should matter.
 - **Age**: a pet ages through stages (baby, young, adult, old). It can

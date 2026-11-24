@@ -74,6 +74,12 @@ Decide everything first; build afterwards.
   per chapter for stages; per stage: kind, zone, length, difficulty,
   hazards, wild dinosaurs and hunter, suggested dinosaurs, two star goals,
   rewards, recommended strength; boss and puzzle extras.
+- [How the campaign grows with more species](10-campaign-growth.md): zone
+  chapters as the main path (new zones add chapters and join endless runs)
+  plus a 3-stage Trail per species in its home zone, opened by clearing
+  that chapter; a Trail pays one random reward from its pool (card, XP,
+  Market discount, egg), each once; stages set time and weather (night and
+  rain matter a little), and endless runs get random weather too.
 
 ## Not yet specified
 
