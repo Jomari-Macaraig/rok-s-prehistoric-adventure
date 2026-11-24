@@ -47,6 +47,11 @@ build afterwards.
   answered by jump/slide/shapeshift; enrages at half health; beating it
   clears the stage; lose on hearts or if it escapes; any species, set in
   config; no hunter during the fight.
+- [What a puzzle stage is](02-puzzle-stages.md): right-dinosaur chains,
+  switches and forks, and coloured gems for doors; slower, no hunter;
+  checkpoints (a mistake costs a heart and sends you back); pieces listed in
+  order in config with energy and amber; locked until its dinosaurs are
+  unlocked; a hint after 3 tries.
 
 ## Not yet specified
 

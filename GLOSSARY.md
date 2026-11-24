@@ -21,6 +21,26 @@ _Avoid_: World, act
 One Campaign challenge.
 _Avoid_: Level (that word is the character level), mission (that's a daily or weekly goal)
 
+**Puzzle Stage**:
+A Stage built from a fixed list of puzzle pieces, slower and with no Hunter, ending at a finish line.
+_Avoid_: Puzzle level, brain stage
+
+**Checkpoint**:
+A totem in a Puzzle Stage where Rok restarts after a mistake.
+_Avoid_: Save point, respawn
+
+**Switch**:
+A stone in a Puzzle Stage that Rok hits with ATTACK to change the course (lower a bridge, open a gate).
+_Avoid_: Lever, button
+
+**Gem**:
+A coloured key in a Puzzle Stage that opens the Door of the same colour.
+_Avoid_: Key, crystal (a Time Crystal is a power-up)
+
+**Door**:
+A coloured stone barrier in a Puzzle Stage, open only with its Gem.
+_Avoid_: Gate (a dino gate needs a dinosaur, not a Gem)
+
 ## Dinosaurs in a run
 
 **Hunter**:
