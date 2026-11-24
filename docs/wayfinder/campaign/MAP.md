@@ -136,6 +136,13 @@ Decide everything first; build afterwards.
   follow their category plus a Signature Trick; 19-point trees of 3x5
   skills for Rok, Nira and Boro; 6 accessories scaling with rarity and
   upgrades; the Utahraptor is the Canyon boss; four 3-piece set bonuses.
+- [How the campaign and endless runs feed each other](20-campaign-and-endless-cycle.md):
+  a hazard can be introduced in either mode and counts in both (endless
+  order unchanged); bosses, puzzle pieces, stars and torches stay
+  campaign-only; one team with the same rules in both modes; the run
+  summary shows Strength gained and the next stage; about 1 in 3 missions
+  and new badge tracks are campaign goals; chests may hold a torch; endless
+  runs never drop boss materials or eggs.
 
 ## Not yet specified
 
@@ -143,10 +150,8 @@ Decide everything first; build afterwards.
 
 ## Open questions
 
-- [How the campaign and endless runs feed each other](20-campaign-and-endless-cycle.md)
-  (being worked).
 - [Difficulty balance and the bot check](21-difficulty-balance.md)
-  (after 20).
+  (next; the last question before the spec).
 
 ## Out of scope
 

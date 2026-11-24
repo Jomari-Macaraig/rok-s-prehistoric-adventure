@@ -6,11 +6,11 @@ grows stronger between runs. These are the words the game and its docs use.
 ## Modes
 
 **Endless Run**:
-The open-ended run: it goes on until Rok is caught or runs out of hearts, and it's where the player grows (meat, materials, XP, best distance).
+The open-ended run: it goes on until Rok is caught or runs out of hearts, and it's where the player grows (meat, materials, XP, best distance); it never gives Boss Materials or eggs.
 _Avoid_: Normal mode, free run
 
 **Campaign**:
-The mode of set challenges the player clears one by one, made of Chapters.
+The mode of set challenges the player clears one by one, made of Chapters: where the player proves the growth made in Endless Runs and earns what meat can't buy (Boss Materials, eggs).
 _Avoid_: Story mode, adventure
 
 **Chapter**:
@@ -20,6 +20,10 @@ _Avoid_: World, act
 **Stage**:
 One Campaign challenge.
 _Avoid_: Level (that word is the character level), mission (that's a daily or weekly goal)
+
+**Introduction**:
+The first time the player meets a hazard, in an Endless Run or a Stage: a NEW banner and the hazard alone at first. Once met in either mode it counts in both.
+_Avoid_: Unlock (unlocks are for dinosaurs and items), tutorial (that's the first-run lesson)
 
 **Trail**:
 A short side path of Stages about one species, in its Home Zone, that pays one random reward from its pool each time it's cleared, until the pool is empty.
