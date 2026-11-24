@@ -2,7 +2,7 @@
 title: Rethink hero and dinosaur levels
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: []
 ---
 
