@@ -2,7 +2,7 @@
 title: When the campaign opens
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: []
 ---
 
