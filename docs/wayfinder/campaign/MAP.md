@@ -124,6 +124,11 @@ Decide everything first; build afterwards.
   happened, how far you got and the torch spent; keep XP and pickups, no
   first-clear rewards, stars only on a clear; Retry, Back, Endless Run (or a
   meat refill when out of torches); a tip after 3 failures in a row.
+- [The level path and skill tree screens](17-level-path-screens.md): variant
+  A: a dinosaur's 1-20 road across the screen (milestones gold, evolutions
+  purple, next glowing, tap for its reward); a hero's three branches growing
+  upward as skill cards with points and a free reset; prototype on branch
+  `prototype/level-path-screens`.
 
 ## Not yet specified
 
