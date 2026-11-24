@@ -2,7 +2,7 @@
 title: What a stage costs to play
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: [07-runner-energy-research]
 ---
 
