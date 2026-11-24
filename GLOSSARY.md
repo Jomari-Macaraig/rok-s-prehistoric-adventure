@@ -41,6 +41,10 @@ _Avoid_: Key, crystal (a Time Crystal is a power-up)
 A coloured stone barrier in a Puzzle Stage, open only with its Gem.
 _Avoid_: Gate (a dino gate needs a dinosaur, not a Gem)
 
+**Star**:
+One of a Stage's three goals, kept for good once met: the first is clearing the Stage, the other two are set per Stage.
+_Avoid_: Medal (medals are badge tiers), rating
+
 **Torch**:
 What a failed Stage costs: the player holds a few, and they relight over time.
 _Avoid_: Energy (that's PRIMAL energy in a run), lives (those are hearts), stamina, tickets

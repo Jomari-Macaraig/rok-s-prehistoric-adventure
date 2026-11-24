@@ -62,6 +62,11 @@ Decide everything first; build afterwards.
 - [When the campaign opens](04-campaign-opens.md): best distance 1,000 m and
   the played hero at level 3 (config); a locked Campaign button shows what's
   needed; a one-time tour when it opens.
+- [The list of star goals](05-star-goals.md): star 1 is clearing; two more
+  from a set list (collecting, skill, fighting, dinosaurs, plus boss-only
+  and puzzle-only goals; no time limits); stars add up across tries; shown
+  in the briefing and a run tracker; stars never lock, star totals open
+  bonus chests.
 
 ## Not yet specified
 
