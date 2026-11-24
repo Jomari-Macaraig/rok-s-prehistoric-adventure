@@ -2,7 +2,7 @@
 title: What's in each milestone, skill tree, accessory and set
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: []
 ---
 
