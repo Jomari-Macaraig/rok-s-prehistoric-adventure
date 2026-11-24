@@ -861,7 +861,8 @@ func _gear_pages() -> void:
 	var rn := Crafting.rarity_names()
 	var rar := "Every craft rolls a rarity, %s to %s: a %s has its bonuses x%s and lasts x%s as long." % [
 			rn[0], rn[-1], rn[-1], Dinos.fmt(Crafting.bonus_mult(rn.size() - 1)), Dinos.fmt(Crafting.durability_mult(rn.size() - 1))]
-	var rep := "Repair it at the Dinosaur Camp for materials: a full repair costs %d%% of its recipe." % int(round(float(Crafting.num("repair", "share")) * 100.0))
+	var rmeat: Array = Crafting.num("repair", "meat")
+	var rep := "Repair it at the Dinosaur Camp or Kora's Items screen for meat: a full repair costs %d (Common) to %d (Legendary)." % [int(rmeat[0]), int(rmeat[-1])]
 	var sell := "Sell spares in the Market (Sell tab) for %d%% of their value." % int(round(float(Economy.num("sell", "share")) * 100.0))
 	# --- weapons
 	var wl: Array = []
@@ -870,19 +871,19 @@ func _gear_pages() -> void:
 		if it.slot != "weapon":
 			continue
 		var cs := Gear.card_slots(id)
-		wl.append("• %s: %s, reach %d, %d uses, %s%s (from %d m)" % [it.name, Gear.bonus_text(id), int(it.reach), Gear.max_durability(id),
+		wl.append("• %s: %s, reach %d, %d runs, %s%s (from %d m)" % [it.name, Gear.bonus_text(id), int(it.reach), Gear.max_durability(id),
 				Gear.style(id).capitalize() if Gear.style(id) != "" else "attack", (", %d card slot%s" % [cs, "" if cs == 1 else "s"]) if cs > 0 else ", no card slot", Crafting.learn_m(id)])
 	var wt := "Crafted at Kora's Crafting Bench from materials, and equipped on a hero at the Dinosaur Camp (one weapon each). A weapon adds its bonuses, sets how far ATTACK reaches, and gives its attack style. " \
-			+ "Each ATTACK that connects wears it by 1; at 0 it breaks: no bonus and back to bare hands (the Fist) until repaired. %s %s %s\n\n%s" % [rep, rar, sell, "\n".join(wl)]
+			+ "Every run it's equipped in uses 1; at 0 it's Worn Out and gives half its bonus until repaired. %s %s %s\n\n%s" % [rep, rar, sell, "\n".join(wl)]
 	_card(Gear.icon("club"), "Weapons" if open else "???", wt if open else lock_hint, "", not open, false, Color(0.55, 0.32, 0.12))
 	# --- armor
 	var al: Array = []
 	for id in Gear.ITEMS:
 		var it: Dictionary = Gear.ITEMS[id]
 		if it.slot == "armor":
-			al.append("• %s: %s, %d uses (from %d m)" % [it.name, Gear.bonus_text(id), Gear.max_durability(id), Crafting.learn_m(id)])
+			al.append("• %s: %s, %d runs (from %d m)" % [it.name, Gear.bonus_text(id), Gear.max_durability(id), Crafting.learn_m(id)])
 	var at := "Crafted at the bench and worn by a hero (one armor each). Armor softens every hit: at Armor 10 a hit costs half as much (a whole heart becomes half). " \
-			+ "Each hit Rok takes wearing it, as a hero, wears it by 1; at 0 it breaks and protects no more until repaired. %s %s %s\n\n%s" % [rep, rar, sell, "\n".join(al)]
+			+ "Every run it's worn uses 1; at 0 it's Worn Out and protects at half strength until repaired. %s %s %s\n\n%s" % [rep, rar, sell, "\n".join(al)]
 	_card(Gear.icon("shell_plate"), "Armor" if open else "???", at if open else lock_hint, "", not open, false, Color(0.4, 0.35, 0.3))
 	# --- card slots
 	var with_slot: Array = Gear.ITEMS.keys().filter(func(id): return Gear.ITEMS[id].slot == "weapon" and Gear.card_slots(id) > 0).map(func(id): return Gear.ITEMS[id].name)
@@ -890,7 +891,7 @@ func _gear_pages() -> void:
 	for t in Gear.CARD_BONUS.size():
 		tiers.append("%s +%s" % ["Original" if t == 0 else Dinos.TIER_NAMES[t - 1], Dinos.fmt(float(Gear.CARD_BONUS[t]))])
 	var ct := "Dinosaur cards aren't equipped: they're slotted into a weapon's card slot at the Dinosaur Camp (Change beside Card slot). A slot can stay empty. " \
-			+ "A slotted card adds its dinosaur's best attribute (a Runner's Speed, a Smasher's Power, a Tank's Armor, a Flyer's Jump) on top of the weapon's bonuses, while that weapon is equipped and not broken. " \
+			+ "A slotted card adds its dinosaur's best attribute (a Runner's Speed, a Smasher's Power, a Tank's Armor, a Flyer's Jump) on top of the weapon's bonuses, while that weapon is equipped (at half while it's Worn Out). " \
 			+ "The card stays in the weapon when you swap weapons; take it out, or salvage or sell the weapon, and it goes back to your pile. A card in a weapon can't go in another, so a second copy is useful.\n\n" \
 			+ "Bonus by the dinosaur's tier: %s.\nWeapons with a card slot: %s.\nCards drop from wild dinosaurs you bonk with ATTACK, and come in chests (see the Cards tab)." % [", ".join(tiers), ", ".join(with_slot) if not with_slot.is_empty() else "none yet"]
 	_card(CardView.icon("raptor"), "Card Slots" if open else "???", ct if open else lock_hint, "", not open, false, Color(0.55, 0.32, 0.12))

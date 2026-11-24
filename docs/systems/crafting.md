@@ -36,7 +36,7 @@ Part of the [system docs](README.md).
 ## Salvage and repair
 
 - **Salvage** (`main.salvage`): break down an unequipped copy for `[salvage] share` of its recipe (rounded down), plus `[salvage] bonus[rarity]` (a catalyst for Rare and better).
-- **Repair** (`main.repair_gear`): costs materials instead of meat. `Gear.repair_cost` returns a materials dictionary: `[repair] share` of the recipe, scaled by how worn the weapon is, and at least 1 of the recipe's first material.
+- **Repair** (`main.repair_gear`): costs **meat** now (the campaign redesign): `Crafting.repair_meat`, `[repair] meat` by rarity × the worn share. See [weapons-and-armor](weapons-and-armor.md#durability-and-repair).
 
 ## The 45 materials
 The 12 used by recipes today (Wood, Stone, Fiber, Flint, Hide, Bone, Resin, Dino Scale, Obsidian, Shell, Fossil Shard, Primal Crystal) plus 33 added for the coming weapons, armor and accessories. No recipe uses the added ones yet; they're found and kept.
@@ -96,4 +96,4 @@ The Camp still equips gear. Its Change list shows each copy by full name in its 
 
 The Crafting Bench has its own **Crafting** button on the main menu (the user's call, 2026-11-23; `Hud.crafting_button`, under the Marketplace, key J), shown once the bench is open; its red dot means a learned recipe can be crafted now (`main.crafting_ready`). The Items screen stays inside it (the bench's Items button) and in the Camp's header, beside Crafting. A hammer-and-anvil icon is drawn in code until the user's square art exists.
 
-The Items screen also **repairs** worn or broken gear (the user's request, 2026-11-23): a REPAIR button (`Workshop.press_repair`) beside SALVAGE, or alone for equipped gear; Kora names the cost on the first tap (`repair_ask`, or `repair_short` without the materials) and mends it on the second (`repaired`).
+The Items screen also **repairs** worn gear (the user's request, 2026-11-23): a REPAIR button (`Workshop.press_repair`) beside SALVAGE, or alone for equipped gear; Kora names the cost on the first tap (`repair_ask`, or `repair_short` without the meat) and mends it on the second (`repaired`).

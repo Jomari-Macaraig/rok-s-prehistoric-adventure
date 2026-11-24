@@ -26,19 +26,19 @@ class_name Gear
 ## id -> name, slot, attribute bonuses, reach (weapons), default price and
 ## on-sale distance, and a line of text.
 const ITEMS := {
-	"club": {"name": "Wooden Club", "slot": "weapon", "bonus": {"power": 1.0}, "reach": 165.0, "durability": 30,
+	"club": {"name": "Wooden Club", "slot": "weapon", "bonus": {"power": 1.0}, "reach": 165.0, "durability": 12,
 		"price": 240, "unlock_m": 0, "desc": "A sturdy branch. Whacks small hazards a little harder."},
-	"stone_axe": {"name": "Stone Axe", "slot": "weapon", "bonus": {"power": 2.0}, "reach": 175.0, "durability": 40,
+	"stone_axe": {"name": "Stone Axe", "slot": "weapon", "bonus": {"power": 2.0}, "reach": 175.0, "durability": 14,
 		"price": 600, "unlock_m": 1200, "desc": "Chops through logs and thorn bushes."},
-	"flint_spear": {"name": "Flint Spear", "slot": "weapon", "bonus": {"power": 1.5, "speed": 1.0}, "reach": 250.0, "durability": 50,
+	"flint_spear": {"name": "Flint Spear", "slot": "weapon", "bonus": {"power": 1.5, "speed": 1.0}, "reach": 250.0, "durability": 16,
 		"price": 1000, "unlock_m": 2600, "desc": "Long reach, and a little faster on your feet."},
-	"bone_hammer": {"name": "Bone Hammer", "slot": "weapon", "bonus": {"power": 3.5, "speed": -0.5}, "reach": 170.0, "durability": 60,
+	"bone_hammer": {"name": "Bone Hammer", "slot": "weapon", "bonus": {"power": 3.5, "speed": -0.5}, "reach": 170.0, "durability": 18,
 		"price": 1600, "unlock_m": 4200, "desc": "Heavy enough to smash fences and boulders."},
-	"sling": {"name": "Sling", "slot": "weapon", "bonus": {"power": 1.0, "jump": 1.0}, "reach": 340.0, "durability": 80,
+	"sling": {"name": "Sling", "slot": "weapon", "bonus": {"power": 1.0, "jump": 1.0}, "reach": 340.0, "durability": 20,
 		"price": 2200, "unlock_m": 6000, "desc": "Hits from far away, and you travel light."},
-	"torch": {"name": "Torch", "slot": "weapon", "bonus": {"power": 1.0}, "reach": 185.0, "durability": 45, "burns": true,
+	"torch": {"name": "Torch", "slot": "weapon", "bonus": {"power": 1.0}, "reach": 185.0, "durability": 15, "burns": true,
 		"price": 1300, "unlock_m": 3400, "desc": "Burns through logs, fences, thorns and vines, whatever your Power."},
-	"bow": {"name": "Bow", "slot": "weapon", "bonus": {"power": 2.0}, "reach": 460.0, "durability": 70, "ranged": true,
+	"bow": {"name": "Bow", "slot": "weapon", "bonus": {"power": 2.0}, "reach": 460.0, "durability": 20, "ranged": true,
 		"price": 2800, "unlock_m": 7400, "desc": "Shoots flint arrows at things far ahead: the longest reach."},
 	"hide_vest": {"name": "Hide Vest", "slot": "armor", "bonus": {"armor": 1.0},
 		"price": 240, "unlock_m": 0, "desc": "Softens trips and bumps."},
@@ -101,7 +101,7 @@ static var sockets: Dictionary = {}   # weapon copy id -> the dino id of the car
 static var wear: Dictionary = {}
 ## A weapon warns when this many uses are left (repairs cost materials:
 ## Crafting.repair_cost, config/crafting.cfg [repair]).
-const WEAR_WARN := 5
+const WEAR_WARN := 3   # runs left when the run's news warns
 
 
 ## The item id of a copy ("stone_axe#3" -> "stone_axe"); cards unchanged.
@@ -165,9 +165,9 @@ static func bonus_text(id: String) -> String:
 	return ", ".join(parts)
 
 
-## How many uses gear takes in all: weapons (ATTACKs that connect) and armor
-## (hits taken), from config/crafting.cfg [durability] (ITEMS' value if the
-## config leaves it out), times its rarity's multiplier. 0 = never wears (cards).
+## How many runs (or stages) gear lasts before it's Worn Out, from
+## config/crafting.cfg [durability] (ITEMS' value if the config leaves it
+## out), times its rarity's multiplier. 0 = never wears (cards).
 static func max_durability(id: String) -> int:
 	if not ITEMS.has(base(id)):
 		return 0
@@ -179,22 +179,25 @@ static func durability(id: String) -> int:
 	return int(wear.get(id, max_durability(id)))
 
 
-static func broken(id: String) -> bool:
+## Worn Out: no runs left. It still works, at half its bonus
+## (config/crafting.cfg [durability] worn_share), until repaired. Gear never
+## breaks from wear (only a failed risky upgrade destroys a piece).
+static func worn_out(id: String) -> bool:
 	return max_durability(id) > 0 and durability(id) <= 0
 
 
-## Materials to repair it to full ({} if it isn't worn).
-static func repair_cost(id: String) -> Dictionary:
+## Meat to repair it to full (0 if it isn't worn): more for rarer pieces.
+static func repair_cost(id: String) -> int:
 	var mx := max_durability(id)
 	if mx <= 0 or durability(id) >= mx:
-		return {}
-	return Crafting.repair_cost(base(id), mx - durability(id), mx)
+		return 0
+	return Crafting.repair_meat(rarity_of(id), mx - durability(id), mx)
 
 
 ## A working (not broken) weapon with this property ("burns", "ranged"), or "".
 static func weapon_with(hero: String, prop: String) -> String:
 	var w := slot_item(hero, "weapon")
-	return w if ITEMS.has(base(w)) and ITEMS[base(w)].get(prop, false) and not broken(w) else ""
+	return w if ITEMS.has(base(w)) and ITEMS[base(w)].get(prop, false) else ""
 
 
 static func slot_item(hero: String, slot: String) -> String:
@@ -210,10 +213,11 @@ static func bonus(hero: String, attr: String) -> float:
 	var t := 0.0
 	for slot in ["weapon", "armor"]:
 		var id := slot_item(hero, slot)
-		if id != "" and not broken(id):
-			t += float(item_bonus(id).get(attr, 0.0))
+		if id != "":
+			var k := float(Crafting.num("durability", "worn_share")) if worn_out(id) else 1.0   # Worn Out: half
+			t += float(item_bonus(id).get(attr, 0.0)) * k
 			if socketed(id) != "":
-				t += float(item_bonus(CARD_PREFIX + socketed(id)).get(attr, 0.0))
+				t += float(item_bonus(CARD_PREFIX + socketed(id)).get(attr, 0.0)) * k
 	return t
 
 
@@ -245,7 +249,7 @@ static func card_choices() -> Array:
 ## How far ahead the hero's ATTACK reaches (bare hands without a weapon).
 static func reach(hero: String) -> float:
 	var w := slot_item(hero, "weapon")
-	return float(ITEMS[base(w)].reach) if ITEMS.has(base(w)) and not broken(w) else Tuning.ATTACK_REACH_HAND
+	return float(ITEMS[base(w)].reach) if ITEMS.has(base(w)) else Tuning.ATTACK_REACH_HAND
 
 
 ## A random dinosaur card for a chest: rare chests the lower tiers (up to

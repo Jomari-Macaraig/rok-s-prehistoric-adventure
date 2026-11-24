@@ -408,7 +408,7 @@ static func collect() -> Array:
 static func _running_style_job() -> void:
 	var hero := String(Forms.get_data(Forms.ROK).id)
 	var w := Gear.slot_item(hero, "weapon")
-	var clip := Gear.style_clip(hero, w) if w != "" and Gear.ITEMS.has(Gear.base(w)) and not Gear.broken(w) else Gear.fist_clip(hero)
+	var clip := Gear.style_clip(hero, w) if w != "" and Gear.ITEMS.has(Gear.base(w)) else Gear.fist_clip(hero)
 	if clip.begins_with("style_"):
 		SpriteLib.running_style(hero, clip.trim_prefix("style_"))
 

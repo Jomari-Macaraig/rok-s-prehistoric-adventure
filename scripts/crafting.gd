@@ -54,7 +54,7 @@ const DEFAULTS := {
 		"primal_crystal": [0, 15, 40, 30, 15],
 	},
 	"salvage": {"share": 0.5, "bonus": ["", "", "resin", "fossil_shard", "primal_crystal"]},
-	"repair": {"share": 0.3},
+	"repair": {"meat": [20, 35, 60, 100, 160]},
 	"drop_rarity": {"weights": [1.0, 0.45, 0.15, 0.05, 0.015]},
 	"break_drops": {"chance": 0.15, "count": [1, 2],
 		"wood": {"wood": 3, "fiber": 1}, "fiber": {"fiber": 3, "wood": 1},
@@ -268,20 +268,14 @@ static func salvage_return(item: String, rarity: int) -> Dictionary:
 	return out
 
 
-## Materials to repair a weapon with `worn` of `mx` hits used up.
-static func repair_cost(item: String, worn: int, mx: int) -> Dictionary:
+## Meat to repair a piece of rarity `r` with `worn` of `mx` runs used up:
+## [repair] meat (by rarity) x the worn share, at least 1.
+static func repair_meat(r: int, worn: int, mx: int) -> int:
 	if worn <= 0 or mx <= 0:
-		return {}
-	var out := {}
-	var share := float(num("repair", "share")) * float(worn) / float(mx)
-	var r := recipe(item)
-	for m in r:
-		var n := int(ceil(float(r[m]) * share - 0.001))
-		if n > 0:
-			out[m] = n
-	if out.is_empty() and not r.is_empty():
-		out[r.keys()[0]] = 1
-	return out
+		return 0
+	var by: Array = num("repair", "meat")
+	var full := float(by[clampi(r, 0, by.size() - 1)])
+	return maxi(1, int(ceil(full * float(worn) / float(mx) - 0.001)))
 
 
 # ------------------------------------------------------------ drops

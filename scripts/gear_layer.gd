@@ -70,7 +70,7 @@ func refresh() -> void:
 	if not is_inside_tree():
 		return
 	_weapon_id = Gear.slot_item(hero, "weapon") if hero != "" else ""
-	_weapon_broken = Gear.broken(_weapon_id)   # a broken weapon isn't drawn
+	_weapon_broken = false   # (gear no longer breaks from wear: Worn Out pieces are still drawn)
 	_back_id = Gear.slot_item(hero, "armor") if hero != "" else ""
 	_setup(_weapon, "" if _weapon_broken else Gear.base(_weapon_id))
 	_setup(_back, Gear.base(_back_id))
@@ -142,7 +142,7 @@ func _process(_d: float) -> void:
 		_anim_t += _d * 1000.0
 		_weapon.texture = _anim_frames[int(_anim_t / _anim_ms) % _anim_frames.size()]
 	if hero != "" and (Gear.slot_item(hero, "weapon") != _weapon_id or Gear.slot_item(hero, "armor") != _back_id
-			or Gear.broken(_weapon_id) != _weapon_broken):
+			):
 		refresh()   # equipped or changed at the Camp
 	_place()
 

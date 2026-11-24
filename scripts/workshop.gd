@@ -728,8 +728,8 @@ func _item_detail() -> void:
 		_stat_row([["stat_reach", "Reach %d" % int(it.reach)]], Vector2(1206, y), 20, stats, "Reach")
 	if Gear.max_durability(id) > 0:
 		y += 42.0
-		var br := Gear.broken(id)
-		_stat_row([["stat_durability", "BROKEN" if br else "Durability %d/%d" % [Gear.durability(id), Gear.max_durability(id)]]], Vector2(1206, y), 17, stats, "Durability")
+		var br := Gear.worn_out(id)
+		_stat_row([["stat_durability", "WORN OUT (half)" if br else "%d/%d runs left" % [Gear.durability(id), Gear.max_durability(id)]]], Vector2(1206, y), 17, stats, "Durability")
 		_panel("durability_track", Rect2(1206, y + 38, 240, 19), stats)
 		var frac := clampf(float(Gear.durability(id)) / float(Gear.max_durability(id)), 0.0, 1.0)
 		if frac > 0.0:
@@ -753,11 +753,11 @@ func _item_detail() -> void:
 	eq.name = "Equip"
 	# REPAIR for worn or broken gear (the user's request: Kora mends it here
 	# too, not only at the Camp); beside SALVAGE when it isn't equipped
-	var worn := not Gear.repair_cost(id).is_empty()
+	var worn := Gear.repair_cost(id) > 0
 	if worn:
 		var rw := 354.0 if who != "" else 172.0
 		var rb := _button("SURE?" if _confirm == "repair" else "REPAIR", "button_craft_green", Rect2(1077, 618, rw, 60), 25 if who != "" else 22, detail, "Repair", press_repair)
-		rb.tooltip_text = "Repair it to full: " + Crafting.cost_text(Gear.repair_cost(id))
+		rb.tooltip_text = "Repair it to full: %d meat" % Gear.repair_cost(id)
 	if who != "":
 		return
 	var back := Crafting.salvage_return(Gear.base(id), r)
@@ -782,18 +782,18 @@ func _item_detail() -> void:
 ## the second spends the materials and mends it to full (main.repair_gear).
 func press_repair() -> bool:
 	var cost := Gear.repair_cost(selected)
-	if cost.is_empty():
+	if cost <= 0:
 		return false
-	if not Crafting.can_afford(cost):
+	if game.meat_bank < cost:
 		_confirm = ""
 		game.audio.play("denied", 0.0)
-		kora_say("repair_short", Crafting.cost_text(cost))
+		kora_say("repair_short", "%d meat" % cost)
 		refresh()
 		return false
 	if _confirm != "repair":
 		_confirm = "repair"
 		game.audio.play("click", 0.0)
-		kora_say("repair_ask", Crafting.cost_text(cost))
+		kora_say("repair_ask", "%d meat" % cost)
 		refresh()
 		return false
 	_confirm = ""
@@ -968,7 +968,7 @@ const KORA_LINES := {
 		"I'd need %s to fix that. Go find some!",
 		"Not enough to mend it: %s.",
 		"Bring me %s and I'll patch it right up.",
-		"Short on materials. It takes %s.",
+		"Short on meat. It takes %s.",
 		"Hmm, %s for this one. Come back with more!",
 	],
 	"repaired": [

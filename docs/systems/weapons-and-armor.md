@@ -9,7 +9,7 @@ Part of the [system docs](README.md).
 
 | | |
 |---|---|
-| Code | `scripts/gear.gd` (`Gear.ITEMS`, `bonus`, `reach`, `wear`, `broken`, `repair_cost`), `scripts/gear_layer.gd` (`GearLayer`), `main.equip_gear` / `wear_weapon` / `repair_gear` / `grant_card` / `_drop_card` / `gear_ready` |
+| Code | `scripts/gear.gd` (`Gear.ITEMS`, `bonus`, `reach`, `wear`, `worn_out`, `repair_cost`), `scripts/gear_layer.gd` (`GearLayer`), `main.equip_gear` / `_wear_run` / `repair_gear` / `grant_card` / `_drop_card` / `gear_ready` |
 | Getting gear | **crafted, not bought**: recipes, rarity and materials in `config/crafting.cfg`; recipes learned at `[market_unlocks]` (see [crafting](crafting.md)) |
 | Art | icons `assets/gear/<id>.png` + @2x, `gear_art.json` (grips), `sockets.json` (hand/back per frame), `break_<id>.png` (`tools/prepare_gear.py`) |
 | Saved | `main.gear_owned` (copy ids like `stone_axe#3`), `gear_equipped`, `cards`, `gear_wear`, `gear_rarity`, `gear_next`, `materials` (`SaveData.load/save_gear`; `_sync_gear` points `Gear`'s and `Crafting`'s statics at them) |
@@ -57,16 +57,17 @@ for (`gear_ready()`).
 
 ## Durability and repair
 
-The user's design. Weapons and (since 2026-11-23) **armor** wear; cards don't. Every item's durability is in **`config/crafting.cfg` `[durability]`** (`Gear.max_durability`; `ITEMS` `durability` is the fallback), times its rarity's multiplier.
+Redesigned for the campaign (build ticket [10](../wayfinder/campaign-build/10-gear-wear-rework.md)): gear **never stops working**.
 
-0. **Armor** wears by 1 for every hit Rok takes wearing it, as a hero (not shapeshifted): `main._hurt` → `_wear_armor` → `wear_weapon`. At `WEAR_WARN` a banner warns; at 0 it breaks ("CRACK!", a banner, a news line) and gives no Armor until repaired. Repair works as for weapons (the Camp's Repair button, `[repair]` materials).
-1. Every ATTACK that connects (smash, bonk or CLANG) costs 1 hit (`_attack_hit` → `wear_weapon`, after that hit's Power is counted).
-2. At `WEAR_WARN` (5) hits left, a banner warns.
-3. At 0 the weapon is **broken** (`Gear.broken`): its own 8-frame shatter plays in the hand (`GearLayer.play_break`; frame 0 is the intact weapon), the `weapon_break` sound, "SNAP!", a banner and a news line. Any attack clip stops so the shatter shows.
-4. Broken: no bonus, bare-hand reach, not drawn, no attack clip. It stays owned and equipped.
-5. **Repair** at the Camp (`Herd.press_repair`, two taps, `main.repair_gear`) or on Kora's **Items** screen (REPAIR beside SALVAGE for worn gear, the whole width for equipped gear; the first tap has Kora say the cost, or what's missing; `Workshop.press_repair`): costs **materials**, `[repair] share` of the recipe × the worn share (`Crafting.repair_cost`). The Camp shows "Durability n/max" (or BROKEN) and the repair cost.
+- **Wear per run**: every run (and, later, every campaign stage) uses **1 durability** from each piece the played hero wears (`main._wear_run`, once per run from `_bank_meat`; not in the training run). Hits and ATTACKs no longer wear anything. Durability is in runs in **`config/crafting.cfg` `[durability]`** (`Gear.max_durability`; `ITEMS` `durability` is the weapons' fallback), times its rarity's multiplier.
+- At `Gear.WEAR_WARN` (3) runs left the run's news warns ("Stone Axe: 3 runs left").
+- At 0 a piece is **Worn Out** (`Gear.worn_out`): it still works, drawn and swung with its reach and properties (the Torch still burns), but gives **half** its bonuses (`[durability] worn_share`, in `Gear.bonus`; a slotted card halves too). The news says "… is Worn Out: half strength until repaired".
+- **Repair costs meat** (`Gear.repair_cost` → `Crafting.repair_meat`): a full repair costs `[repair] meat` by rarity (20 / 35 / 60 / 100 / 160), less if only partly worn (at least 1). At the Camp (Repair beside the slot, two taps, `Herd.press_repair`, disabled without the meat; the line under it reads "5 of 12 runs left · repair: 12 meat" or "WORN OUT · half strength until repaired · repair: 20 meat") or on Kora's Items screen (REPAIR, Kora says the meat cost or that you're short; `Workshop.press_repair`). Upgrades (ticket 11) will add to the cost.
+- **Selling** still scales with durability left (`Economy.gear_value`).
+- **Breaking** only happens on a failed risky upgrade (ticket 11), which removes the piece.
+- **Old saves** (`main._migrate_wear`, once; the save then has `wear_v2`): wear counted in hits becomes runs, keeping the share left (`main.OLD_DURABILITY`); broken gear (0 left) becomes Worn Out.
 
-A crafted weapon starts at full durability (its rarity's `durability_mult` × the base hits).
+A crafted piece starts at full durability (its rarity's `durability_mult` × the base runs).
 
 ## Dinosaur cards
 

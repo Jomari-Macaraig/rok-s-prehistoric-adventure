@@ -540,7 +540,7 @@ static func stage_info(id: String) -> Dictionary:
 	var clip := "attack"
 	if Heroes.is_hero(id):
 		var w := Gear.slot_item(id, "weapon")
-		clip = ("attack_" + Gear.base(w)) if Gear.has(w) and not Gear.broken(w) else ""
+		clip = ("attack_" + Gear.base(w)) if Gear.has(w) else ""
 	var atk := SpriteLib.attacks(String(d.id))
 	if atk == null or clip == "" or not atk.has_animation(clip):
 		clip = ""
@@ -1025,23 +1025,23 @@ func _gear_rows(id: String) -> void:
 		b.add_theme_font_size_override("font_size", 15)
 		b.pressed.connect(func(): press_slot(slot))
 		row.add_child(b)
-		var rc := Gear.repair_cost(gid) if worn else {}
-		if not rc.is_empty():
+		var rc := Gear.repair_cost(gid) if worn else 0
+		if rc > 0:
 			var rb := Market._button("Sure?" if _confirm == "repair:" + gid else "Repair", Vector2(110, 40))
 			rb.name = "Repair_" + gid
 			rb.add_theme_font_size_override("font_size", 15)
-			rb.disabled = not Crafting.can_afford(rc)
-			rb.tooltip_text = "Repair it to full: " + Crafting.cost_text(rc)
+			rb.disabled = game.meat_bank < rc
+			rb.tooltip_text = "Repair it to full: %d meat" % rc
 			rb.pressed.connect(func(): press_repair(gid))
 			row.add_child(rb)
 		detail.add_child(row)
 		if slot == "weapon" and gid != "" and Gear.card_slots(gid) > 0:
 			_card_row(gid)
-		if worn:   # weapon durability on its own line: hits left, BROKEN at 0
-			var br := Gear.broken(gid)
-			var dtxt := ("      BROKEN · repair it to use it again" if br else "      Durability %d/%d hits") % ([] if br else [Gear.durability(gid), Gear.max_durability(gid)])
-			if not rc.is_empty():
-				dtxt += "  ·  repair: " + Crafting.cost_text(rc)
+		if worn:   # durability on its own line: runs left, WORN OUT at 0
+			var br := Gear.worn_out(gid)
+			var dtxt := "      WORN OUT · half strength until repaired" if br else "      %d of %d runs left" % [Gear.durability(gid), Gear.max_durability(gid)]
+			if rc > 0:
+				dtxt += "  ·  repair: %d meat" % rc
 			var dl := Market._text(dtxt,
 					15, Color(0.8, 0.15, 0.1) if br else Color(0.45, 0.3, 0.15))
 			dl.name = "Durability_" + gid

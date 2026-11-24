@@ -1410,24 +1410,31 @@ func _feedback_checks() -> void:
 	check(Dinos.stat("rok", "armor") > Dinos.trained_stat("rok", "armor"), "gear adds on top of what levels give")
 	var saved := SaveData.load_gear()
 	check((saved.owned as Array).has(axe) and saved.equipped.rok.weapon == axe and int(saved.materials.wood) == Crafting.have("wood"), "gear and materials are saved")
-	# --- weapon durability (each connecting ATTACK wears it; broken = no bonus until repaired)
+	# --- durability in runs: every run uses 1; at 0 Worn Out (half its bonus) until repaired for meat
 	check(Gear.durability(axe) == Gear.max_durability(axe) and Gear.max_durability(axe) > 0 and Gear.max_durability("shell_plate") > 0,
 			"a new weapon has full durability, and armor has durability too")
 	main.gear_wear[axe] = 2
-	main.wear_weapon(axe)
-	check(Gear.durability(axe) == 1 and not Gear.broken(axe) and is_equal_approx(Dinos.stat("rok", "power"), power0 + 2.0), "a hit wears a weapon down by one")
-	main.wear_weapon(axe)
-	check(Gear.broken(axe) and is_equal_approx(Dinos.stat("rok", "power"), power0) and Gear.reach("rok") == Tuning.ATTACK_REACH_HAND
-			and main.audio.played.has("weapon_break"), "at 0 the weapon breaks: no bonus, bare-hand reach, a snap")
-	check(main.attack_clip() == "style_fist", "a broken weapon means bare hands (the Fist)")
+	main._worn_run = false
+	main._wear_run()
+	check(Gear.durability(axe) == 1 and is_equal_approx(Dinos.stat("rok", "power"), power0 + 2.0), "a run wears each worn piece down by one")
+	main._wear_run()
+	check(Gear.durability(axe) == 1, "...once a run")
+	main._worn_run = false
+	main._wear_run()
+	check(Gear.worn_out(axe) and is_equal_approx(Dinos.stat("rok", "power"), power0 + 1.0) and Gear.reach("rok") > Tuning.ATTACK_REACH_HAND,
+			"at 0 it's Worn Out: half its bonus, still its reach (it never breaks from wear)")
+	check(main.attack_clip() != "style_fist" and main.new_this_run.any(func(t): return String(t).contains("Worn Out")), "a Worn Out weapon is still swung, and the run's news says so")
 	check(int(SaveData.load_gear().wear[axe]) == 0, "wear is saved")
 	var rcost := Gear.repair_cost(axe)
-	var rwood := Crafting.have("wood")
-	var rbank: int = main.meat_bank
-	check(not rcost.is_empty() and int(rcost.get("wood", 0)) <= int(Crafting.recipe("stone_axe").wood) and main.repair_gear(axe) and main.meat_bank == rbank
-			and Crafting.have("wood") == rwood - int(rcost.get("wood", 0)) and Gear.durability(axe) == Gear.max_durability(axe) and not Gear.broken(axe),
-			"repairing at the Camp costs materials (not meat) and restores it")
-	check(Gear.repair_cost(axe).is_empty() and not main.repair_gear(axe), "a weapon at full durability needs no repair")
+	main.meat_bank = rcost + 5
+	check(rcost == int(Crafting.num("repair", "meat")[Gear.rarity_of(axe)]) and main.repair_gear(axe) and main.meat_bank == 5 and Gear.durability(axe) == Gear.max_durability(axe) and not Gear.worn_out(axe),
+			"repairing costs meat (more for rarer pieces) and restores it to full")
+	check(Gear.repair_cost(axe) == 0 and not main.repair_gear(axe), "a weapon at full durability needs no repair")
+	main.gear_wear[axe] = 1
+	main.meat_bank = 0
+	check(not main.repair_gear(axe), "no repair without the meat")
+	main.gear_wear.erase(axe)
+	main._sync_gear()
 	# --- crafting (the user's design: gear is crafted, never bought; config/crafting.cfg)
 	Crafting.forget()
 	check(Crafting.materials().size() == 45 and Crafting.recipes().size() == Gear.ITEMS.size(), "crafting.cfg lists 45 materials and a recipe for every weapon and armor")
@@ -1573,7 +1580,7 @@ func _feedback_checks() -> void:
 	# Kora repairs worn gear on the Items screen too (beside SALVAGE)
 	main.gear_wear[c_leg] = 3
 	main._sync_gear()
-	main.grant_materials(Gear.repair_cost(c_leg), false)
+	main.meat_bank += Gear.repair_cost(c_leg)
 	c_it.show_tab("weapon")
 	c_it.select(c_leg)
 	check(c_it.detail.find_child("Repair", true, false) != null and c_it.detail.find_child("Salvage", true, false) != null, "worn gear shows REPAIR beside SALVAGE on the Items screen")
@@ -1655,18 +1662,28 @@ func _feedback_checks() -> void:
 	main.equip_gear("rok", "armor", vest)
 	main.start_run(false)
 	var arm0 := Dinos.stat("rok", "armor")
+	main.gear_wear.erase(vest)   # (starting a run ends the last one, which wore it)
+	main._sync_gear()
 	var vmax := Gear.max_durability(vest)
-	check(vmax == int(Crafting.num("durability", "hide_vest")) and vmax > 0, "armor has durability (config/crafting.cfg [durability])")
+	check(vmax == int(Crafting.num("durability", "hide_vest")) and vmax > 0, "armor lasts a number of runs (config/crafting.cfg [durability])")
 	main.player.invuln = 0.0
 	main._hurt("small", "test")
-	check(Gear.durability(vest) == vmax - 1, "every hit taken wears the armor by 1")
+	check(Gear.durability(vest) == vmax, "hits no longer wear armor (only runs do)")
 	main.gear_wear[vest] = 1
 	main._sync_gear()
-	main._hurt("small", "test")
-	check(Gear.broken(vest) and Dinos.stat("rok", "armor") < arm0, "at 0 the armor breaks and its Armor is gone")
+	main._worn_run = false
+	main._wear_run()
+	check(Gear.worn_out(vest) and Dinos.stat("rok", "armor") < arm0 and Dinos.stat("rok", "armor") > Dinos.trained_stat("rok", "armor"), "Worn Out armor protects at half strength")
 	var vcost := Gear.repair_cost(vest)
-	main.grant_materials(vcost, false)
-	check(not vcost.is_empty() and main.repair_gear(vest) and Gear.durability(vest) == vmax and is_equal_approx(Dinos.stat("rok", "armor"), arm0), "repairing it (materials) brings it back to full")
+	main.meat_bank += vcost
+	check(vcost > 0 and main.repair_gear(vest) and Gear.durability(vest) == vmax and is_equal_approx(Dinos.stat("rok", "armor"), arm0), "repairing it (meat) brings it back to full")
+	# old saves counted hits: each piece keeps its share left, in runs
+	main.gear_wear[vest] = int(main.OLD_DURABILITY["hide_vest"] * Crafting.durability_mult(Gear.rarity_of(vest)) / 2.0)
+	main._wear_v2 = false
+	main._migrate_wear()
+	check(absi(Gear.durability(vest) - int(ceil(vmax / 2.0))) <= 1 and bool(SaveData.load_gear().get("wear_v2", false)), "an old save's wear (in hits) becomes runs, keeping the share left")
+	main.gear_wear.erase(vest)
+	main._sync_gear()
 	main.equip_gear("rok", "armor", "")
 	# selling in the Market at 80% of the value (config/economy.cfg)
 	check(is_equal_approx(float(Economy.num("sell", "share")), 0.8), "the Market pays 80% of an item's value")

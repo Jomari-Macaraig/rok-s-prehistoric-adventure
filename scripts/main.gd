@@ -62,6 +62,7 @@ var _roll_t := 0.0                # Barrel Roll: flying hits pass through (s)
 var _roll_cd := 0.0               # until the next roll (s)
 var _last_jump_press := -10.0     # time of the last JUMP press (Barrel Roll's double tap)
 var _foresight_t := 0.0           # Foresight: time slowed (s)
+var _worn_run := false            # this run's gear wear is done (_wear_run)
 var run_dino_m: Dictionary = {}    # this run: id -> metres run as it (the summary card)
 var run_rank: Array = Tuning.RUN_RANKS[0]   # this run's rank (RunSummary.rank_for): its multiplier boosts meat and XP
 var run_bonus_meat := 0
@@ -184,9 +185,11 @@ func _ready() -> void:
 			gear_equipped[h]["weapon"] = ""
 	gear_wear = Dictionary(g.get("wear", {}))
 	gear_rarity = Dictionary(g.get("rarity", {}))
+	_wear_v2 = bool(g.get("wear_v2", false))
 	gear_next = int(g.get("next", 1))
 	materials = Dictionary(g.get("materials", {}))
 	_sync_gear()
+	_migrate_wear()
 	guide_viewed = SaveData.load_viewed()
 	boosters_owned = SaveData.load_unlocked_boosters()
 	dinos_owned = SaveData.load_dinos_owned()
@@ -486,6 +489,7 @@ func start_run(intro := true) -> void:
 	run_dino_m.clear()
 	run_levelups.clear()
 	run_milestones.clear()
+	_worn_run = false
 	_quick_start_t = 0.0
 	_charge_t = 0.0
 	_charge_cd = 0.0
@@ -1960,7 +1964,6 @@ func _hurt(key: String, cause: String, pop := true) -> bool:
 		health = 1   # once a run: a quarter heart left
 		fx.float_text(player.position + Vector2(-70, -250), "LAST STAND!", Color(1.0, 0.8, 0.3), 32)
 		audio.play("shield", 0.0, 1.2)
-	_wear_armor()
 	if pop:
 		hud.hearts_hit()
 	if health <= 0:
@@ -2454,6 +2457,7 @@ func _bank_meat() -> void:
 	if not run_materials.is_empty():   # (already in the bank; just the news)
 		new_this_run.append("Found " + Crafting.cost_text(run_materials))
 		run_materials.clear()
+	_wear_run()
 	SaveData.save_badges(badge_stats, badge_tiers)   # running totals, once per run
 	SaveData.save_missions(missions.to_dict())   # today's progress
 	SaveData.save_missions(missions_week.to_dict(), "weekly")
@@ -2822,7 +2826,7 @@ func _sync_gear() -> void:
 func _save_gear() -> void:
 	_sync_gear()
 	SaveData.save_gear({"owned": gear_owned, "equipped": gear_equipped, "cards": cards, "sockets": gear_sockets, "wear": gear_wear,
-			"rarity": gear_rarity, "next": gear_next, "materials": materials})
+			"rarity": gear_rarity, "next": gear_next, "materials": materials, "wear_v2": true})
 
 
 ## Dinosaur cards are dropped by wild dinosaurs (the user's rule, not sold in
@@ -2913,30 +2917,49 @@ func slot_card(weapon: String, dino: String) -> bool:
 	return true
 
 
-## One hit's wear on a weapon: at Gear.WEAR_WARN uses left a warning, at 0 it
-## breaks (snap sound, a banner; no bonus or reach until repaired at the Dinosaur Camp).
-func wear_weapon(id: String) -> void:
-	var left := Gear.durability(id) - 1
-	gear_wear[id] = left
-	if left == Gear.WEAR_WARN:
-		hud.show_banner(Gear.name_of(id).to_upper() + " IS WEARING OUT", "%d hits left. Repair it at the Dinosaur Camp." % left, Color(1.0, 0.75, 0.4), 2.2)
-	elif left <= 0 and Gear.slot_of(id) == "armor":
-		audio.play("weapon_break", 0.05, 0.8)
-		fx.float_text(player.position + Vector2(-50, -230), "CRACK!", Color(1.0, 0.55, 0.4), 30)
-		hud.show_banner(Gear.name_of(id).to_upper() + " BROKE!", "No more protection until you repair it at the Dinosaur Camp.", Color(1.0, 0.5, 0.4), 2.8)
-		new_this_run.append(Gear.name_of(id) + " broke")
-	elif left <= 0:
-		if player.form == Forms.ROK:
-			player.attack_stop()   # back to the body sprite so the shatter shows
-			player.weapon_break(Gear.base(id))   # its shatter plays in his hand
-		audio.play("weapon_break", 0.05)
-		fx.float_text(player.position + Vector2(-50, -230), "SNAP!", Color(1.0, 0.55, 0.4), 30)
-		fx.add_shake(4.0)
-		hud.show_banner(Gear.name_of(id).to_upper() + " BROKE!", "Repair it at the Dinosaur Camp to use it again.", Color(1.0, 0.5, 0.4), 2.8)
-		new_this_run.append(Gear.name_of(id) + " broke")
+var _wear_v2 := false   # the save's wear is in runs (older saves counted hits)
+## What durability used to be, in hits, to turn an old save's wear into runs.
+const OLD_DURABILITY := {"club": 30, "stone_axe": 40, "flint_spear": 50, "bone_hammer": 60, "sling": 80, "torch": 45, "bow": 70,
+		"hide_vest": 20, "bone_guards": 28, "scale_mail": 36, "shell_plate": 48}
+
+
+## Old saves counted wear in hits: keep each piece's share left in runs
+## (broken gear, 0 left, becomes Worn Out). Runs once.
+func _migrate_wear() -> void:
+	if _wear_v2:
+		return
+	_wear_v2 = true
+	for id in gear_wear.keys():
+		var old_max := float(OLD_DURABILITY.get(Gear.base(id), 0)) * Crafting.durability_mult(Gear.rarity_of(id))
+		var mx := Gear.max_durability(id)
+		if old_max <= 0.0 or mx <= 0:
+			gear_wear.erase(id)
+			continue
+		gear_wear[id] = clampi(int(ceil(float(gear_wear[id]) / old_max * mx - 0.001)), 0, mx)
 	_save_gear()
-	if left <= 0 and player.form == Forms.ROK:
-		player.refresh_form()   # its bonus is gone
+
+
+## Once per run (or stage), when it ends: every piece the played hero wears
+## uses 1 durability (config/crafting.cfg [durability], in runs). A few runs
+## before the end the news warns; at 0 it's Worn Out (half strength until
+## repaired for meat). Gear never breaks from wear.
+func _wear_run() -> void:
+	if _worn_run or tutorial_run != null:
+		return
+	_worn_run = true
+	var hero := Skills.hero()
+	for slot in ["weapon", "armor"]:
+		var id := Gear.slot_item(hero, slot)
+		if id == "" or Gear.max_durability(id) <= 0 or Gear.durability(id) <= 0:
+			continue
+		var left := Gear.durability(id) - 1
+		gear_wear[id] = left
+		if left == Gear.WEAR_WARN:
+			new_this_run.append("%s: %d runs left" % [Gear.name_of(id), left])
+		elif left == 0:
+			new_this_run.append("%s is Worn Out: half strength until repaired at the Camp" % Gear.name_of(id))
+	_save_gear()
+	Forms.clear_cache()
 
 
 ## Something can be crafted right now (a learned recipe with its materials):
@@ -2980,25 +3003,15 @@ func sell(sid: String) -> int:
 	return price
 
 
-## Armor wears by 1 for every hit Rok takes wearing it (as a hero, not
-## shapeshifted; config/crafting.cfg [durability]). Broken armor gives no
-## Armor until it's repaired.
-func _wear_armor() -> void:
-	if player.form != Forms.ROK:
-		return
-	var a := Gear.slot_item(String(player.data().id), "armor")
-	if a != "" and Gear.max_durability(a) > 0 and not Gear.broken(a):
-		wear_weapon(a)
-
-
-## Repair worn or broken gear (a weapon or armor) to full for materials (Gear.repair_cost).
+## Repair worn gear (a weapon or armor) to full for meat (Gear.repair_cost).
 ## Returns true if repaired.
 func repair_gear(id: String) -> bool:
 	var cost := Gear.repair_cost(id)
-	if cost.is_empty() or not Crafting.can_afford(cost) or not gear_owned.has(id):
+	if cost <= 0 or meat_bank < cost or not gear_owned.has(id):
 		audio.play("denied", 0.0)
 		return false
-	_spend(cost)
+	meat_bank -= cost
+	SaveData.save_meat(meat_bank)
 	gear_wear.erase(id)
 	_save_gear()
 	audio.play("unlock", 0.0)
@@ -3257,7 +3270,7 @@ func carry_weapon() -> String:
 	if player.form != Forms.ROK:
 		return ""
 	var w := Gear.slot_item(String(player.data().id), "weapon")
-	if w == "" or not Gear.ITEMS.has(Gear.base(w)) or Gear.slot_of(w) != "weapon" or Gear.broken(w):
+	if w == "" or not Gear.ITEMS.has(Gear.base(w)) or Gear.slot_of(w) != "weapon":
 		return ""
 	return Gear.base(w)
 
@@ -3270,7 +3283,7 @@ func attack_clip() -> String:
 		return "attack"
 	var hero := String(player.data().id)
 	var w := Gear.slot_item(hero, "weapon")
-	if w == "" or not Gear.ITEMS.has(Gear.base(w)) or Gear.slot_of(w) != "weapon" or Gear.broken(w):
+	if w == "" or not Gear.ITEMS.has(Gear.base(w)) or Gear.slot_of(w) != "weapon":
 		return Gear.fist_clip(hero)   # bare hands (or a card, or a broken weapon): the Fist style, or "" (the drawn lunge)
 	var sc := Gear.style_clip(hero, w)
 	return sc if sc != "" else "attack_" + Gear.base(w)   # the empty-handed style (weapon drawn at the grip), else the drawn-in clip
@@ -3331,10 +3344,6 @@ func attack_target() -> Obstacle:
 
 func _attack_hit(target: Obstacle) -> Obstacle:
 	var power := attack_power()
-	if player.form == Forms.ROK:   # the hit wears the hero's weapon (after its Power counted)
-		var w := Gear.slot_item(String(player.data().id), "weapon")
-		if Gear.max_durability(w) > 0 and not Gear.broken(w):
-			wear_weapon(w)
 	if not attack_breaks(target, power):
 		fx.float_text(target.position + Vector2(-40, -target.size.y - 30.0), "CLANG!", Color(0.85, 0.85, 0.9), 26)
 		audio.play("shield", 0.05, 0.7, -2.0)
