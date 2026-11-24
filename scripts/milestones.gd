@@ -12,6 +12,7 @@ static var levels: Array = DEFAULT_LEVELS
 static var evolutions: Array = DEFAULT_EVOLUTIONS
 static var species: Dictionary = {}   # species id -> {level: milestone id}
 static var info: Dictionary = {}      # milestone id -> {name, kind, text, value}
+static var signature: Dictionary = {} # expansion id -> its level 8 Signature Trick
 static var _loaded := false
 
 
@@ -25,6 +26,9 @@ static func _load() -> void:
 		return
 	levels = c.get_value("levels", "milestones", DEFAULT_LEVELS)
 	evolutions = c.get_value("levels", "evolutions", DEFAULT_EVOLUTIONS)
+	if c.has_section("signature"):
+		for k in c.get_section_keys("signature"):
+			signature[k] = String(c.get_value("signature", k))
 	for s in c.get_sections():
 		var parts := s.split(".")
 		if parts.size() != 2:
@@ -39,10 +43,22 @@ static func _load() -> void:
 					"text": c.get_value(s, "text", ""), "value": c.get_value(s, "value", 1)}
 
 
-## {level: milestone id} for a species ({} if it has none yet).
+## {level: milestone id} for a species. An expansion dinosaur follows its
+## category's original, with its own Signature Trick at level 8 (none until
+## it's written in [signature]). {} for heroes.
 static func of(id: String) -> Dictionary:
 	_load()
-	return species.get(id, {})
+	if species.has(id):
+		return species[id]
+	if Heroes.is_hero(id) or not Dinos.ROSTER.has(id):
+		return {}
+	var base: String = Forms.DATA[Dinos.slot_of(Dinos.category_of(id))].id
+	var m: Dictionary = species.get(base, {}).duplicate()
+	m.erase(8)
+	if signature.has(id):
+		m[8] = signature[id]
+	species[id] = m
+	return m
 
 
 ## Has this dinosaur reached the milestone?

@@ -73,7 +73,15 @@ Raptor's Speed reaches 7). Heroes don't evolve. Until evolved art exists the
 form glows (`Player.evo_tint`: gold after the first, violet after the second;
 hit flashes and the level-up burst fade back to it).
 
-**The Raptor, Triceratops and Spinosaurus** are built (the Pteranodon and the expansion dinosaurs are ticket 06).
+All four originals are built (tickets 04–06), and the expansion dinosaurs inherit theirs.
+
+**Expansion dinosaurs** (`Milestones.of`): each follows its category's original
+(Runner = Raptor, Smasher = Triceratops, Tank = Spinosaurus, Flyer =
+Pteranodon), except level 8, its own **Signature Trick**, written when that
+dinosaur gets its Trail (`config/milestones.cfg` `[signature]` <id> = milestone
+id, plus its `[milestone.*]` and code). Until then it has no level 8 milestone.
+The effects check the species running (`player.data().id`), so an equipped
+Gallimimus at level 5 gets Double Dash.
 
 **The Raptor**:
 
@@ -107,6 +115,17 @@ hit flashes and the level-up burst fade back to it).
 | 13 | Trick **Sail Brace** | pressing SLIDE braces: the next hit within 1 s is free, 6 s cooldown (`_press_slide`) |
 | 15 | Trait **River King** | +40 px/s of chase gap while swimming |
 | 18 | Trick **Double Shield** | each shapeshift starts with 2 shields (`form_data` `armor`) |
+
+**The Pteranodon** (ticket 06):
+
+| Lv | Milestone | In the game |
+|---|---|---|
+| 3 | Trait **Updraft** | glides fall at 0.7× `GLIDE_FALL` (`Player._fly`) |
+| 5 | Trick **Dive** | SLIDE in the air dives at 1.35× fast-fall and gains 20 px on the hunter (`_press_slide`). (Every form already slams down on SLIDE in the air; the gain and steeper angle are what's new.) |
+| 8 | Trait **Soft Landing** | landing from a dive gives 0.6 s of invulnerability, so it can't stumble (`player.landed`) |
+| 13 | Trick **Wing Buffet** | ATTACK in the air knocks flying wild dinosaurs (swoopers) within 320 px away (`_wing_buffet`) |
+| 15 | Trait **Thermal Rider** | PRIMAL drains at 0.8× while climbing |
+| 18 | Trick **Barrel Roll** | a double tap of JUMP in the air: 0.6 s when swoopers pass through, 4 s cooldown (`_press_jump`, `start_roll`, `_collide`) |
 
 **Shown**: a new milestone or evolution floats "NEW: Raptor learned Double
 Dash" mid-run, is run news, and gets a green **NEW** card on the summary

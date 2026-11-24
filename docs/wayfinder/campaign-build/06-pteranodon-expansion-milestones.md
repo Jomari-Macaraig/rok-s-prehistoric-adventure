@@ -4,11 +4,15 @@
 
 **Blocked by:** [04: Milestones, Evolution and the Raptor's six](04-milestones-evolution-raptor.md)
 
-**Status:** ready-for-agent
+**Status:** done
 
 Spec: [docs/systems/campaign.md](../../systems/campaign.md).
 
-- [ ] Each of the Pteranodon's six works in a run
-- [ ] An equipped expansion dinosaur gains its category's milestones
-- [ ] The level 8 Signature Trick slot is empty (no effect) until configured
-- [ ] The affected system docs (and tests/CLAUDE.md for new checks) are updated in the same change; `ALL TESTS PASSED`
+- [x] Each of the Pteranodon's six works in a run
+- [x] An equipped expansion dinosaur gains its category's milestones
+- [x] The level 8 Signature Trick slot is empty (no effect) until configured
+- [x] The affected system docs (and tests/CLAUDE.md for new checks) are updated in the same change; `ALL TESTS PASSED`
+
+## Done (2026-11-24)
+
+Built per [dinosaurs.md#milestones](../../systems/dinosaurs.md#milestones). Dive adds a steeper dive and a chase gain (SLIDE in the air already slammed down for every form); Soft Landing is a short invulnerability after a dive landing. Thermal Rider has no automated check.

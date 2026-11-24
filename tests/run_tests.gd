@@ -84,6 +84,7 @@ func _process(_delta: float) -> bool:
 		_skill_checks()
 		_dino_milestone_checks()
 		_tri_spino_milestone_checks()
+		_ptera_expansion_milestone_checks()
 		main.start_run(false)
 		check(main.unlocked == [Forms.ROK], "fresh save: only Rok unlocked")
 		main.distance = (Progression.UNLOCKS[Forms.RAPTOR] + 10.0) * Tuning.PX_PER_M
@@ -4412,6 +4413,72 @@ func _tri_spino_milestone_checks() -> void:
 	_play_as(Forms.SPINOSAURUS, 18)
 	p = main.player
 	check(int(Forms.get_data(Forms.SPINOSAURUS).armor) == 2 and p.armor == 2, "Double Shield: each shapeshift starts with 2 shields")
+	main._shift(Forms.ROK)
+	_clear_obstacles()
+	main.unlocked = unlocked_keep
+	main.shift_cd = 0.0
+	main.dino_xp = xp_keep
+	Dinos.xp = main.dino_xp
+	SaveData.save_dino_xp(xp_keep)
+	Forms.clear_cache()
+	main.player.refresh_form()
+
+
+## The Pteranodon's six milestones, and expansion dinosaurs following their
+## category's list.
+func _ptera_expansion_milestone_checks() -> void:
+	var xp_keep: Dictionary = main.dino_xp.duplicate()
+	var unlocked_keep: Array = main.unlocked.duplicate()
+	main.unequip("flyer")
+	var gm := Milestones.of("gallimimus")
+	var rmap := Milestones.of("raptor")
+	check(gm.keys().map(func(k): return int(k)) == [3, 5, 13, 15, 18] and [3, 5, 13, 15, 18].all(func(l): return gm[l] == rmap[l]), "an expansion dinosaur follows its category's milestones, its level 8 Signature Trick still to be written")
+	main.dino_xp["gallimimus"] = Dinos.xp_for(5)
+	Dinos.xp = main.dino_xp
+	check(Milestones.knows("gallimimus", "double_dash") and not Milestones.knows("gallimimus", "light_step"), "...learned by its own level")
+	check(Milestones.of("rok").is_empty(), "heroes have no milestones")
+	_play_as(Forms.PTERANODON, 3)
+	var p: Player = main.player
+	p.on_ground = false
+	p._jump_held = false
+	p._takeoff_t = 0.0
+	p.vy = 0.0
+	p._fly(5.0)
+	check(absf(p.vy - Tuning.GLIDE_FALL * float(Milestones.value("updraft"))) < 1.0, "Updraft: glides fall slower")
+	_play_as(Forms.PTERANODON, 8)
+	p = main.player
+	p.on_ground = false
+	var g0: float = main.chase_gap
+	main._press_slide()
+	check(main._diving and p.vy >= Tuning.FAST_FALL_SPEED * 1.3 and absf(main.chase_gap - g0 - float(Milestones.value("dive"))) < 0.01, "Dive: SLIDE in the air dives steeply, gaining on the hunter")
+	p.invuln = 0.0
+	p.landed.emit(true)
+	check(p.invuln >= float(Milestones.value("soft_landing")) - 0.01 and not main._diving, "Soft Landing: landing from a dive never stumbles")
+	_play_as(Forms.PTERANODON, 13)
+	p = main.player
+	main.course._spawn_key("swooper", p.position.x + 150.0)
+	var sw: Obstacle = main.course.obstacles[-1]
+	sw.position.x = p.position.x + 150.0
+	sw.position.y = p.position.y - 300.0   # up in the sky: out of ATTACK's reach, not out of the buffet's
+	p.on_ground = false
+	main.attack_cd = 0.0
+	main._attack()
+	check(not main.course.obstacles.has(sw), "Wing Buffet: ATTACK in the air knocks a flying wild dinosaur away")
+	check(Milestones.knows("pteranodon", "thermal_rider") == false, "Thermal Rider waits for level 15")
+	_play_as(Forms.PTERANODON, 18)
+	p = main.player
+	p.on_ground = false
+	main._last_jump_press = Time.get_ticks_msec() / 1000.0
+	main._press_jump()
+	check(main._roll_t > 0.0, "Barrel Roll: a double tap of JUMP in the air rolls")
+	main.course._spawn_key("swooper", p.position.x)
+	var sw2: Obstacle = main.course.obstacles[-1]
+	sw2.position.x = p.position.x
+	sw2._bob = 0.0
+	sw2.position.y = p.position.y - 40.0
+	main._collide()
+	check(main.health == main.max_health(), "...rolling through a flying hit")
+	check(not main.start_roll(), "...with a cooldown")
 	main._shift(Forms.ROK)
 	_clear_obstacles()
 	main.unlocked = unlocked_keep

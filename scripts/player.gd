@@ -798,10 +798,12 @@ func _fly(delta: float) -> void:
 	_takeoff_t = maxf(_takeoff_t - delta, 0.0)
 	if _jump_held:
 		vy = move_toward(vy, -Tuning.FLY_RISE, Tuning.FLY_ACCEL * delta)
-	elif vy < Tuning.GLIDE_FALL:
-		vy = move_toward(vy, Tuning.GLIDE_FALL, Tuning.GRAVITY * 0.6 * delta)
 	else:
-		vy = move_toward(vy, Tuning.GLIDE_FALL, Tuning.GRAVITY * 2.0 * delta)  # ease out of a dive
+		var fall := Tuning.GLIDE_FALL * (float(Milestones.value("updraft", 1.0)) if Milestones.knows(String(data().id), "updraft") else 1.0)   # Updraft
+		if vy < fall:
+			vy = move_toward(vy, fall, Tuning.GRAVITY * 0.6 * delta)
+		else:
+			vy = move_toward(vy, fall, Tuning.GRAVITY * 2.0 * delta)  # ease out of a dive
 	if _takeoff_t > 0.0:
 		return
 	var want := "fly" if _jump_held or vy < -60.0 else "glide"

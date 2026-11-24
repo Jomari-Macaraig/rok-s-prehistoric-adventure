@@ -57,6 +57,10 @@ var _scales_t := 0.0              # Regrowing Scales: until the shield comes bac
 var _scales_used := false         # ...once per shapeshift
 var _brace_t := 0.0               # Sail Brace: the next hit within this is free (s)
 var _brace_cd := 0.0              # until the next brace (s)
+var _diving := false              # a Pteranodon dive (Dive, Soft Landing)
+var _roll_t := 0.0                # Barrel Roll: flying hits pass through (s)
+var _roll_cd := 0.0               # until the next roll (s)
+var _last_jump_press := -10.0     # time of the last JUMP press (Barrel Roll's double tap)
 var run_dino_m: Dictionary = {}    # this run: id -> metres run as it (the summary card)
 var run_rank: Array = Tuning.RUN_RANKS[0]   # this run's rank (RunSummary.rank_for): its multiplier boosts meat and XP
 var run_bonus_meat := 0
@@ -313,6 +317,9 @@ func _spawn_player() -> void:
 		fx.dust(player.position, true))
 	player.stepped.connect(_on_step)
 	player.landed.connect(func(hard):
+		if _diving and player.form == Forms.PTERANODON and Milestones.knows(String(player.data().id), "soft_landing"):
+			player.invuln = maxf(player.invuln, float(Milestones.value("soft_landing", 0.6)))   # Soft Landing: no stumble
+		_diving = false
 		fx.dust(player.position, hard)
 		if _heavy():
 			audio.play("land_heavy", 0.08)
@@ -485,6 +492,9 @@ func start_run(intro := true) -> void:
 	_scales_used = false
 	_brace_t = 0.0
 	_brace_cd = 0.0
+	_diving = false
+	_roll_t = 0.0
+	_roll_cd = 0.0
 	if levels_refund > 0:
 		new_this_run.append("Levels now come by themselves: %d meat refunded" % levels_refund)
 		levels_refund = 0
@@ -897,7 +907,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif tutorial_run != null and event is InputEventKey and event.is_pressed() and not tutorial_run.allows(_key_action(event)):
 				return   # a move not taught yet (slide, attack) does nothing
 			if event.is_action_pressed("jump"):
-				player.press_jump()
+				_press_jump()
 			elif event.is_action_released("jump"):
 				_release_jump()
 			elif event.is_action_pressed("booster_1"):
@@ -1050,7 +1060,7 @@ func _touch_pressed(a: String) -> void:
 			elif a.begins_with("slot_"):
 				use_slot(int(a.substr(5)))
 			else:
-				player.press_jump()   # JUMP button or anywhere else on screen
+				_press_jump()   # JUMP button or anywhere else on screen
 		State.PAUSED:
 			audio.play("click", 0.0)
 			_resume()
@@ -1599,7 +1609,10 @@ func _play_step(delta: float) -> void:
 			seen.append("primal_tired")
 			SaveData.save_seen(seen)
 			hud.show_banner("YOUR DINO IS TIRING!", "PRIMAL energy now drains twice as fast. Turn back into Rok to reset it, then grab amber to refill.", Color(1.0, 0.45, 0.3), 4.0)
-		energy -= d.drain * drain_mult() * delta
+		var climb := 1.0
+		if player.flies() and not player.on_ground and player.vy < 0.0 and Milestones.knows(String(d.id), "thermal_rider"):
+			climb = float(Milestones.value("thermal_rider", 1.0))   # Thermal Rider: climbing costs less
+		energy -= d.drain * drain_mult() * climb * delta
 		if energy <= 0.0:
 			energy = 0.0
 			_shift(Forms.ROK)
@@ -1732,6 +1745,8 @@ func _collide() -> void:
 			else:
 				_smash(o, Color(1.0, 0.6, 0.3))   # Charge: straight through
 			continue
+		if _roll_t > 0.0 and o.kind == "swooper":
+			continue   # Barrel Roll: flying hits pass through
 		if o.kind == "steam":
 			if player.invuln <= 0.0:
 				_stumble(Tuning.STUMBLE_STEAM, "Steam!")
@@ -3168,6 +3183,8 @@ func _attack() -> Obstacle:
 		_ground_pound()
 	if player.form == Forms.SPINOSAURUS and Milestones.knows(String(player.data().id), "tail_sweep"):
 		_tail_sweep()
+	if player.form == Forms.PTERANODON and not player.on_ground and Milestones.knows(String(player.data().id), "wing_buffet"):
+		_wing_buffet()
 	if player.form != Forms.ROK and not player.on_ground and not _dashed and Milestones.knows(String(player.data().id), "double_dash"):
 		_dashed = true   # Double Dash: once a jump, a dash forward that gains on the hunter
 		chase_gap = minf(chase_gap + float(Milestones.value("double_dash", 30.0)), Tuning.CHASE_GAP_FAR)
@@ -3675,6 +3692,8 @@ func _milestone_step(delta: float) -> void:
 			audio.play("shield", 0.0, 1.2)
 	_brace_t = maxf(_brace_t - delta, 0.0)
 	_brace_cd = maxf(_brace_cd - delta, 0.0)
+	_roll_t = maxf(_roll_t - delta, 0.0)
+	_roll_cd = maxf(_roll_cd - delta, 0.0)
 	# River King (Spinosaurus): gains on the hunter while swimming
 	if player.swimming and Milestones.knows(fid, "river_king"):
 		chase_gap = minf(chase_gap + float(Milestones.value("river_king", 40.0)) * delta, Tuning.CHASE_GAP_FAR)
@@ -3726,10 +3745,52 @@ func _tail_sweep() -> void:
 	fx.float_text(player.position + Vector2(-60, -200), "TAIL SWEEP!", Color(0.6, 0.9, 1.0), 26)
 
 
+## JUMP (button, key or a tap). As a Pteranodon with Barrel Roll, a double
+## tap in the air rolls: flying hits pass through for a moment.
+func _press_jump() -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	if not player.on_ground and player.form == Forms.PTERANODON and now - _last_jump_press < 0.3 \
+			and _roll_cd <= 0.0 and Milestones.knows(String(player.data().id), "barrel_roll"):
+		start_roll()
+	_last_jump_press = now
+	player.press_jump()
+
+
+## Barrel Roll: 0.6 s when flying wild dinosaurs pass through. True if started.
+func start_roll() -> bool:
+	if _roll_cd > 0.0 or player.form != Forms.PTERANODON or not Milestones.knows(String(player.data().id), "barrel_roll"):
+		return false
+	_roll_t = 0.6
+	_roll_cd = float(Milestones.value("barrel_roll", 4.0))
+	var spin := player.create_tween()
+	spin.tween_property(player.sprite, "rotation", TAU, 0.5).from(0.0)
+	spin.tween_property(player.sprite, "rotation", 0.0, 0.0)
+	fx.float_text(player.position + Vector2(-60, -200), "BARREL ROLL!", Color(0.7, 0.9, 1.0), 26)
+	return true
+
+
+## Wing Buffet: ATTACK in the air knocks flying wild dinosaurs away.
+func _wing_buffet() -> void:
+	var r := float(Milestones.value("wing_buffet", 320.0))
+	for o in course.obstacles.duplicate():
+		if o.kind == "swooper" and not o.bumped and absf(o.position.x - player.position.x) <= r:
+			o.bumped = true
+			course.remove_obstacle(o)
+			fx.smash(o.position + Vector2(0, -30), Color(0.75, 0.6, 0.45))
+			fx.float_text(o.position + Vector2(-40, -90), "BUFFET!", Color(0.7, 0.9, 1.0), 26)
+			combo.feat()
+
+
 ## SLIDE (button or key). As a Spinosaurus with Sail Brace it also braces:
 ## the next hit within 1 s is free.
 func _press_slide() -> void:
+	var was_air := not player.on_ground
 	player.press_slide()
+	if was_air and player.form == Forms.PTERANODON and Milestones.knows(String(player.data().id), "dive") and not _diving:
+		_diving = true   # Dive: steeper, and it gains on the hunter
+		player.vy = maxf(player.vy, Tuning.FAST_FALL_SPEED * 1.35)
+		chase_gap = minf(chase_gap + float(Milestones.value("dive", 20.0)), Tuning.CHASE_GAP_FAR)
+		fx.speed_line(player.position + Vector2(-30, -60))
 	if player.form == Forms.SPINOSAURUS and _brace_cd <= 0.0 and Milestones.knows(String(player.data().id), "sail_brace"):
 		_brace_t = 1.0
 		_brace_cd = float(Milestones.value("sail_brace", 6.0))
