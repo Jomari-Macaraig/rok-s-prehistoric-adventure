@@ -4479,6 +4479,36 @@ func _ptera_expansion_milestone_checks() -> void:
 	main._collide()
 	check(main.health == main.max_health(), "...rolling through a flying hit")
 	check(not main.start_roll(), "...with a cooldown")
+	# --- the Camp's level path (ticket 07)
+	main._shift(Forms.ROK)
+	_clear_obstacles()
+	main.dino_xp["raptor"] = Dinos.xp_for(6) + 10.0
+	Dinos.xp = main.dino_xp
+	main.state = main.State.TITLE
+	main._to_title()
+	main.open_herd("runner")
+	main.herd._drag_dist = 0.0
+	main.herd.select("raptor")
+	var lb := main.herd.detail.find_child("LevelPath", true, false) as Button
+	check(lb != null, "a dinosaur's Camp detail has a Level Path button")
+	lb.pressed.emit()
+	var lp: LevelPathView = main.herd.path_view
+	var nodes := range(1, 21).map(func(l): return lp.find_child("Node_%d" % l, true, false))
+	check(lp.visible and nodes.all(func(n): return n != null), "the level path shows levels 1 to 20")
+	check(range(1, 21).all(func(l): return String(nodes[l - 1].get_meta("kind")) == ("evolution" if l in [10, 20] else ("milestone" if l in [3, 5, 8, 13, 15, 18] else "dot"))), "milestones gold at 3/5/8/13/15/18, evolutions at 10 and 20, plain dots between")
+	check(nodes.filter(func(n): return n.get_meta("lit")).size() == 6, "levels reached are lit")
+	var chip := lp.find_child("NextChip", true, false) as Label
+	check(chip != null and chip.text.contains("Lv 8") and chip.text.contains("Light Step"), "a Next chip names the next milestone")
+	(lp.find_child("Node_5", true, false) as Button).pressed.emit()
+	var it := lp.find_child("InfoTitle", true, false) as Label
+	var ist := lp.find_child("InfoState", true, false) as Label
+	check(it.text.contains("Double Dash") and it.text.contains("Trick") and ist.text == "Unlocked", "tapping a milestone shows its card, unlocked")
+	(lp.find_child("Node_13", true, false) as Button).pressed.emit()
+	ist = lp.find_child("InfoState", true, false) as Label
+	check(ist.text.contains("Unlocks at Lv 13"), "...or the level it unlocks at")
+	(lp.find_child("Back", true, false) as Button).pressed.emit()
+	check(not lp.visible and main.herd.visible, "Back returns to the Camp")
+	main.herd.close_herd()
 	main._shift(Forms.ROK)
 	_clear_obstacles()
 	main.unlocked = unlocked_keep

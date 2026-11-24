@@ -28,6 +28,7 @@ var root: Control
 var tab := "runner"
 var selected := ""          # the dinosaur shown in the detail panel
 var skill_view: SkillTreeView   # a hero's skill tree, full screen over the Camp (made on first use)
+var path_view: LevelPathView    # a dinosaur's level path, full screen over the Camp (made on first use)
 var tab_buttons := {}       # category -> Button
 var list: HBoxContainer      # the shelf row: one tile per member (named by id), or the gear choices
 var scroll: ScrollContainer
@@ -359,6 +360,8 @@ func open_herd(cat := "") -> void:
 func close_herd() -> void:
 	if skill_view:
 		skill_view.visible = false
+	if path_view:
+		path_view.visible = false
 	visible = false
 	closed.emit()
 
@@ -428,6 +431,17 @@ func open_skills(id: String) -> void:
 		add_child(skill_view)
 		skill_view.closed.connect(refresh)
 	skill_view.open(game, id)
+	game.audio.play("click", 0.0)
+
+
+## Open a dinosaur's level path over the Camp.
+func open_path(id: String) -> void:
+	if path_view == null:
+		path_view = LevelPathView.new()
+		path_view.name = "LevelPath"
+		add_child(path_view)
+		path_view.closed.connect(refresh)
+	path_view.open(game, id)
 	game.audio.play("click", 0.0)
 
 
@@ -884,6 +898,13 @@ func _build_detail_content() -> void:
 			sk.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 			sk.pressed.connect(func(): open_skills(id))
 			tv.add_child(sk)
+		elif not Heroes.is_hero(id):
+			var lp := Market._button("Level Path", Vector2(150, 34))
+			lp.name = "LevelPath"
+			lp.add_theme_font_size_override("font_size", 15)
+			lp.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+			lp.pressed.connect(func(): open_path(id))
+			tv.add_child(lp)
 	tv.add_child(Market._text(Dinos.tradeoff(id), 15, Color(0.45, 0.3, 0.18)))
 	var cmp := id != eq
 	var head := Market._text(("Compared with your %s:" % name_of(eq)) if cmp else ("Your hero: runs on foot and turns into the dinosaurs" if tab == "rok" else "Equipped on the %s button" % tab_name(tab)), 16,

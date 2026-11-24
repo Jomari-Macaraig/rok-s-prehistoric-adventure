@@ -56,6 +56,7 @@ Each system is documented on its own in [docs/systems/](../docs/systems/README.m
 | `heroes.gd` | [heroes](../docs/systems/heroes.md) |
 | `hud.gd` | [screens-and-navigation](../docs/systems/screens-and-navigation.md), [hud-and-controls](../docs/systems/hud-and-controls.md) |
 | `hunters.gd` | [chase-and-hunters](../docs/systems/chase-and-hunters.md) |
+| `level_path_view.gd` | [camp](../docs/systems/camp.md#level-path-dinosaur-tabs) (a dinosaur's level path screen) |
 | `loot.gd` | [pickups-and-loot](../docs/systems/pickups-and-loot.md) |
 | `main.gd` | [run-loop](../docs/systems/run-loop.md) |
 | `market.gd` | [marketplace](../docs/systems/marketplace.md) |

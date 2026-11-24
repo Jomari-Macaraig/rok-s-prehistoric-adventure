@@ -129,8 +129,7 @@ Gallimimus at level 5 gets Double Dash.
 
 **Shown**: a new milestone or evolution floats "NEW: Raptor learned Double
 Dash" mid-run, is run news, and gets a green **NEW** card on the summary
-(`main.run_milestones`, `RunSummary` `MilestoneCard`). The Camp's level path
-(ticket 07) will show them all.
+(`main.run_milestones`, `RunSummary` `MilestoneCard`). The Camp's **Level Path** shows them all ([camp](camp.md#level-path-dinosaur-tabs)).
 
 ## Market cards
 

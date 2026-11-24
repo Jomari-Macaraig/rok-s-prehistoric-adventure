@@ -50,6 +50,14 @@ Ones you don't own are silhouettes but can still be compared, with how to get th
 - Levels come by themselves from XP (see [leveling](leveling.md)); nothing is bought here.
 - The detail shows "Lv 7" (`Dinos.level_text`) and an XP bar; a note (`LevelNote`) says how many metres to the next level and what it adds ("Lv 4 in 450 m: +0.4 Speed. The Gallimimus levels up by itself as it runs."; heroes grow no attributes by level). The header's meat counter is hidden for now (the user's call: the Camp doesn't need it; `MeatPouch`, `visible = false`).
 
+## Level path (dinosaur tabs)
+
+An owned dinosaur's detail has a **Level Path** button under the XP bar (`open_path` → `LevelPathView`, `scripts/level_path_view.gd`; variant A of the level-path prototype). Full screen over the Camp:
+- **Header**: its portrait, name ("· Evolved"), level, XP bar, a **Next** chip ("Next: Lv 8 · Light Step", or the next evolution) and Back.
+- **The road**: levels 1–10 left to right, a bend on the right, 11–20 back to the left, a brown road with the travelled part in gold. Nodes use the user's path art (`assets/ui/camp/path_{dot,milestone,evolution}_{lit,unlit}.png`, all in one shared box so the sizes stay as drawn): plain levels are small dots, milestones gold circles with their name under them, evolutions (10, 20) the biggest, purple. Reached levels are lit; the next one pulses.
+- **Info strip** at the bottom: the tapped level (or the next one): a milestone's "Lv 5 · Trick Double Dash" with what it does, an evolution's +1 to every attribute, or a plain level's growth ("Grows +0.4 Speed."), then "Unlocked" or "Unlocks at Lv 13 (now Lv 11)".
+- Node size and spacing come from the screen width (1280×720 and 1560×720 checked).
+
 ## Skill tree (Heroes tab)
 
 A hero's detail has a **Skill Tree (n)** button under the XP bar (n = free skill points) that opens the full-screen skill tree (`open_skills` → `SkillTreeView`; see [heroes](heroes.md#skill-trees)). Back returns to the Camp and refreshes it.
