@@ -190,18 +190,17 @@ func _build_tala(vs: Vector2) -> void:
 	bubble_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	bubble_label.clip_text = false
 	bubble_label.name = "BubbleText"
-	var np := _tex("nameplate")
-	if np:
-		var plate := TextureRect.new()
-		plate.texture = np
-		plate.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		plate.stretch_mode = TextureRect.STRETCH_SCALE
-		plate.size = Vector2(250, 86)
-		plate.position = Vector2(foot.x - 125.0, vs.y - 96.0)
+	# her name on the scene kit's wooden plank, like Elder Numa's, Kora's and Ugo's
+	var plate := SceneKit.badge("Tala", "button_secondary", 24)
+	if plate:
+		plate.name = "TalaPlate"
+		plate.custom_minimum_size = Vector2(170, 0)
+		plate.size = Vector2(170, 0)
+		plate.position = Vector2(foot.x - 85.0, vs.y - 80.0)
 		plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(plate)
-	_label("TALA", 22, INK, Rect2(foot.x - 70.0, vs.y - 80.0, 140, 28), root, HORIZONTAL_ALIGNMENT_CENTER)
-	_label("Trail Scout", 15, Color(0.4, 0.28, 0.15), Rect2(foot.x - 70.0, vs.y - 54.0, 140, 22), root, HORIZONTAL_ALIGNMENT_CENTER)
+	var role := _label("Trail Scout", 17, CREAM, Rect2(foot.x - 85.0, vs.y - 38.0, 170, 24), root, HORIZONTAL_ALIGNMENT_CENTER, true)
+	role.name = "TalaRole"
 
 
 func _tala_frames() -> SpriteFrames:

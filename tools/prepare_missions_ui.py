@@ -18,7 +18,9 @@ Sources in ../Assets (the user's Missions scene pack, 2026-11-24):
   greeting wave-1.png` (wave), `Tala's Thumbs-Up Celebration Sprite Sheet-9.png`
   (thumbs), `Scout's quiet mission presentation sprite sheet-3.png` (present):
   4x2 sheets of 384x512 cells, copied as @2x and halved for 1x (192x256).
-  Alpha below 24 is wiped (the sheets carry coloured pixels at alpha 0).
+  Alpha below 24 is wiped (the sheets carry coloured pixels at alpha 0), and
+  every frame is moved so her feet land on one spot (`align`), so she
+  doesn't sway between frames.
 - The amber reward bursts (-4, -7) aren't used: missions pay meat.
 
     uv run --no-project --with pillow python tools/prepare_missions_ui.py
@@ -58,6 +60,29 @@ def clean(img: Image.Image) -> Image.Image:
     return img
 
 
+CELL = (384, 512)
+FEET = (192, 500)   # where every frame's feet land (@2x cell pixels)
+
+
+def align(sheet: Image.Image) -> Image.Image:
+    """Each 4x2 cell drawn at its own spot: move every frame so its feet
+    (the centre of the bottom eighth of the figure, alpha > 128) land on
+    FEET, so Tala stands still instead of swaying between frames."""
+    out = Image.new("RGBA", sheet.size, (0, 0, 0, 0))
+    for i in range(8):
+        cx, cy = (i % 4) * CELL[0], (i // 4) * CELL[1]
+        cell = sheet.crop((cx, cy, cx + CELL[0], cy + CELL[1]))
+        a = cell.getchannel("A").point(lambda v: 255 if v > 128 else 0)
+        box = a.getbbox()
+        if box is None:
+            continue
+        foot_top = box[3] - max(4, (box[3] - box[1]) // 8)
+        feet = a.crop((0, foot_top, CELL[0], box[3])).getbbox()
+        fx = (feet[0] + feet[2]) / 2.0 if feet else (box[0] + box[2]) / 2.0
+        out.paste(cell, (cx + round(FEET[0] - fx), cy + FEET[1] - box[3]), cell)
+    return out
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     atlas = Image.open(SRC / ATLAS).convert("RGBA")
@@ -77,7 +102,7 @@ def main() -> None:
         if not p.exists():
             print("missing:", f)
             continue
-        save(clean(Image.open(p).convert("RGBA")), f"tala_{clip}")
+        save(align(clean(Image.open(p).convert("RGBA"))), f"tala_{clip}")
     print("wrote", len(list(OUT.glob("*@2x.png"))), "pieces to", OUT)
 
 
