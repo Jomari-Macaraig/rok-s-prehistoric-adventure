@@ -52,6 +52,10 @@ build afterwards.
   checkpoints (a mistake costs a heart and sends you back); pieces listed in
   order in config with energy and amber; locked until its dinosaurs are
   unlocked; a hint after 3 tries.
+- [What a stage costs to play](03-play-cost.md): Torches, lives-style: only
+  a failed (or quit) stage costs one, clears are free; 5 max, one back per
+  30 minutes on the real clock; meat refills, reward torches up to 10, ads
+  later; endless runs stay free.
 
 ## Not yet specified
 
