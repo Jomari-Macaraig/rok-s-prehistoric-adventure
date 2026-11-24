@@ -2,7 +2,7 @@
 title: Weapons, armor and accessories: what gear is for
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: []
 ---
 
