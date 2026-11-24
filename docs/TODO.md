@@ -27,8 +27,6 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 - [ ] **Rok's Fist and Shoot standing styles, fresh redraws** (the consistency update ships them as the old art scaled to his run's size; same 4×2, 384×512 cells, feet at y 488, guides and landmarks): drop them in `Rok_Animation_Consistency_Update 3/rok/standing/` and rerun `prepare_styles.py`.
 - [ ] **Optional: Nira's and Boro's running style attacks redrawn over their in-game run** (`Rok_New_Heroes_Nira_Boro/<hero>/spritesheets/run.png`): their packs used a different, ~10% taller run, so the game fits them; legs only match exactly for Rok.
 - [ ] **A Missions scene** (the user's plan): a full screen like the Market and Camp for the daily and weekly missions (a backdrop, a board or scroll for the two lists with room for 3 + 3 missions, progress bars, a reward/streak plaque, a title plaque "MISSIONS"). Today a dark panel in the middle of the main menu stands in (`Hud.missions_panel`).
-- [ ] **Boss clips** (for campaign boss stages, when they're built; see docs/wayfinder/campaign/01-boss-stages.md): per boss dinosaur a 4x2 sheet each for running ahead of Rok (facing right), a wind-up per attack (kick a rock back, tail sweep, roar shockwave, backward charge), getting hurt, and being defeated; same canvas and pivot as its run. Until then: its existing clips with a flash and shake.
-- [ ] **Puzzle pieces** (for campaign puzzle stages, when built; see docs/wayfinder/campaign/02-puzzle-stages.md): a stone switch (off and on), stone doors in 3-4 colours (closed and open, or a 4x2 opening sheet), matching gems (a small bobbing pickup), and a checkpoint totem (idle, and lit when passed); transparent, in the game's cartoon style, sized like the current obstacles. Drawn in code until then.
 - [ ] **UI: a Crafting button** in the square menu-button style (`Rok_Square_Buttons/png_256/button_crafting_square.png`, a hammer and anvil or Kora's bench); drawn in code until then.
 - [ ] **UI: a Settings button** (cog) in the round top-left button style; a cog is drawn in code until then.
 - [ ] **UI: a Missions button** in the square menu-button style (`Rok_Square_Buttons/png_256/button_missions_square.png`, a scroll or checklist icon, no text; `prepare_menu_buttons.py` copies it to `assets/ui/square_missions.png`). A scroll is drawn in code until then.
@@ -39,6 +37,38 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 - [ ] **Optional: a Blaze Pepper idle loop** (it bobs as a still picture today).
 - [ ] **Long-run items:** the fossil pickup and the bonus-zone portal (drawn in code today).
 - [ ] **Body-armor patterns** (Hide Vest, Bone Guards, Scale Mail), once the outfit shader is built.
+
+## Campaign art (the user; spec in [systems/campaign.md](systems/campaign.md))
+
+Transparent PNGs in the game's cartoon style. Animations are 4x2 sheets (8 frames) like the power-up and chest sheets. "No animation" means the game moves it in code (pulse, bob, glow, pop). Make them in this order.
+
+- [ ] **1. Icons** (first; the first build steps use them):
+  - Torch: lit, square ~128 px, plus a dark "spent" version; **flame flicker loop** 4x2, 128 px frames, ~120 ms.
+  - Strength: a fist or dino paw with a spark, ~96 px.
+  - Kora's Blessing: a glowing charm or amulet, ~128 px; **glow loop** 4x2, 128 px, ~160 ms.
+  - Boss Materials (material-icon size): T-rex tooth, Carnotaurus horn, Utahraptor quill, Allosaurus claw.
+  - Accessories (gear-icon size): Amber Pendant, Meat Hook, Lodestone, Sun Bead, Torch Totem, Lucky Fossil.
+  - Star: gold, ~64 px, plus an empty/grey version.
+- [ ] **2. Campaign map**:
+  - Stage circles, each locked (dim, with a lock) / next / cleared (room for a number and 3 small stars): normal ~120 px, puzzle (gem mark) ~120 px, boss (skull or claw mark) ~160 px with an optional menace loop (glowing eyes or embers, 4x2).
+  - Path pieces: a dotted or stone path tile per zone (Forest, Desert, Canyon, Volcanic), or one neutral to start.
+  - Trail sign: a wooden signpost, open and locked.
+  - Star chest: closed, opened, and an opening 4x2 (the milestone chest may do).
+  - Chapter buttons: 4 small zone badges (leaf, sun, canyon arch, volcano).
+- [ ] **3. Puzzle pieces** (sized like the current obstacles; drawn in code until then; see [02-puzzle-stages](wayfinder/campaign/02-puzzle-stages.md)):
+  - Stone switch: off and on; **press** 4x2 (sinks and glows, frame 2 the hit).
+  - Stone doors in red, blue, green and gold: closed and open; **opening** 4x2 per colour (or one grey door the game tints).
+  - Gems in the same 4 colours, ~64 px; **sparkle loop** 4x2, 64 px, ~120 ms.
+  - Checkpoint totem: idle and lit; **lighting up** 4x2 and a **lit idle loop**.
+  - Fork sign: an arrow sign pointing up and down.
+- [ ] **4. Camp screens** (level path and skill tree):
+  - Level path: a small plain dot, a gold milestone circle and a bigger purple evolution circle, each lit and unlit (optional evolution shimmer loop, 4x2).
+  - Skill card frame: learned (filled), learnable (gold rim), locked (dim), with room for an icon and name.
+  - Branch banners (9): Rok (Runner, Brawler, Survivor), Nira (Pathfinder, Acrobat, Tracker), Boro (Bulwark, Crusher, Protector).
+  - Milestone icons (24): 6 each for the Raptor, Triceratops, Spinosaurus and Pteranodon (names in the spec).
+  - Skill icons (about 40) for the three heroes' skills; shared skills reuse one icon.
+- [ ] **5. Boss clips** (the game uses existing clips with a flash and shake until then; see [01-boss-stages](wayfinder/campaign/01-boss-stages.md)): for the T-rex, Carnotaurus, Utahraptor and Allosaurus, one 4x2 sheet each, same canvas and pivot as its run, facing right (it runs ahead of Rok): run ahead (glancing back), wind-up kick rock (frame 5 the release), wind-up tail sweep, wind-up roar, wind-up charge back, hurt, enrage (plays once at half health), defeated. Plus props: the kicked rock (or reuse a boulder) and a ground shockwave strip (4x2).
+- [ ] **6. Later**: evolved looks at levels 10 and 20 for the four original dinosaurs (shared with pets' grown-up looks, so wait for the pet plan); Boss Set art (12 icons for 4 sets, plus how they show on each hero); a stage loading backdrop per zone if the main loading kit isn't enough.
 
 ## Canyon follow-ups
 
