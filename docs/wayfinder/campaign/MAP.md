@@ -129,6 +129,13 @@ Decide everything first; build afterwards.
   purple, next glowing, tap for its reward); a hero's three branches growing
   upward as skill cards with points and a free reset; prototype on branch
   `prototype/level-path-screens`.
+- [What's in each milestone, skill tree, accessory and set](19-growth-content.md):
+  four lanes (milestones change the dinosaur's form, skills the hero's,
+  accessories the run, set bonuses combat in every form); Tricks and
+  Traits at 3/5/8/13/15/18 for the four originals, expansion dinosaurs
+  follow their category plus a Signature Trick; 19-point trees of 3x5
+  skills for Rok, Nira and Boro; 6 accessories scaling with rarity and
+  upgrades; the Utahraptor is the Canyon boss; four 3-piece set bonuses.
 
 ## Not yet specified
 

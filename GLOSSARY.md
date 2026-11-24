@@ -104,8 +104,20 @@ One number for how strong the player's team is: the hero (Level, skills, gear) p
 _Avoid_: Power (that's an attribute), rating, CP
 
 **Milestone**:
-A set Level at which a dinosaur gains something visible: a new trick, a perk or a new look.
+A set Level (3, 5, 8, 13, 15, 18) at which a dinosaur gains something that changes only its own form: a Trick or a Trait. New looks come only with Evolution.
 _Avoid_: Reward tier, unlock
+
+**Trick**:
+Something new a dinosaur's form can do, learned at a Milestone (for example the Raptor's Double Dash). An expansion dinosaur shares its category's Tricks except one Signature Trick of its own.
+_Avoid_: Move, ability, skill (Skills are a hero's)
+
+**Trait**:
+An always-on bonus to a dinosaur's own form, gained at a Milestone (for example the Raptor's Quick Start).
+_Avoid_: Perk (perks come from badges and attribute thresholds), passive
+
+**Set Bonus**:
+The one extra effect a full Boss Set gives, working in every form.
+_Avoid_: Set perk, combo
 
 **Evolution**:
 A runner dinosaur's change to a new look and a jump in strength at Levels 10 and 20.
