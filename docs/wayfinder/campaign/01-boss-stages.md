@@ -2,7 +2,7 @@
 title: What a boss stage is
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: []
 ---
 
