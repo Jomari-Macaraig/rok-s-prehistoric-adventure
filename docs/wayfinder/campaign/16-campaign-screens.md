@@ -2,7 +2,7 @@
 title: The campaign screens
 label: wayfinder:prototype
 status: open
-assignee: 
+assignee: claude
 blocked_by: [08-recommended-strength]
 ---
 
