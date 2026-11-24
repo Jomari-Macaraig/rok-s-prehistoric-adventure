@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROTOTYPE · Level path and skill tree</title>
+<!--
+  PROTOTYPE, throwaway (wayfinder ticket "The level path and skill tree screens").
+  Question: how should the Camp show a dinosaur's level path (1-20, milestones,
+  evolutions) and a hero's skill tree (branches, skill points, free reset)?
+  Three variants, ?variant=A|B|C or the bar at the bottom (arrow keys too).
+  Each has a Raptor tab (level path) and a Rok tab (skill tree). Clicking a
+  milestone shows it; clicking a skill spends a point (in memory only).
+  Shapes stand in for the game's art. Drawn at 1280x720 (toggle 1560x720).
+-->
+<style>
+  :root { --bg:#2a1a0e; --wood:#6b4423; --sand:#f1dfb8; --ink:#3a210f; --gold:#ffcf5a; --green:#7fd15a; --teal:#2fa39a; --dim:#8a7360; --purple:#a77be0; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#111; color:var(--sand); font:600 15px/1.3 "Baloo 2", system-ui, sans-serif; overflow:hidden; }
+  #wrap { position:fixed; inset:0 0 56px 0; }
+  #screen { position:absolute; left:50%; top:50%; width:1280px; height:720px; overflow:hidden; border-radius:6px;
+            background:linear-gradient(#5f8f3a, #35531f 60%, #6b4423 60%); }
+  .wide #screen { width:1560px; }
+  h1,h2,h3 { margin:0; font-weight:800; }
+  button { font:inherit; cursor:pointer; border:0; }
+  .btn { background:var(--gold); color:var(--ink); border-radius:12px; padding:8px 16px; font-weight:800; box-shadow:0 3px 0 #a9782a; }
+  .btn.ghost { background:#ffffff22; color:var(--sand); box-shadow:none; }
+  .btn.on { background:var(--green); box-shadow:0 3px 0 #4b8a2c; color:var(--ink); }
+  .btn:disabled { background:#777; color:#ddd; box-shadow:none; cursor:default; }
+  .panel { background:#2a1a0ee8; border:3px solid #8a5a2b; border-radius:20px; }
+  .paper { background:var(--sand); color:var(--ink); border:4px solid #8a5a2b; border-radius:16px; }
+  .top { position:absolute; left:0; right:0; top:0; height:60px; display:flex; align-items:center; gap:12px; padding:0 16px; background:#2a1a0ecc; }
+  .back { width:44px; height:44px; border-radius:12px; background:var(--wood); color:var(--sand); font-size:22px; }
+  .title { font-size:26px; color:var(--gold); } .grow { flex:1; }
+  .chip { background:#ffffff1c; border-radius:12px; padding:5px 12px; }
+  .small { font-size:13px; opacity:.85; }
+  .hero { position:absolute; font-size:120px; line-height:1; }
+  .xpbar { height:14px; background:#0005; border-radius:7px; overflow:hidden; } .xpbar > div { height:100%; background:var(--teal); }
+  #switcher { position:fixed; left:50%; bottom:8px; transform:translateX(-50%); display:flex; gap:8px; align-items:center;
+              background:#fff; color:#111; border-radius:999px; padding:6px 10px; box-shadow:0 6px 20px #0008; font:600 14px system-ui; z-index:99; }
+  #switcher button { background:#111; color:#fff; border-radius:999px; width:30px; height:30px; }
+  #switcher .lbl { min-width:300px; text-align:center; }
+  #switcher .sz { width:auto; padding:0 10px; background:#555; }
+  .tip { position:absolute; z-index:5; width:300px; padding:12px 14px; }
+</style>
+</head>
+<body>
+<div id="wrap"><div id="screen"></div></div>
+<div id="switcher">
+  <button id="prev">‹</button><span class="lbl" id="vlabel"></span><button id="next">›</button>
+  <button class="sz" id="size">1280×720</button>
+</div>
+<script>
+// ---------------- fake data (what config would hold) ----------------
+const RAPTOR = { name:"Raptor", icon:"🦖", level:6, xp:0.45, xpText:"640 / 1,400 XP to Lv 7", strength:9,
+  // level -> milestone; kinds: trick, perk, look, evolve
+  milestones: {
+    3:{kind:"perk", name:"Light Feet", text:"Quicksand grips you 30% less."},
+    5:{kind:"trick", name:"Double Dash", text:"Tap SLIDE in mid-air to dash forward."},
+    8:{kind:"perk", name:"Hunter's Eye", text:"Wild dinosaurs show 1 second earlier."},
+    10:{kind:"evolve", name:"Evolution: Swift Raptor", text:"A new look, +1 Speed, +1 Jump."},
+    13:{kind:"look", name:"Striped Feathers", text:"A new feather pattern."},
+    15:{kind:"trick", name:"Pounce", text:"ATTACK leaps onto a wild dinosaur's back."},
+    18:{kind:"perk", name:"Second Wind", text:"Once per run, energy refills at 0."},
+    20:{kind:"evolve", name:"Evolution: Alpha Raptor", text:"The final look, +1 to every attribute."},
+  } };
+const ROK = { name:"Rok", icon:"🧍", level:7, xp:0.3, xpText:"900 / 3,000 XP to Lv 8", points:2, strength:23,
+  branches: [
+    { id:"runner", name:"Runner", color:"#2fa39a", skills:[
+      {name:"Quick Start", text:"+0.5 Speed for the first 200 m.", cost:1},
+      {name:"Long Slide", text:"Slides go 20% further.", cost:1},
+      {name:"Deep Breath", text:"+20 PRIMAL energy at the start.", cost:2},
+      {name:"Wind Runner", text:"+1 Speed.", cost:2},
+      {name:"Never Tired", text:"Dinosaurs tire 25% slower.", cost:3} ]},
+    { id:"brawler", name:"Brawler", color:"#d9653b", skills:[
+      {name:"Heavy Hands", text:"+0.5 Power.", cost:1},
+      {name:"Quick Swing", text:"ATTACK cooldown 15% shorter.", cost:1},
+      {name:"Long Arm", text:"+20 ATTACK reach.", cost:2},
+      {name:"Boss Breaker", text:"+15% damage to Bosses.", cost:2},
+      {name:"Shatter", text:"ATTACK breaks walls in one hit.", cost:3} ]},
+    { id:"survivor", name:"Survivor", color:"#8a6bd1", skills:[
+      {name:"Tough Skin", text:"+0.5 Armor.", cost:1},
+      {name:"Steady", text:"Trips cost no heart once per run.", cost:1},
+      {name:"Big Heart", text:"+1 heart.", cost:2},
+      {name:"Shake It Off", text:"Dizziness lasts half as long.", cost:2},
+      {name:"Last Stand", text:"Once per run, survive at 0 hearts with ¼.", cost:3} ]} ],
+  owned: { runner:[0,1], brawler:[0], survivor:[0,1] } };   // 5 points spent at Lv 7 (1 per level, 2 unspent)
+const KIND = { trick:["🌀","New trick"], perk:["✦","Perk"], look:["🎨","New look"], evolve:["⬆","Evolution"] };
+const S = { tab:"raptor", tip:null, msg:"" };
+const spent = () => Object.entries(ROK.owned).reduce((a,[b,arr])=> a + arr.reduce((x,i)=>x+ROK.branches.find(q=>q.id===b).skills[i].cost,0),0);
+function canBuy(b,i){ const br=ROK.branches.find(q=>q.id===b); const own=ROK.owned[b]; return !own.includes(i) && (i===0 || own.includes(i-1)) && ROK.points >= br.skills[i].cost; }
+function buy(b,i){ if(!canBuy(b,i)) return; const br=ROK.branches.find(q=>q.id===b); ROK.points-=br.skills[i].cost; ROK.owned[b].push(i); S.msg=`Learned ${br.skills[i].name}!`; render(); }
+function resetTree(){ ROK.points += spent(); Object.keys(ROK.owned).forEach(k=>ROK.owned[k]=[]); S.msg="Skills reset for free. Spend your points again."; render(); }
+function showTip(lv,x,y){ S.tip={lv,x,y}; render(); }
+function tipHtml(){ if(!S.tip) return ""; const m=RAPTOR.milestones[S.tip.lv]; if(!m) return "";
+  const got = S.tip.lv<=RAPTOR.level;
+  return `<div class="paper tip" style="left:${Math.min(S.tip.x,960)}px;top:${Math.min(S.tip.y,520)}px" onclick="S.tip=null;render()">
+    <b>Lv ${S.tip.lv} · ${KIND[m.kind][1]}</b><h3>${KIND[m.kind][0]} ${m.name}</h3><div>${m.text}</div>
+    <div class="small" style="margin-top:6px">${got?"✓ Unlocked":`Unlocks at level ${S.tip.lv}`}</div></div>`; }
+const tabs = () => `<div style="display:flex;gap:8px">${[["raptor","🦖 Raptor (level path)"],["rok","🧍 Rok (skill tree)"]].map(([k,t])=>
+   `<button class="btn ${S.tab===k?"on":"ghost"}" onclick="S.tab='${k}';S.tip=null;S.msg='';render()">${t}</button>`).join("")}</div>`;
+const topBar = () => `<div class="top"><button class="back">←</button><h2 class="title">DINOSAUR CAMP</h2>${tabs()}<div class="grow"></div>
+   <div class="chip">Strength <b style="color:var(--gold)">32</b></div></div>`;
+const head = c => `<div style="display:flex;align-items:center;gap:14px"><div style="font-size:44px">${c.icon}</div>
+   <div style="flex:1"><h2>${c.name} · Lv ${c.level}</h2><div class="xpbar" style="width:320px"><div style="width:${c.xp*100}%"></div></div>
+   <div class="small">${c.xpText} · +${c.strength} Strength</div></div></div>`;
+
+// ---------------- A: a road across the screen (level path) / a tree growing upward (skills) ----------------
+function A(){
+  if (S.tab==="raptor"){
+    const pts = Array.from({length:20},(_,i)=>({lv:i+1, x:70+i*58, y: 430 + Math.sin(i*0.55)*70}));
+    return `${topBar()}<div class="hero" style="left:40px;top:90px">🦖</div>
+    <div class="panel" style="position:absolute;left:190px;top:84px;width:620px;padding:12px 16px">${head(RAPTOR)}</div>
+    <svg width="1280" height="720" style="position:absolute;left:0;top:0;pointer-events:none">
+      <path d="${pts.map((p,i)=>(i?"L":"M")+p.x+" "+p.y).join(" ")}" stroke="#f1dfb8" stroke-width="10" stroke-dasharray="2 14" stroke-linecap="round" fill="none"/></svg>
+    ${pts.map(p=>{const m=RAPTOR.milestones[p.lv], got=p.lv<=RAPTOR.level, next=p.lv===RAPTOR.level+1, big=m&&m.kind==="evolve";
+      const r = big?40:m?30:18;
+      return `<div onclick="${m?`showTip(${p.lv},${p.x-140},${p.y-200})`:""}" title="Lv ${p.lv}" style="position:absolute;left:${p.x-r}px;top:${p.y-r}px;width:${r*2}px;height:${r*2}px;border-radius:50%;
+        background:${got?(big?"var(--purple)":m?"var(--gold)":"var(--sand)"):"#5b4a3a"};color:var(--ink);border:4px solid ${next?"var(--green)":"#8a5a2b"};
+        display:flex;align-items:center;justify-content:center;font-weight:800;cursor:${m?"pointer":"default"};${next?"box-shadow:0 0 0 7px #7fd15a55":""}">
+        ${m?KIND[m.kind][0]:p.lv}</div>
+        ${m?`<div class="small" style="position:absolute;left:${p.x-50}px;top:${p.y+r+4}px;width:100px;text-align:center">Lv ${p.lv}<br>${m.name}</div>`:""}`}).join("")}
+    <div class="chip" style="position:absolute;right:20px;top:96px">Next: Lv 8 · Hunter's Eye</div>${tipHtml()}`;
+  }
+  // skill tree growing upward from Rok, three branches as columns
+  return `${topBar()}<div class="hero" style="left:40px;top:470px">🧍</div>
+  <div class="panel" style="position:absolute;left:20px;top:76px;width:330px;padding:12px 16px">${head(ROK)}
+    <div style="margin-top:10px;font-size:20px">Skill points: <b style="color:var(--gold)">${ROK.points}</b></div>
+    <div class="small">One point per level. Bigger skills cost more.</div>
+    <button class="btn ghost" style="margin-top:8px" onclick="resetTree()">Reset (free)</button>
+    <div style="margin-top:8px;color:var(--green)">${S.msg}</div></div>
+  ${ROK.branches.map((br,bi)=>`<div style="position:absolute;left:${400+bi*290}px;top:76px;width:260px;bottom:20px;display:flex;flex-direction:column-reverse;gap:10px;align-items:center">
+     <div class="chip" style="background:${br.color};color:#fff;font-size:20px">${br.name}</div>
+     ${br.skills.map((sk,i)=>{const own=ROK.owned[br.id].includes(i), can=canBuy(br.id,i);
+       return `<div onclick="buy('${br.id}',${i})" class="${own?"paper":"panel"}" style="width:240px;padding:8px 10px;cursor:${can?"pointer":"default"};
+         ${own?`border-color:${br.color}`:can?`border-color:var(--gold);box-shadow:0 0 0 4px #ffcf5a55`:"opacity:.55"}">
+         <b>${own?"✓":can?"＋":"🔒"} ${sk.name}</b> <span class="small">· ${sk.cost} pt</span><div class="small">${sk.text}</div></div>`}).join("")}
+   </div>`).join("")}`;
+}
+
+// ---------------- B: inside the Camp's details panel (a vertical ladder / tabs of tiers) ----------------
+function B(){
+  const left = `<div class="hero" style="left:120px;top:200px">${S.tab==="raptor"?"🦖":"🧍"}</div>
+    <div class="chip" style="position:absolute;left:60px;top:420px;width:300px;text-align:center">${S.tab==="raptor"?"Raptor · Runner":"Rok · All-rounder"}</div>`;
+  if (S.tab==="raptor"){
+    return `${topBar()}${left}
+    <div class="paper" style="position:absolute;left:460px;top:76px;right:20px;bottom:20px;padding:14px 18px;display:flex;flex-direction:column">
+      ${head(RAPTOR).replace(/color:/g,"color:")}
+      <h3 style="margin-top:10px">Level path</h3>
+      <div style="flex:1;overflow-y:auto;margin-top:6px">
+      ${Array.from({length:20},(_,i)=>20-i).map(lv=>{const m=RAPTOR.milestones[lv], got=lv<=RAPTOR.level, next=lv===RAPTOR.level+1;
+        return `<div style="display:flex;gap:12px;align-items:center;padding:${m?8:3}px 10px;border-radius:10px;margin-bottom:3px;
+          background:${next?"#7fd15a55":m&&got?"#ffcf5a44":m?"#0000000d":"transparent"};${got?"":"opacity:.6"}">
+          <b style="width:56px">Lv ${lv}</b>
+          ${m?`<span style="font-size:24px">${KIND[m.kind][0]}</span><span style="flex:1"><b>${m.name}</b> <span class="small">· ${KIND[m.kind][1]}</span><br><span class="small">${m.text}</span></span>`
+             :`<span class="small" style="flex:1">${got?"✓ stats up":"stats up"}</span>`}
+          <span>${got?"✓":next?"NEXT":"🔒"}</span></div>`}).join("")}
+      </div></div>`;
+  }
+  return `${topBar()}${left}
+  <div class="paper" style="position:absolute;left:460px;top:76px;right:20px;bottom:20px;padding:14px 18px">
+    <div style="display:flex;align-items:center;gap:16px">${head(ROK)}<div style="text-align:right"><div style="font-size:22px">Points: <b>${ROK.points}</b></div>
+      <button class="btn" onclick="resetTree()">Reset (free)</button></div></div>
+    <div style="color:#2c7a1f;height:20px">${S.msg}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px">
+      ${ROK.branches.map(br=>`<div><div style="background:${br.color};color:#fff;border-radius:10px;padding:4px 10px;font-weight:800">${br.name} · ${ROK.owned[br.id].length}/5</div>
+        ${br.skills.map((sk,i)=>{const own=ROK.owned[br.id].includes(i), can=canBuy(br.id,i);
+          return `<div onclick="buy('${br.id}',${i})" style="margin-top:6px;padding:6px 8px;border-radius:10px;border:3px solid ${own?br.color:can?"#d8a62b":"#0002"};
+            background:${own?br.color+"33":"#fff8"};cursor:${can?"pointer":"default"};${own||can?"":"opacity:.55"}">
+            <b>${own?"✓":can?"＋":"🔒"} ${sk.name}</b> <span class="small">${sk.cost}pt</span><div class="small">${sk.text}</div></div>`}).join("")}</div>`).join("")}
+    </div></div>`;
+}
+
+// ---------------- C: a ring around the character (level path) / a constellation of skill nodes ----------------
+function C(){
+  const cx = S.tab==="rok" ? 700 : 640, cy = S.tab==="rok" ? 330 : 400;
+  if (S.tab==="raptor"){
+    return `${topBar()}<div style="position:absolute;inset:60px 0 0 0;background:radial-gradient(#2f4f20,#1b2c12)"></div>
+    <div class="hero" style="left:${cx-60}px;top:${cy-70}px">🦖</div>
+    <div style="position:absolute;left:${cx-130}px;top:${cy+70}px;width:260px;text-align:center"><b>Raptor · Lv ${RAPTOR.level}</b>
+      <div class="xpbar"><div style="width:${RAPTOR.xp*100}%"></div></div><div class="small">${RAPTOR.xpText}</div></div>
+    ${Array.from({length:20},(_,i)=>{const lv=i+1, a=-Math.PI/2 + i/20*Math.PI*2, R=270, x=cx+Math.cos(a)*R*1.35, y=cy+Math.sin(a)*R*0.95,
+       m=RAPTOR.milestones[lv], got=lv<=RAPTOR.level, next=lv===RAPTOR.level+1, r=m?(m.kind==="evolve"?34:26):14;
+       return `<div onclick="${m?`showTip(${lv},${x-150},${y-150})`:""}" style="position:absolute;left:${x-r}px;top:${y-r}px;width:${r*2}px;height:${r*2}px;border-radius:50%;
+         background:${got?(m?(m.kind==="evolve"?"var(--purple)":"var(--gold)"):"var(--sand)"):"#3d3328"};color:var(--ink);border:3px solid ${next?"var(--green)":"#8a5a2b"};
+         display:flex;align-items:center;justify-content:center;font-weight:800;cursor:${m?"pointer":"default"}">${m?KIND[m.kind][0]:lv}</div>`}).join("")}
+    <div class="chip" style="position:absolute;left:20px;top:76px">Tap a big circle to see its reward</div>${tipHtml()}`;
+  }
+  // constellation: Rok in the middle, branches spreading out in three directions
+  const dirs = [[-1,-0.35],[1,-0.35],[0.7,0.6]];
+  return `${topBar()}<div style="position:absolute;inset:60px 0 0 0;background:radial-gradient(#1f2a44,#0d1220)"></div>
+  <svg width="1280" height="720" style="position:absolute;left:0;top:0">
+    ${ROK.branches.map((br,bi)=>br.skills.map((sk,i)=>{const d=dirs[bi], x1=cx+d[0]*i*100, y1=cy+d[1]*i*100, x2=cx+d[0]*(i+1)*100, y2=cy+d[1]*(i+1)*100;
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${ROK.owned[br.id].includes(i)?br.color:"#ffffff30"}" stroke-width="5"/>`}).join("")).join("")}</svg>
+  <div class="hero" style="left:${cx-55}px;top:${cy-70}px;font-size:100px">🧍</div>
+  ${ROK.branches.map((br,bi)=>br.skills.map((sk,i)=>{const d=dirs[bi], x=cx+d[0]*(i+1)*100, y=cy+d[1]*(i+1)*100, own=ROK.owned[br.id].includes(i), can=canBuy(br.id,i);
+    if (x<0||x>1280||y<60||y>720) return "";
+    return `<div onclick="buy('${br.id}',${i})" title="${sk.name}: ${sk.text} (${sk.cost} pt)" style="position:absolute;left:${x-28}px;top:${y-28}px;width:56px;height:56px;border-radius:14px;transform:rotate(45deg);
+      background:${own?br.color:"#2a3350"};border:3px solid ${can?"var(--gold)":own?"#fff":"#ffffff40"};cursor:${can?"pointer":"default"}"></div>
+      <div class="small" style="position:absolute;left:${x-60}px;top:${y+32}px;width:120px;text-align:center">${sk.name}</div>`}).join("")).join("")}
+  ${ROK.branches.map((br,bi)=>{const d=dirs[bi]; return `<div class="chip" style="position:absolute;left:${cx+d[0]*100*2.1-60}px;top:${cy+d[1]*100*2.1-58}px;background:${br.color};color:#fff">${br.name}</div>`}).join("")}
+  <div class="panel" style="position:absolute;left:20px;bottom:20px;width:300px;padding:12px 14px">${head(ROK)}
+    <div style="margin-top:8px;font-size:20px">Points: <b style="color:var(--gold)">${ROK.points}</b></div>
+    <button class="btn ghost" onclick="resetTree()">Reset (free)</button><div style="color:var(--green);margin-top:6px">${S.msg}</div>
+    <div class="small" style="margin-top:6px">Hover a gem for its skill; a gold rim means you can learn it.</div></div>`;
+}
+const VARIANTS = { A:["Road and growing tree", A], B:["Inside the Camp panel: ladder and columns", B], C:["Ring and constellation", C] };
+
+// ---------------- plumbing ----------------
+let variant = new URLSearchParams(location.search).get("variant") || "A";
+function render(){ document.getElementById("screen").innerHTML = VARIANTS[variant][1]();
+  document.getElementById("vlabel").textContent = `Variant ${variant} (${VARIANTS[variant][0]})`; fit(); }
+function setVariant(v){ variant=v; const u=new URL(location); u.searchParams.set("variant",v); history.replaceState(null,"",u); S.tip=null; render(); }
+const keys = Object.keys(VARIANTS);
+document.getElementById("prev").onclick = ()=> setVariant(keys[(keys.indexOf(variant)+keys.length-1)%keys.length]);
+document.getElementById("next").onclick = ()=> setVariant(keys[(keys.indexOf(variant)+1)%keys.length]);
+document.addEventListener("keydown", e=>{ if (e.key==="ArrowLeft") document.getElementById("prev").click(); if (e.key==="ArrowRight") document.getElementById("next").click(); });
+document.getElementById("size").onclick = e=>{ document.body.classList.toggle("wide"); e.target.textContent = document.body.classList.contains("wide")?"1560×720":"1280×720"; fit(); };
+function fit(){ const s=document.getElementById("screen"), w=document.getElementById("wrap"); const k=Math.min(w.clientWidth/s.offsetWidth, w.clientHeight/s.offsetHeight, 1); s.style.transform=`translate(-50%,-50%) scale(${k})`; }
+addEventListener("resize", fit);
+render();
+</script>
+</body>
+</html>
