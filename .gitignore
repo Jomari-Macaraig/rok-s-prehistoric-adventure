@@ -9,3 +9,4 @@
 *.ipa
 __pycache__/
 /screenshots/
+.claude/worktrees/
