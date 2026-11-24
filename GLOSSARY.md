@@ -99,6 +99,10 @@ _Avoid_: Insurance, catalyst (catalysts change crafting odds)
 A hero's or dinosaur's rank, 1 to 20, gained automatically when it has the XP.
 _Avoid_: Using "level" for a Stage
 
+**Strength**:
+One number for how strong the player's team is: the hero (Level, skills, gear) plus the four equipped dinosaurs; each Stage recommends one.
+_Avoid_: Power (that's an attribute), rating, CP
+
 **Milestone**:
 A set Level at which a dinosaur gains something visible: a new trick, a perk or a new look.
 _Avoid_: Reward tier, unlock

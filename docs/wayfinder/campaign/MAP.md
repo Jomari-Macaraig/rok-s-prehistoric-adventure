@@ -106,6 +106,10 @@ Decide everything first; build afterwards.
   fifth; stars pay a small bonus plus chapter star chests; bosses 3 boss
   materials first, 40% for 1 on replays; puzzles a rare material and a
   Blessing chance; results shown one by one.
+- [How recommended strength is worked out](08-recommended-strength.md): one
+  number, Strength (hero level, skills and gear plus the four equipped
+  dinosaurs); green/yellow/red against the stage's, set per stage in config
+  and checked by a bot; shown at the Camp and by the Campaign button.
 
 ## Not yet specified
 
