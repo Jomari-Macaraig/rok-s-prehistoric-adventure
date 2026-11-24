@@ -2,6 +2,9 @@
 
 One file per gameplay system, so each can be read and polished on its own. Progress is tracked in the [polish checklist](../POLISH.md). Each lists its key files, then the details. Config files: `config/progression.cfg` (when things appear) and `config/pickups.cfg` (pickup odds and placement). The asset pipeline is in [tools/CLAUDE.md](../../tools/CLAUDE.md) and the tests in [tests/CLAUDE.md](../../tests/CLAUDE.md).
 
+## Campaign (spec, not built yet)
+- [Campaign](campaign.md): the build-ready spec of the Campaign mode (chapters, stages, bosses, puzzles, torches, stars, rewards, Trails, screens, loading, balance) and the progression redesign it runs on (automatic levels, milestones, skill trees, gear slots and upgrades, wear, the Market).
+
 ## Core run
 - [Run loop, states, summary and main menu](run-loop.md): How a run starts, plays, ends and hands back to the main menu: game states, the intro, death, Stop, the summary card and save data.
 - [Chase and hunters](chase-and-hunters.md): The pursuer behind Rok: the chase gap, each zone's hunter, and timed charges.

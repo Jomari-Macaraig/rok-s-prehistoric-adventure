@@ -159,7 +159,7 @@ Decide everything first; build afterwards.
 
 ## Open questions
 
-(None: the map is done. Next: write the spec, `docs/systems/campaign.md`.)
+(None: the map is done. The spec is written: [docs/systems/campaign.md](../../systems/campaign.md).)
 
 ## Out of scope
 

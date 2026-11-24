@@ -35,6 +35,7 @@ Godot 4.7 (GDScript, Compatibility renderer) 2D endless runner with a prehistori
 
 ## System Documentation
 Each gameplay system has its own doc in [docs/systems/](docs/systems/README.md); read the one for the system you're changing. **[docs/POLISH.md](docs/POLISH.md)** is the user's checklist of systems to polish, one at a time: update it (tick items, add notes) when you polish one.
+- **Campaign (spec, not built yet)**: [Campaign mode and the progression redesign](docs/systems/campaign.md)
 - **Core run**: [Run loop, states, summary and main menu](docs/systems/run-loop.md), [Chase and hunters](docs/systems/chase-and-hunters.md), [Health, damage and hit reactions](docs/systems/health-and-damage.md), [Movement and forms](docs/systems/movement-and-forms.md), [Combat](docs/systems/combat.md), [Tutorial](docs/systems/tutorial.md)
 - **World and course**: [Terrain](docs/systems/terrain.md), [Zones, day/night, background and lap twists](docs/systems/zones-and-environment.md), [Obstacles, traps and dino gates](docs/systems/obstacles-and-gates.md), [Wild dinosaurs](docs/systems/wild-dinosaurs.md), [Progression and teaching](docs/systems/progression.md), [Dependency tree](docs/systems/requirements.md)
 - **Rewards and items**: [Pickups, reward spots and loot](docs/systems/pickups-and-loot.md), [Power-ups (boosters)](docs/systems/power-ups.md), [Combo streak and Primal Frenzy](docs/systems/combo-and-frenzy.md), [Long-run variety](docs/systems/long-run-events.md), [Badges, daily missions and the best-distance flag](docs/systems/goals.md)

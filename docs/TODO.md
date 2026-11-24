@@ -4,6 +4,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Code (Claude)
 
+- [ ] **Build the Campaign** from the spec [systems/campaign.md](systems/campaign.md) (order under its Further Notes), updating each changed system's doc as it lands.
 - [ ] **Wild-dinosaur defeats** (the user's design): stomp some wild dinosaurs by landing on top of them, charge through with horns (Triceratops-type Power), and run through them based on damage, all driven by attributes (Power, Armor, Jump, Speed). Today a wild dinosaur trips Rok unless he bonks it with ATTACK or bowls it over in a frenzy ([wild-dinosaurs](systems/wild-dinosaurs.md)). **Waiting on two answers:** which species can be stomped, and whether stomping bounces Rok.
 - [ ] **Accessories** (the user's request, 2026-11-23): a third gear slot on each hero for an accessory (necklace, charm, totem, ring...). To build: the slot at the Camp (Change beside Accessory), save data, the Items screen's Accessories tab, recipes at the Crafting Bench from the new materials, durability/repair and selling like other gear (or decide that accessories don't wear), Encyclopedia page and Crafting tour mention, and a small picture on the hero's chest point or none (docs/ITEM_ART_PLAN.md). Needs from the user: the list of accessories and what each does (attributes or a special effect such as more amber, a longer power-up, a magnet), and their icons (square, transparent, like the gear icons).
 - [ ] **Item system step 0 leftovers** ([ITEM_ART_PLAN.md](ITEM_ART_PLAN.md)): the accessory slot (Camp slot, Items tab, save data) and an armor `kind` setting (body or rigid, plus the anchor for rigid armor: head, chest or back).
@@ -14,9 +15,9 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Decisions (the user)
 
-- [ ] **Rethink levels, gear, durability and the Market** (the user's request, 2026-11-24): now part of the Campaign wayfinding map ([docs/wayfinder/campaign/MAP.md](wayfinder/campaign/MAP.md)): "Rethink hero and dinosaur levels", "Weapons, armor and accessories: what gear is for", "Durability and repair: keep, change or drop", "What the Market is for".
+- [x] **Rethink levels, gear, durability and the Market** (the user's request, 2026-11-24): decided as part of the Campaign wayfinding map ([docs/wayfinder/campaign/MAP.md](wayfinder/campaign/MAP.md)): "Rethink hero and dinosaur levels", "Weapons, armor and accessories: what gear is for", "Durability and repair: keep, change or drop", "What the Market is for".
 
-- [ ] **Campaign mode**: being planned on a wayfinding map, [docs/wayfinder/campaign/MAP.md](wayfinder/campaign/MAP.md) (decide first, then build).
+- [x] **Campaign mode** decided on the wayfinding map [docs/wayfinder/campaign/MAP.md](wayfinder/campaign/MAP.md); the spec is [systems/campaign.md](systems/campaign.md).
 
 - [ ] **Pet system** (the user's vision, see [GAME_DESIGN.md](GAME_DESIGN.md)): pets hatch from eggs (the Dino Egg art is kept for it), need care, age through stages and die, breed with traits passed to offspring, and fight turn-based card battles (each dinosaur's attack cards come from its traits) against a bot, PVP later. Breeding only within the same species, at most 8 times per dinosaur; more species are coming. Notes only: the user will discuss it later.
 - [ ] **Stomps:** which wild species are stompable, and does a stomp bounce Rok?
