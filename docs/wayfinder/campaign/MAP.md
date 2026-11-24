@@ -143,6 +143,15 @@ Decide everything first; build afterwards.
   summary shows Strength gained and the next stage; about 1 in 3 missions
   and new badge tracks are campaign goals; chests may hold a torch; endless
   runs never drop boss materials or eggs.
+- [Difficulty balance and the bot check](21-difficulty-balance.md): a
+  journey table of typical Strength per endless run (Forest boss about
+  run 20, Volcanic boss about run 110); Forest 1 needs 10, about +2 a
+  stage in a sawtooth with breathers, bosses 26/44/64/90, each chapter
+  opening about 4 below the last boss, no gap over ~3 runs of growth; an
+  average-skill Balance Bot (ATTACK, bosses, puzzles, a team builder)
+  plays 20 tries: fair is 17/20 at the recommended Strength, too easy is
+  19/20 at 15% below; a hand-run tool that suggests numbers, plus a quick
+  Forest 1 check in the tests.
 
 ## Not yet specified
 
@@ -150,8 +159,7 @@ Decide everything first; build afterwards.
 
 ## Open questions
 
-- [Difficulty balance and the bot check](21-difficulty-balance.md)
-  (next; the last question before the spec).
+(None: the map is done. Next: write the spec, `docs/systems/campaign.md`.)
 
 ## Out of scope
 

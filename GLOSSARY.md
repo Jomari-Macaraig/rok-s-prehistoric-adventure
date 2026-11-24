@@ -107,6 +107,22 @@ _Avoid_: Using "level" for a Stage
 One number for how strong the player's team is: the hero (Level, skills, gear) plus the four equipped dinosaurs; each Stage recommends one.
 _Avoid_: Power (that's an attribute), rating, CP
 
+**Recommended Strength**:
+The Strength a Stage asks for: a typical team at that Strength clears it about 9 times in 10.
+_Avoid_: Required strength, level requirement (nothing is locked by it)
+
+**Journey**:
+How a typical player's Strength grows run by run (for example about 20 after 15 Endless Runs); stages' Recommended Strength is set against it.
+_Avoid_: Curve, progression (progression is the endless-run teaching order)
+
+**Breather**:
+An easier Stage placed every 3rd or 4th in a Chapter, often a Puzzle Stage or a collecting stage, before difficulty climbs again.
+_Avoid_: Filler, rest stage
+
+**Balance Bot**:
+The bot that plays Stages (and Endless Runs for the Journey) like an average player, to check each Stage's Recommended Strength.
+_Avoid_: Autopilot (the perfect-timing bot of the endless-run tests), AI
+
 **Milestone**:
 A set Level (3, 5, 8, 13, 15, 18) at which a dinosaur gains something that changes only its own form: a Trick or a Trait. New looks come only with Evolution.
 _Avoid_: Reward tier, unlock
