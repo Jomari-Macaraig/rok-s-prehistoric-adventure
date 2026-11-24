@@ -109,27 +109,11 @@ Decide everything first; build afterwards.
 
 ## Not yet specified
 
-- **The campaign screens**: the chapter map and stage picker, the stage's
-  briefing (goals, recommended strength, cost, rewards) and the results
-  screen (stars, rewards). Becomes a prototype once the stage settings and
-  the way the campaign grows are decided.
-- **Main menu**: the Endless Run and Campaign buttons replacing "tap to run",
-  and what the title screen says.
 - **How the campaign cycles with endless runs in practice**: does anything
   in endless runs change once the campaign exists (new hazards first met in
   stages, campaign-only rewards that help endless runs)?
-- **Failing a stage**: what happens when Rok is caught or runs out of hearts
-  (retry right away, cost refunded or not, a "you need to be stronger" hint
-  pointing at endless runs).
 - **Balance**: how hard the first stages are, how fast difficulty climbs,
   and checking it with a bot (like the endless-run autopilot).
-
-- **What's in each milestone, skill tree, accessory and set**: the actual
-  milestone rewards per species, each hero's skills, the accessory list and
-  each boss set's bonus. Content to write once the Market is settled, so
-  perks, skills and accessories don't overlap.
-- **The level path and skill tree screens**: how they look at the Camp
-  (joins the campaign screens prototype).
 
 ## Out of scope
 
