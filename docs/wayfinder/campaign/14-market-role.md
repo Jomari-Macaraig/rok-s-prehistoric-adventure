@@ -2,7 +2,7 @@
 title: What the Market is for
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: [12-gear-slots, 11-levels-rethink]
 ---
 
