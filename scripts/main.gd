@@ -43,6 +43,9 @@ var dino_levels: Dictionary = {}   # old saves only: levels bought with meat (re
 var dino_xp: Dictionary = {}       # id -> XP, 1 per metre run as it (Dinos.xp points here); levels come from it
 var run_levelups: Dictionary = {}  # id -> level reached this run (the summary's LEVEL UP chip)
 var levels_refund := 0             # meat refunded on load for levels an old save bought
+var skills_learned: Dictionary = {}   # hero -> [skill ids] (Skills.learned points here)
+var _skill_used := {}             # once-a-run skills already used this run (tough_hide, last_stand, second_wind)
+var _last_hit_m := 0.0            # metres at the last hit (Patch Up)
 var run_dino_m: Dictionary = {}    # this run: id -> metres run as it (the summary card)
 var run_rank: Array = Tuning.RUN_RANKS[0]   # this run's rank (RunSummary.rank_for): its multiplier boosts meat and XP
 var run_bonus_meat := 0
@@ -178,6 +181,8 @@ func _ready() -> void:
 	dino_levels = SaveData.load_dino_levels()
 	dino_xp = SaveData.load_dino_xp()
 	Dinos.xp = dino_xp
+	skills_learned = SaveData.load_skills()
+	Skills.learned = skills_learned
 	Forms.clear_cache()
 	var eq: Dictionary = SaveData.load_equipped()
 	Forms.equipped.clear()
@@ -378,6 +383,8 @@ func _to_title() -> void:
 ## sets all of these again in start_run.)
 func _reset_status() -> void:
 	health = max_health()
+	_skill_used.clear()
+	_last_hit_m = 0.0
 	energy = Tuning.ENERGY_START
 	attack_cd = 0.0
 	dizzy_t = 0.0
@@ -519,6 +526,8 @@ func start_run(intro := true) -> void:
 	elapsed = 0.0
 	energy = Tuning.ENERGY_START
 	health = max_health()
+	_skill_used.clear()
+	_last_hit_m = 0.0
 	hud.hide_center()
 	audio.start_music()
 
@@ -1155,6 +1164,25 @@ func _migrate_levels() -> void:
 	Forms.clear_cache()
 
 
+## Learn a hero's skill with its skill points (saved). Returns true if learned.
+func learn_skill(hero: String, sid: String) -> bool:
+	if not Skills.learn(hero, sid):
+		return false
+	skills_learned = Skills.learned
+	SaveData.save_skills(skills_learned)
+	Forms.clear_cache()
+	audio.play("unlock", 0.0, 1.1)
+	return true
+
+
+## Free reset: every skill point back (saved).
+func reset_skills(hero: String) -> void:
+	Skills.reset(hero)
+	skills_learned = Skills.learned
+	SaveData.save_skills(skills_learned)
+	Forms.clear_cache()
+
+
 ## Give `id` XP. The moment it has a level's XP it levels up, mid-run if
 ## playing: a LEVEL UP! burst, sound and glow, and play goes on. Returns
 ## true if it levelled.
@@ -1542,6 +1570,7 @@ func _play_step(delta: float) -> void:
 			_shift(Forms.ROK)
 
 	_check_unlocks()
+	_skill_step()
 	_update_chase(delta, slope)
 	_trex_voice(delta)
 	trex.follow(Tuning.PLAYER_X, chase_gap, terrain, delta, speed / Tuning.START_SPEED)
@@ -1761,6 +1790,8 @@ func _check_quicksand(delta: float) -> bool:
 		rate = Tuning.SINK_RATE_FAST
 	elif player.form == Forms.TRICERATOPS or player.form == Forms.SPINOSAURUS:
 		rate = Tuning.SINK_RATE_HEAVY
+	if player.form == Forms.ROK and Skills.has("light_feet"):
+		rate = float(Skills.value("light_feet", 0.0))   # the hero's Light Feet: no sinking
 	var deep := on_sand and terrain.deep_sand_at(player.position.x)
 	if on_sand:
 		if _was_airborne and deep:
@@ -1816,7 +1847,20 @@ func max_health() -> int:
 func _hurt(key: String, cause: String, pop := true) -> bool:
 	if state != State.PLAYING:
 		return false
-	health = maxi(health - Hearts.damage(key, Hearts.armor_of(player.data())), 0)
+	var cost := Hearts.damage(key, Hearts.armor_of(player.data()))
+	if Skills.has("tough_hide") and not _skill_used.has("tough_hide"):
+		_skill_used["tough_hide"] = true
+		cost = 0   # the first hit of the run is free
+		fx.float_text(player.position + Vector2(-70, -250), "TOUGH HIDE!", Color(0.6, 0.85, 1.0), 30)
+	elif Skills.has("iron_will") and health <= Hearts.QUARTERS:
+		cost = ceili(cost * float(Skills.value("iron_will", 1.0)))   # at 1 heart or less, hits cost half
+	health = maxi(health - cost, 0)
+	_last_hit_m = metres()
+	if health <= 0 and Skills.has("last_stand") and not _skill_used.has("last_stand"):
+		_skill_used["last_stand"] = true
+		health = 1   # once a run: a quarter heart left
+		fx.float_text(player.position + Vector2(-70, -250), "LAST STAND!", Color(1.0, 0.8, 0.3), 32)
+		audio.play("shield", 0.0, 1.2)
 	_wear_armor()
 	if pop:
 		hud.hearts_hit()
@@ -2171,7 +2215,7 @@ func _dizzy_step(delta: float) -> void:
 
 func _stumble(amount: float, text: String, color := Color(1, 0.5, 0.4)) -> void:
 	combo.hit()
-	chase_gap -= amount * player.data().get("stumble_mult", 1.0)   # armor softens stumbles
+	chase_gap -= amount * player.data().get("stumble_mult", 1.0) * (float(Skills.value("shake_it_off", 1.0)) if Skills.has("shake_it_off") else 1.0)   # armor (and Shake It Off) soften stumbles
 	_clean_from = metres()   # Untouchable counts from the last stumble
 	player.invuln = maxf(player.invuln, 0.9)
 	player.sprite.modulate = Color(color.r * 1.6, color.g * 1.2, color.b * 1.25)   # flash in the text colour
@@ -2356,6 +2400,8 @@ func _combo_step(delta: float) -> void:
 			o.set_meta("combo", true)
 			if player.invuln <= 0.0 or combo.in_frenzy():   # not one he stumbled through
 				combo.feat()
+				if Skills.has("slipstream"):
+					chase_gap = minf(chase_gap + float(Skills.value("slipstream", 0.0)), Tuning.CHASE_GAP_FAR)   # a clean dodge gains on the hunter
 				if o.kind != "overhead" and o.gate_form == -1 and not player.on_ground:
 					_coach_done("jump")   # jumped clean over it
 	var lx: float = player.position.x - terrain.position.x
@@ -3007,7 +3053,22 @@ func attack_reach() -> float:
 ## Attack Power: the form's Power attribute (a hero's includes its gear).
 func attack_power() -> float:
 	var id := String(player.data().id)
-	return Dinos.stat(id, "power") if Dinos.known(id) else 3.0
+	var p := Dinos.stat(id, "power") if Dinos.known(id) else 3.0
+	if player.form == Forms.ROK and Skills.has("heavy_swing"):
+		p *= float(Skills.value("heavy_swing", 1.0))   # hits harder
+	return p
+
+
+## Ground Pound: ATTACK while sliding slams, breaking every small hazard
+## within reach on both sides.
+func _ground_pound() -> void:
+	var r := float(Skills.value("ground_pound", 260.0))
+	for o in course.obstacles.duplicate():
+		if _small_hazard(o) and absf(o.position.x - player.position.x) <= r:
+			_power_break(o)
+	fx.dust(player.position, true)
+	fx.add_shake(6.0)
+	fx.float_text(player.position + Vector2(-80, -200), "GROUND POUND!", Color(1.0, 0.7, 0.35), 30)
 
 
 ## Can an attack with this Power break obstacle o? Wild dinosaurs and small
@@ -3029,7 +3090,7 @@ func attack_breaks(o: Obstacle, power: float) -> bool:
 		"fence":
 			return power >= Tuning.ATTACK_POWER_FENCE
 		"rock":
-			return power >= Tuning.ATTACK_POWER_ROCK
+			return power >= Tuning.ATTACK_POWER_ROCK or (player.form == Forms.ROK and Skills.has("rock_breaker"))
 	return false
 
 
@@ -3042,7 +3103,11 @@ func _attack() -> Obstacle:
 	if state != State.PLAYING or attack_cd > 0.0 or player.dead:
 		return null
 	attack_cd = Tuning.ATTACK_COOLDOWN * Dinos.cooldown_mult(String(player.data().id), "power")   # Power attacks faster
+	if player.form == Forms.ROK and Skills.has("quick_hands"):
+		attack_cd *= float(Skills.value("quick_hands", 1.0))
 	attack_cd_max = attack_cd
+	if player.form == Forms.ROK and Skills.has("ground_pound") and player.is_low():
+		_ground_pound()
 	var target := attack_target()
 	var clip := attack_clip()
 	# running on the ground with a seamless running attack for this weapon:
@@ -3481,6 +3546,21 @@ func _on_frenzy_ended() -> void:
 
 
 ## Eating a pepper: a short burst of speed that pulls away from the T-rex.
+## Skills that act over the run: Second Wind (once, a speed burst when the
+## hunter is about to catch Rok) and Patch Up (a quarter heart back every
+## few hundred metres without a hit).
+func _skill_step() -> void:
+	if Skills.has("second_wind") and not _skill_used.has("second_wind") and chase_gap > 0.0 \
+			and chase_gap < float(Skills.value("second_wind", 40.0)):
+		_skill_used["second_wind"] = true
+		_pepper_boost()
+		fx.float_text(player.position + Vector2(-90, -280), "SECOND WIND!", Color(0.7, 1.0, 0.6), 32)
+	if Skills.has("patch_up") and health < max_health() and metres() - _last_hit_m >= float(Skills.value("patch_up", 500.0)):
+		_last_hit_m = metres()
+		health += 1
+		fx.float_text(player.position + Vector2(-40, -220), "+¼ ♥", Color(1.0, 0.45, 0.5))
+
+
 func _pepper_boost() -> void:
 	boost_t = Tuning.PEPPER_BOOST_TIME
 	fx.float_text(player.position + Vector2(-80, -240), "SPEED BOOST!", Color(1.0, 0.85, 0.3), 36)

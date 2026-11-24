@@ -62,8 +62,8 @@ Transparent PNGs in the game's cartoon style. Animations are 4x2 sheets (8 frame
   - Checkpoint totem: idle and lit; **lighting up** 4x2 and a **lit idle loop**.
   - Fork sign: an arrow sign pointing up and down.
 - [ ] **4. Camp screens** (level path and skill tree):
-  - Level path: a small plain dot, a gold milestone circle and a bigger purple evolution circle, each lit and unlit (optional evolution shimmer loop, 4x2).
-  - Skill card frame: learned (filled), learnable (gold rim), locked (dim), with room for an icon and name.
+  - [x] Level path dots, milestone and evolution circles, lit and unlit (in: `Rok_Camp_Path_and_Card_Frames`, `prepare_camp_ui.py`).
+  - [x] Skill card frames: learned, learnable, locked (in; used by the skill tree screen).
   - Branch banners (9): Rok (Runner, Brawler, Survivor), Nira (Pathfinder, Acrobat, Tracker), Boro (Bulwark, Crusher, Protector).
   - Milestone icons (24): 6 each for the Raptor, Triceratops, Spinosaurus and Pteranodon (names in the spec).
   - Skill icons (about 40) for the three heroes' skills; shared skills reuse one icon.

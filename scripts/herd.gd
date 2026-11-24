@@ -27,6 +27,7 @@ var game   # main.gd: dinos_owned, unlocked, equip(id), unequip(cat), equipped_i
 var root: Control
 var tab := "runner"
 var selected := ""          # the dinosaur shown in the detail panel
+var skill_view: SkillTreeView   # a hero's skill tree, full screen over the Camp (made on first use)
 var tab_buttons := {}       # category -> Button
 var list: HBoxContainer      # the shelf row: one tile per member (named by id), or the gear choices
 var scroll: ScrollContainer
@@ -356,6 +357,8 @@ func open_herd(cat := "") -> void:
 
 
 func close_herd() -> void:
+	if skill_view:
+		skill_view.visible = false
 	visible = false
 	closed.emit()
 
@@ -415,6 +418,17 @@ func press_repair(gid: String) -> void:
 		_confirm = ""
 		game.repair_gear(gid)
 	refresh()
+
+
+## Open a hero's skill tree over the Camp.
+func open_skills(id: String) -> void:
+	if skill_view == null:
+		skill_view = SkillTreeView.new()
+		skill_view.name = "SkillTree"
+		add_child(skill_view)
+		skill_view.closed.connect(refresh)
+	skill_view.open(game, id)
+	game.audio.play("click", 0.0)
 
 
 func press_equip(id: String) -> void:
@@ -862,6 +876,14 @@ func _build_detail_content() -> void:
 		var xt := "MAX" if Dinos.level(id) >= Dinos.max_level else "%d / %d XP" % [int(pr.x), int(pr.y)]
 		xb.add_child(Market._text(xt, 14, Color(0.2, 0.4, 0.65)))
 		tv.add_child(xb)
+		if Heroes.is_hero(id) and Skills.has_tree(id):   # near the top: the panel scrolls below
+			var fp := Skills.free_points(id)
+			var sk := Market._button("Skill Tree" + (" (%d)" % fp if fp > 0 else ""), Vector2(150, 34))
+			sk.name = "SkillTree"
+			sk.add_theme_font_size_override("font_size", 15)
+			sk.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+			sk.pressed.connect(func(): open_skills(id))
+			tv.add_child(sk)
 	tv.add_child(Market._text(Dinos.tradeoff(id), 15, Color(0.45, 0.3, 0.18)))
 	var cmp := id != eq
 	var head := Market._text(("Compared with your %s:" % name_of(eq)) if cmp else ("Your hero: runs on foot and turns into the dinosaurs" if tab == "rok" else "Equipped on the %s button" % tab_name(tab)), 16,

@@ -4,13 +4,17 @@
 
 **Blocked by:** [03: Automatic levels](03-automatic-levels.md)
 
-**Status:** ready-for-agent
+**Status:** done
 
 Spec: [docs/systems/campaign.md](../../systems/campaign.md).
 
-- [ ] Levelling Rok grants skill points (19 by level 20)
-- [ ] Learning a skill spends points, needs the one below and is saved
-- [ ] Each of Rok's 15 skills works in a run as the spec describes
-- [ ] Reset refunds every point for free
-- [ ] Fits 1280x720 and 1560x720 (screenshots)
-- [ ] The affected system docs (and tests/CLAUDE.md for new checks) are updated in the same change; `ALL TESTS PASSED`
+- [x] Levelling Rok grants skill points (19 by level 20)
+- [x] Learning a skill spends points, needs the one below and is saved
+- [x] Each of Rok's 15 skills works in a run as the spec describes
+- [x] Reset refunds every point for free
+- [x] Fits 1280x720 and 1560x720 (screenshots)
+- [x] The affected system docs (and tests/CLAUDE.md for new checks) are updated in the same change; `ALL TESTS PASSED`
+
+## Done (2026-11-24)
+
+Built per [heroes.md#skill-trees](../../systems/heroes.md#skill-trees). Two notes: **Combo Strike** has no effect until bosses exist (ticket 22 wires it); **Rock Breaker** breaks boulders, because ATTACK already breaks small hazards for everyone. Branch banners and skill icons are still art to come; the cards show names.

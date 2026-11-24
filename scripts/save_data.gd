@@ -138,6 +138,16 @@ static func save_dino_xp(d: Dictionary) -> void:
 	_write("progress", "dino_xp", d)
 
 
+## Hero skills learned: hero -> [skill ids] (Skills.learned).
+static func load_skills() -> Dictionary:
+	var d: Variant = _read("progress", "skills", {})
+	return d if d is Dictionary else {}
+
+
+static func save_skills(d: Dictionary) -> void:
+	_write("progress", "skills", d)
+
+
 static func load_equipped() -> Dictionary:
 	return _read("progress", "equipped", {})
 

@@ -67,6 +67,7 @@ Art conventions shared by everything:
 
 ### Data and config
 - **Stats** (`scripts/heroes.gd` `INFO`): name, role, blurb, attributes on the originals' budget.
+- **Skill tree** (`config/skills.cfg`): a `[tree.<hero>]` with three `[branch.*]` of five `[skill.*]` each (name, text, value), plus the code for any new skill effect ([heroes](systems/heroes.md#skill-trees)). Skill icons and branch banners are art to ask for.
 - **Market:** price and on-sale distance in `config/progression.cfg` (`[market]`, `[market_unlocks]`).
 - **Gear sockets:** `tools/prepare_gear.py` measures the front hand and back point for every frame. Rerun it after any hero art changes.
 

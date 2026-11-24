@@ -93,7 +93,7 @@ static func get_data(form: int) -> Dictionary:
 	var id: String = equipped.get(form, "")
 	if id == "" or not Dinos.playable(id):
 		id = DATA[form].id
-	if id == DATA[form].id and not Dinos.has_levels(id) and not Gear.has_any(id):
+	if id == DATA[form].id and not Dinos.has_levels(id) and not Gear.has_any(id) and not Skills.changes_form(id):
 		return DATA[form]   # an unlevelled original plays exactly as written here
 	if not _species_cache.has(id):
 		_species_cache[id] = Dinos.form_data(form, id)

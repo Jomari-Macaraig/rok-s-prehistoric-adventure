@@ -73,6 +73,8 @@ Each system is documented on its own in [docs/systems/](../docs/systems/README.m
 | `run_events.gd` | [long-run-events](../docs/systems/long-run-events.md) |
 | `save_data.gd` | [run-loop](../docs/systems/run-loop.md) |
 | `scene_kit.gd` | [field-guide](../docs/systems/field-guide.md#the-scene-kit-look), [camp](../docs/systems/camp.md) |
+| `skills.gd` | [heroes](../docs/systems/heroes.md#skill-trees) (skill trees, from `config/skills.cfg`) |
+| `skill_tree_view.gd` | [heroes](../docs/systems/heroes.md#skill-trees), [camp](../docs/systems/camp.md) (the skill tree screen) |
 | `sprite_lib.gd` | [rendering-and-fx](../docs/systems/rendering-and-fx.md) |
 | `summary.gd` | [run-loop](../docs/systems/run-loop.md) |
 | `terrain.gd` | [terrain](../docs/systems/terrain.md) |

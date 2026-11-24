@@ -481,6 +481,8 @@ static func form_data(slot: int, id: String) -> Dictionary:
 	d.stumble_mult = 1.0 - delta.call("armor") * 0.05
 	if stat(id, "armor") >= ARMOR_SHIELD and int(d.armor) == 0:
 		d.armor = 1
+	if slot == Forms.ROK and Skills.knows(id, "air_step"):
+		d.air_jumps = int(d.air_jumps) + int(Skills.value("air_step", 1))   # a third jump as the hero
 	return d
 
 

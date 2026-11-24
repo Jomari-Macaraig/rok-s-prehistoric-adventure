@@ -547,6 +547,8 @@ func _start_slide() -> void:
 		return
 	# the cooldown runs from the press (shorter with more Speed)
 	slide_cd = Tuning.SLIDE_COOLDOWN * Dinos.cooldown_mult(String(data().id), "speed")
+	if form == Forms.ROK and Skills.has("quick_feet"):
+		slide_cd *= float(Skills.value("quick_feet", 1.0))   # the hero's Quick Feet skill
 	slide_cd_max = slide_cd
 	low = Low.ENTER
 	_low_t = 0.0

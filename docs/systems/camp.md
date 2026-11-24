@@ -50,6 +50,10 @@ Ones you don't own are silhouettes but can still be compared, with how to get th
 - Levels come by themselves from XP (see [leveling](leveling.md)); nothing is bought here.
 - The detail shows "Lv 7" (`Dinos.level_text`) and an XP bar; a note (`LevelNote`) says how many metres to the next level and what it adds ("Lv 4 in 450 m: +0.4 Speed. The Gallimimus levels up by itself as it runs."; heroes grow no attributes by level). The header's meat counter is hidden for now (the user's call: the Camp doesn't need it; `MeatPouch`, `visible = false`).
 
+## Skill tree (Heroes tab)
+
+A hero's detail has a **Skill Tree (n)** button under the XP bar (n = free skill points) that opens the full-screen skill tree (`open_skills` → `SkillTreeView`; see [heroes](heroes.md#skill-trees)). Back returns to the Camp and refreshes it.
+
 ## Gear (Heroes tab)
 
 - EQUIPMENT rows (`_gear_rows`): weapon and armor by full name ("Epic Stone Axe") with their bonuses and attack reach, and "Durability n/max" (or BROKEN) with its material repair cost and a **Repair** button (two taps, `press_repair`; disabled without the materials).

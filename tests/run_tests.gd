@@ -81,6 +81,7 @@ func _process(_delta: float) -> bool:
 		_animation_pack_checks()
 		_hill_chase_checks()
 		_guide_scroll_check()
+		_skill_checks()
 		main.start_run(false)
 		check(main.unlocked == [Forms.ROK], "fresh save: only Rok unlocked")
 		main.distance = (Progression.UNLOCKS[Forms.RAPTOR] + 10.0) * Tuning.PX_PER_M
@@ -4111,3 +4112,112 @@ func _training_run_checks() -> void:
 	main.run_meat = 0
 	main.badge_stats = {}
 	main.badge_tiers = {}
+
+
+## Hero skill trees (config/skills.cfg, Skills, the Camp's skill tree view)
+## and each of Rok's skills in a run.
+func _skill_checks() -> void:
+	var xp_keep: Dictionary = main.dino_xp.duplicate()
+	var meat_keep: int = main.meat_bank
+	main.reset_skills("rok")
+	main.dino_xp["rok"] = 0.0
+	Dinos.xp = main.dino_xp
+	var runner: Array = Skills.branches["runner"].skills
+	var brawler: Array = Skills.branches["brawler"].skills
+	check(Skills.tree("rok") == ["runner", "brawler", "survivor"] and Skills.tree("rok").all(func(b): return (Skills.branches[b].skills as Array).size() == 5), "Rok's tree: Runner, Brawler and Survivor, five skills each")
+	check(Skills.points("rok") == 0 and not main.learn_skill("rok", "quick_feet"), "no levels, no skill points")
+	main.dino_xp["rok"] = Dinos.xp_for(Dinos.max_level)
+	check(Skills.points("rok") == Dinos.max_level - 1, "one skill point per level from 2 to 20 (%d)" % Skills.points("rok"))
+	check(not main.learn_skill("rok", "air_step"), "a skill needs the one below it")
+	check(main.learn_skill("rok", "quick_feet") and Skills.free_points("rok") == Skills.points("rok") - 1 and (SaveData.load_skills().get("rok", []) as Array).has("quick_feet"), "learning spends its points and is saved")
+	for sid in runner.slice(1) + brawler:
+		main.learn_skill("rok", sid)
+	check(Skills.spent("rok") == 18 and Skills.free_points("rok") == 1 and Skills.can_learn("rok", "tough_hide") and main.learn_skill("rok", "tough_hide") and not Skills.can_learn("rok", "shake_it_off"), "costs 1, 1, 2, 2, 3: two branches fill (18 points), not three")
+	main.reset_skills("rok")
+	check(Skills.free_points("rok") == Skills.points("rok") and (SaveData.load_skills().get("rok", []) as Array).is_empty(), "reset gives every point back, free")
+	# --- the skills in a run
+	main.start_run(false)
+	main.state = main.State.PLAYING
+	var aj0 := int(Forms.get_data(Forms.ROK).air_jumps)
+	main.learn_skill("rok", "quick_feet")
+	main.learn_skill("rok", "air_step")
+	check(int(Forms.get_data(Forms.ROK).air_jumps) == aj0 + 1, "Air Step: a third jump as the hero")
+	var base_slide := Tuning.SLIDE_COOLDOWN * Dinos.cooldown_mult("rok", "speed")
+	main.player.slide_cd = 0.0
+	main.player.press_slide()
+	main.player.release_slide()
+	check(absf(main.player.slide_cd_max - base_slide * float(Skills.value("quick_feet"))) < 0.01, "Quick Feet: a shorter slide cooldown (%.2f s)" % main.player.slide_cd_max)
+	main.learn_skill("rok", "slipstream")
+	main.learn_skill("rok", "light_feet")
+	main.learn_skill("rok", "second_wind")
+	main.boost_t = 0.0
+	main.chase_gap = 20.0
+	main._skill_step()
+	check(main.boost_t > 0.0, "Second Wind: a speed burst when the hunter is about to catch Rok")
+	main.boost_t = 0.0
+	main._skill_step()
+	check(main.boost_t == 0.0, "...once a run")
+	main.chase_gap = Tuning.CHASE_GAP_START
+	var pw0: float = main.attack_power()
+	var rock := Obstacle.new()
+	rock.kind = "rock"
+	var rock_before: bool = main.attack_breaks(rock, 1.0)
+	main.learn_skill("rok", "heavy_swing")
+	check(absf(main.attack_power() - pw0 * float(Skills.value("heavy_swing"))) < 0.01, "Heavy Swing: ATTACK hits harder")
+	main.learn_skill("rok", "quick_hands")
+	main.attack_cd = 0.0
+	main._attack()
+	check(absf(main.attack_cd_max - Tuning.ATTACK_COOLDOWN * Dinos.cooldown_mult("rok", "power") * float(Skills.value("quick_hands"))) < 0.01, "Quick Hands: a shorter ATTACK cooldown")
+	main.learn_skill("rok", "rock_breaker")
+	check(not rock_before and main.attack_breaks(rock, 1.0), "Rock Breaker: ATTACK breaks boulders whatever the Power")
+	rock.free()
+	main.reset_skills("rok")
+	for sid in Skills.branches["survivor"].skills:
+		main.learn_skill("rok", sid)
+	main.health = main.max_health()
+	main._hurt("wall", "test")
+	check(main.health == main.max_health(), "Tough Hide: the first hit of the run is free")
+	main._hurt("small", "test")
+	check(main.health == main.max_health() - Hearts.damage("small", Hearts.armor_of(main.player.data())), "...only the first")
+	var g0: float = main.chase_gap
+	main._stumble(10.0, "test")
+	check(absf((g0 - main.chase_gap) - 10.0 * float(main.player.data().get("stumble_mult", 1.0)) * float(Skills.value("shake_it_off"))) < 0.01, "Shake It Off: stumbles let the hunter close in less")
+	main.chase_gap = Tuning.CHASE_GAP_START
+	main.health = Hearts.QUARTERS
+	var wall := Hearts.damage("wall", Hearts.armor_of(main.player.data()))
+	main._hurt("wall", "test")
+	check(main.health == Hearts.QUARTERS - ceili(wall * float(Skills.value("iron_will"))), "Iron Will: at 1 heart or less, hits cost half")
+	main.health = main.max_health() - 2
+	main._last_hit_m = main.metres() - float(Skills.value("patch_up")) - 1.0
+	main._skill_step()
+	check(main.health == main.max_health() - 1, "Patch Up: a quarter heart back after enough metres without a hit")
+	main.health = 1
+	main._hurt("wall", "test")
+	check(main.health == 1 and main.state == main.State.PLAYING, "Last Stand: once a run, a hit that would end it leaves a quarter heart")
+	# --- the Camp's skill tree screen
+	main.reset_skills("rok")
+	main.state = main.State.TITLE
+	main._to_title()
+	main.open_herd("rok")
+	main.herd._drag_dist = 0.0
+	main.herd.select("rok")
+	var sb := main.herd.detail.find_child("SkillTree", true, false) as Button
+	check(sb != null and sb.text.contains("(%d)" % Skills.points("rok")), "the Camp's hero detail has a Skill Tree button showing free points")
+	sb.pressed.emit()
+	var sv: SkillTreeView = main.herd.skill_view
+	var cards := sv.find_children("Skill_*", "Button", true, false)
+	check(sv.visible and cards.size() == 15 and cards.filter(func(c): return c.get_meta("state") == "learnable").size() == 3, "the skill tree shows 15 cards, the three bottom ones learnable")
+	(sv.find_child("Skill_quick_feet", true, false) as Button).pressed.emit()
+	check(not Skills.knows("rok", "quick_feet") and sv.find_child("Learn", true, false) != null, "a first tap shows the skill and a Learn button")
+	(sv.find_child("Skill_quick_feet", true, false) as Button).pressed.emit()
+	check(Skills.knows("rok", "quick_feet") and (sv.find_child("Skill_quick_feet", true, false) as Button).get_meta("state") == "learned" and (sv.find_child("Skill_air_step", true, false) as Button).get_meta("state") == "learnable", "a second tap learns it and opens the next one up")
+	(sv.find_child("Reset", true, false) as Button).pressed.emit()
+	check(Skills.learned_by("rok").is_empty(), "Reset in the screen gives the points back")
+	(sv.find_child("Back", true, false) as Button).pressed.emit()
+	check(not sv.visible and main.herd.visible, "Back returns to the Camp")
+	main.herd.close_herd()
+	main.dino_xp = xp_keep
+	Dinos.xp = main.dino_xp
+	SaveData.save_dino_xp(xp_keep)
+	Forms.clear_cache()
+	main.meat_bank = meat_keep

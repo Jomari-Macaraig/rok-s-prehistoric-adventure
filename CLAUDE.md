@@ -11,6 +11,8 @@ Godot 4.7 (GDScript, Compatibility renderer) 2D endless runner with a prehistori
 
 **`config/leveling.cfg`** sets levels: the XP curve to level 20, the team share and how dinosaurs grow (levels come by themselves, no meat). See [docs/systems/leveling.md](docs/systems/leveling.md).
 
+**`config/skills.cfg`** sets the heroes' skill trees: branches, skills, costs (1, 1, 2, 2, 3) and each skill's number. See [docs/systems/heroes.md](docs/systems/heroes.md#skill-trees).
+
 **`config/hints.cfg`** holds the loading screen's hints, each shown only once the player has reached what it talks about (see [run-loop](docs/systems/run-loop.md#loading-screen-scriptspreloadergd)).
 
 **`config/damage.cfg`** sets what running into each obstacle costs: damage tiers (light ¼, medium ½, heavy 1 heart) and each obstacle's tier; pits, liquids, quicksand, dino gates and being caught stay instant. See [docs/systems/health-and-damage.md](docs/systems/health-and-damage.md).
