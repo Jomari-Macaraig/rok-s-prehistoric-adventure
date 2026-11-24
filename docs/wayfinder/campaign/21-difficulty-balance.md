@@ -2,7 +2,7 @@
 title: Difficulty balance and the bot check
 label: wayfinder:grilling
 status: open
-assignee:
+assignee: claude
 blocked_by: [20-campaign-and-endless-cycle]
 ---
 
