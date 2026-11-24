@@ -2,7 +2,7 @@
 title: Loading each stage
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: [10-campaign-growth]
 ---
 
