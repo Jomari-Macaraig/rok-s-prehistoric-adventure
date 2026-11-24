@@ -53,7 +53,8 @@ Transparent PNGs in the game's cartoon style. Animations are 4x2 sheets (8 frame
   - Trail sign: a wooden signpost, open and locked.
   - Star chest: closed, opened, and an opening 4x2 (the milestone chest may do).
   - Chapter buttons: 4 small zone badges (leaf, sun, canyon arch, volcano).
-- [ ] **3. Puzzle pieces** (sized like the current obstacles; drawn in code until then; see [02-puzzle-stages](wayfinder/campaign/02-puzzle-stages.md)):
+- [x] **3. Puzzle pieces**: received (`../Assets/Rok_Puzzle_Pieces`), imported with ticket 24.
+  Spec as asked: (sized like the current obstacles; drawn in code until then; see [02-puzzle-stages](wayfinder/campaign/02-puzzle-stages.md)):
   - Stone switch: off and on; **press** 4x2 (sinks and glows, frame 2 the hit).
   - Stone doors in red, blue, green and gold: closed and open; **opening** 4x2 per colour (or one grey door the game tints).
   - Gems in the same 4 colours, ~64 px; **sparkle loop** 4x2, 64 px, ~120 ms.
@@ -65,7 +66,7 @@ Transparent PNGs in the game's cartoon style. Animations are 4x2 sheets (8 frame
   - Branch banners (9): Rok (Runner, Brawler, Survivor), Nira (Pathfinder, Acrobat, Tracker), Boro (Bulwark, Crusher, Protector).
   - Milestone icons (24): 6 each for the Raptor, Triceratops, Spinosaurus and Pteranodon (names in the spec).
   - Skill icons (about 40) for the three heroes' skills; shared skills reuse one icon.
-- [ ] **5. Boss clips** (the game uses existing clips with a flash and shake until then; see [01-boss-stages](wayfinder/campaign/01-boss-stages.md)): for the T-rex, Carnotaurus, Utahraptor and Allosaurus, one 4x2 sheet each, same canvas and pivot as its run, facing right (it runs ahead of Rok): run ahead (glancing back), wind-up kick rock (frame 5 the release), wind-up tail sweep, wind-up roar, wind-up charge back, hurt, enrage (plays once at half health), defeated. Plus props: the kicked rock (or reuse a boulder) and a ground shockwave strip (4x2).
+- [x] **5. Boss clips**: received (`../Assets/Rok_Section_5_Boss_Clips`: T-rex, Carnotaurus, Utahraptor, Allosaurus × run_ahead, kick_rock, tail_sweep, roar, charge_back, hurt, enrage, defeated; the kicked rock and ground shockwave props; `animations.json` has frames, pivots, rates, loops and events). Imported when the boss stages are built (tickets 22 and 23).
 - [ ] **6. Later**: evolved looks at levels 10 and 20 for the four original dinosaurs (shared with pets' grown-up looks, so wait for the pet plan); Boss Set art (12 icons for 4 sets, plus how they show on each hero); a stage loading backdrop per zone if the main loading kit isn't enough.
 
 ## Canyon follow-ups

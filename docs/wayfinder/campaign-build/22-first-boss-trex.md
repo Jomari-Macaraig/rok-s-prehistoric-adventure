@@ -4,6 +4,8 @@
 
 **Blocked by:** [19: Results, rewards and failing](19-results-rewards-failing.md)
 
+**Art:** the user's boss clips are in `../Assets/Rok_Section_5_Boss_Clips` (README and `animations.json` there: 4x2 sheets per clip on each boss's run canvas, ground pivots, rates, loops, the kick frame for the kicked-rock prop, tail-sweep active frames). Write an importer for them in `tools/` instead of the flash-and-shake stand-in.
+
 **Status:** ready-for-agent
 
 Spec: [docs/systems/campaign.md](../../systems/campaign.md).

@@ -4,6 +4,8 @@
 
 **Blocked by:** [12: Accessory slot and six accessories](12-accessories.md), [22: First Boss stage (T-rex)](22-first-boss-trex.md)
 
+**Art:** the Carnotaurus, Utahraptor and Allosaurus clips are in `../Assets/Rok_Section_5_Boss_Clips` (imported by ticket 22's importer).
+
 **Status:** ready-for-agent
 
 Spec: [docs/systems/campaign.md](../../systems/campaign.md).

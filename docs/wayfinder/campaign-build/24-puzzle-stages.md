@@ -4,6 +4,8 @@
 
 **Blocked by:** [19: Results, rewards and failing](19-results-rewards-failing.md)
 
+**Art:** the user's puzzle pieces are in `../Assets/Rok_Puzzle_Pieces` (README, `manifest.json`: switch, four coloured doors and gems, checkpoint totem, fork sign, with animation frames). Import them instead of code-drawn stand-ins.
+
 **Status:** ready-for-agent
 
 Spec: [docs/systems/campaign.md](../../systems/campaign.md).
