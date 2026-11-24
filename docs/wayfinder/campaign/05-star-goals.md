@@ -2,7 +2,7 @@
 title: The list of star goals
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: []
 ---
 
