@@ -2,7 +2,7 @@
 title: What happens when a stage fails
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: [08-recommended-strength]
 ---
 
