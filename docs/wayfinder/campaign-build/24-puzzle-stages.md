@@ -6,6 +6,8 @@
 
 **Art:** the user's puzzle pieces are in `../Assets/Rok_Puzzle_Pieces` (README, `manifest.json`: switch, four coloured doors and gems, checkpoint totem, fork sign, with animation frames). Import them instead of code-drawn stand-ins.
 
+**Skills to wire here:** Nira's Scout's Hint (hints after 2 tries) and Shortcut Sense (forks show the safer path).
+
 **Status:** ready-for-agent
 
 Spec: [docs/systems/campaign.md](../../systems/campaign.md).

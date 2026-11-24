@@ -357,7 +357,8 @@ func make_diver() -> void:
 
 ## 0 while it's still far ahead, 1 once it has dived (from its distance to Rok).
 func dive_progress() -> float:
-	return clampf((Tuning.DIVE_FROM_X - (position.x - Tuning.PLAYER_X)) / (Tuning.DIVE_FROM_X - Tuning.DIVE_TO_X), 0.0, 1.0)
+	var from := Tuning.DIVE_FROM_X * (float(Skills.value("keen_eyes", 1.0)) if Skills.has("keen_eyes") else 1.0)   # Keen Eyes: dives start farther ahead
+	return clampf((from - (position.x - Tuning.PLAYER_X)) / (from - Tuning.DIVE_TO_X), 0.0, 1.0)
 
 
 func update_dive() -> void:

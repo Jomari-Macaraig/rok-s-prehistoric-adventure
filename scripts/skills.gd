@@ -142,4 +142,4 @@ static func text_of(sid: String) -> String:
 
 ## Skills that change the hero's form data (so Forms builds it).
 static func changes_form(hero_id: String) -> bool:
-	return knows(hero_id, "air_step")
+	return knows(hero_id, "air_step") or knows(hero_id, "spring_step")

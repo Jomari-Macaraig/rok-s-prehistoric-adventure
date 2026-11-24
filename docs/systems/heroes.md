@@ -62,7 +62,7 @@ it; Reset is free. A skill works for the hero being played (`Skills.hero()`:
 Rok, or Nira/Boro on his button). Movement and ATTACK skills work only in the
 hero's own form; heart, hunter and once-a-run skills all run long.
 
-**Rok** (built; Nira's and Boro's trees are ticket 09):
+**Rok**:
 
 | Branch | Skill | In the game |
 |---|---|---|
@@ -81,6 +81,36 @@ hero's own form; heart, hunter and once-a-run skills all run long.
 | | Iron Will | at 1 heart or less, hits cost half (rounded up) |
 | | Patch Up | +¼ heart every 500 m without a hit (`_skill_step`, `_last_hit_m`) |
 | | Last Stand | once a run, a hit that would end it leaves ¼ heart; pits, liquids and being caught still end it (they don't go through `_hurt`) |
+
+**Nira** (scout) and **Boro** (guardian) (ticket 09). Shared skills (Light Feet,
+Air Step, Quick Hands, Tough Hide, Iron Will, Heavy Swing, Rock Breaker,
+Combo Strike, Shake It Off, Patch Up) work as for Rok. Skills marked
+*(stages)* act only in campaign boss or puzzle stages and do nothing yet
+(tickets 22 and 24): Scout's Hint, Shortcut Sense, Weak Spot, Mark, Fortress,
+Quake, plus Combo Strike.
+
+| Hero | Branch | Skill | In the game |
+|---|---|---|---|
+| Nira | Pathfinder | Keen Eyes | diving flyers start their dive (and screech) 1.35× farther ahead (`Obstacle.dive_progress`) |
+| | | Scout's Hint | *(stages)* puzzle hints after 2 tries |
+| | | Shortcut Sense | *(stages)* forks show the safer path |
+| | | Foresight | once a run, a new hazard's introduction slows the world for 2 s (`_foresight`, `_foresight_t`) |
+| | Acrobat | Spring Step | jump × 1.1 as the hero (`form_data`) |
+| | | Roll | mid-slide, a small rock, thorns or a mushroom are dodged (`_collide`) |
+| | | Wall Hop | the first touch of a wall or tall fence bounces her up instead of crashing (once per wall) |
+| | | Featherfall | holding JUMP while falling caps the fall at 220 px/s (`Player` physics) |
+| | Tracker | Weak Spot | *(stages)* |
+| | | Bonk Master | a bonked wild dinosaur knocks over the next one within 450 px (`_bonk_next`) |
+| | | Hunter's Sense | a hunter charge's warning lasts 2 s longer (`_charge_step`) |
+| | | Mark | *(stages)* |
+| Boro | Bulwark | Thick Hide | medium crashes (logs, fences) cost a quarter heart less (`_hurt`) |
+| | | Brace | pressing SLIDE as the hero: the next hit within 1 s is blocked, 6 s cooldown (shares the Spinosaurus's brace) |
+| | | Fortress | *(stages)* +1 heart in boss stages |
+| | Crusher | Shoulder Barge | ATTACK breaks logs and fences (`attack_breaks`) |
+| | | Quake | *(stages)* |
+| | Protector | Steady | each shapeshift gives 0.8 s of invulnerability |
+| | | Rally | the team's XP share × 1.1 |
+| | | Guardian Spirit | once a run, a fatal hit while a dinosaur turns him back into Boro with 1 heart |
 
 **The screen** (`SkillTreeView`, variant A of the level-path prototype): the
 Camp's hero detail has a **Skill Tree (n)** button under the XP bar (n = free

@@ -61,6 +61,7 @@ var _diving := false              # a Pteranodon dive (Dive, Soft Landing)
 var _roll_t := 0.0                # Barrel Roll: flying hits pass through (s)
 var _roll_cd := 0.0               # until the next roll (s)
 var _last_jump_press := -10.0     # time of the last JUMP press (Barrel Roll's double tap)
+var _foresight_t := 0.0           # Foresight: time slowed (s)
 var run_dino_m: Dictionary = {}    # this run: id -> metres run as it (the summary card)
 var run_rank: Array = Tuning.RUN_RANKS[0]   # this run's rank (RunSummary.rank_for): its multiplier boosts meat and XP
 var run_bonus_meat := 0
@@ -495,6 +496,7 @@ func start_run(intro := true) -> void:
 	_diving = false
 	_roll_t = 0.0
 	_roll_cd = 0.0
+	_foresight_t = 0.0
 	if levels_refund > 0:
 		new_this_run.append("Levels now come by themselves: %d meat refunded" % levels_refund)
 		levels_refund = 0
@@ -694,6 +696,7 @@ func _on_introduced(key: String) -> void:
 	last_new_m = metres()
 	new_this_run.append(e[2])
 	audio.play("intro", 0.0)
+	_foresight()
 	if pause_for_info:
 		queue_info("NEW: " + e[2], Progression.hint(key, unlocked), _intro_icon(key), Color(1.0, 0.7, 0.25))
 	else:
@@ -1404,6 +1407,8 @@ func _shift(f: int) -> void:
 		_coach_done("shift")
 	var from: Dictionary = player.data()
 	player.shift_to(f)
+	if Skills.has("steady"):
+		player.invuln = maxf(player.invuln, float(Skills.value("steady", 0.8)))   # Steady: a free moment
 	_scales_used = false
 	_scales_t = 0.0
 	if f != Forms.ROK and Milestones.knows(String(Forms.get_data(f).id), "quick_start"):
@@ -1581,6 +1586,9 @@ func _play_step(delta: float) -> void:
 		_boost_fx(delta)
 	if power_on("time_crystal"):
 		pace *= Tuning.SLOW_PACE
+	if _foresight_t > 0.0:
+		_foresight_t = maxf(_foresight_t - delta, 0.0)
+		pace *= Tuning.SLOW_PACE
 	if player.swimming and Milestones.knows(String(d.id), "deep_diver"):
 		pace *= float(Milestones.value("deep_diver", 1.0))   # Deep Diver swims faster
 	speed_mod = lerpf(speed_mod, pace, minf(delta * 6.0, 1.0))
@@ -1757,7 +1765,17 @@ func _collide() -> void:
 		elif _small_hazard(o) and player.invuln <= 0.0 and (_roll() < Dinos.break_chance(String(d.id), player.form) \
 				or (o.kind == "small" and Milestones.knows(String(d.id), "thick_skull"))):
 			_power_break(o)   # Power won the roll (or Thick Skull): straight through, no trip/dizzy/snag
-		elif _brace_t > 0.0 and player.invuln <= 0.0 and o.gate_form == -1 and player.form == Forms.SPINOSAURUS:
+		elif player.form == Forms.ROK and player.is_low() and player.invuln <= 0.0 and Skills.has("roll") \
+				and o.gate_form == -1 and (o.kind == "small" or o.kind == "thorns" or o.mushroom):
+			player.invuln = 0.3   # Roll: slid right through it
+			fx.float_text(player.position + Vector2(-40, -160), "ROLL!", Color(0.9, 0.85, 0.5), 24)
+		elif player.form == Forms.ROK and player.invuln <= 0.0 and Skills.has("wall_hop") and o.gate_form == -1 \
+				and o.hit_key() in ["wall", "tall_fence"] and not o.get_meta("hopped", false):
+			o.set_meta("hopped", true)   # Wall Hop: bounce off its face instead of crashing
+			player._do_jump(false)
+			player.invuln = 0.4
+			fx.float_text(player.position + Vector2(-50, -200), "WALL HOP!", Color(0.9, 0.85, 0.5), 26)
+		elif _brace_t > 0.0 and player.invuln <= 0.0 and o.gate_form == -1 and (player.form == Forms.SPINOSAURUS or player.form == Forms.ROK):
 			_brace_t = 0.0   # Sail Brace: this hit is free
 			player.invuln = 0.8
 			if o.kind != "overhead" and o.critter == "":
@@ -1925,10 +1943,18 @@ func _hurt(key: String, cause: String, pop := true) -> bool:
 		_skill_used["tough_hide"] = true
 		cost = 0   # the first hit of the run is free
 		fx.float_text(player.position + Vector2(-70, -250), "TOUGH HIDE!", Color(0.6, 0.85, 1.0), 30)
-	elif Skills.has("iron_will") and health <= Hearts.QUARTERS:
+	elif Skills.has("thick_hide") and Hearts.tier(key) == "medium":
+		cost = maxi(cost - int(Skills.value("thick_hide", 1)), 0)   # Thick Hide: medium crashes cost less
+	if cost > 0 and Skills.has("iron_will") and health <= Hearts.QUARTERS:
 		cost = ceili(cost * float(Skills.value("iron_will", 1.0)))   # at 1 heart or less, hits cost half
 	health = maxi(health - cost, 0)
 	_last_hit_m = metres()
+	if health <= 0 and player.form != Forms.ROK and Skills.has("guardian_spirit") and not _skill_used.has("guardian_spirit"):
+		_skill_used["guardian_spirit"] = true
+		health = int(Skills.value("guardian_spirit", 4))   # Guardian Spirit: back to the hero with 1 heart
+		_shift(Forms.ROK)
+		player.invuln = maxf(player.invuln, 1.0)
+		fx.float_text(player.position + Vector2(-90, -260), "GUARDIAN SPIRIT!", Color(0.8, 1.0, 0.7), 30)
 	if health <= 0 and Skills.has("last_stand") and not _skill_used.has("last_stand"):
 		_skill_used["last_stand"] = true
 		health = 1   # once a run: a quarter heart left
@@ -2055,7 +2081,7 @@ func _badge_run_step(dm: float) -> void:
 		add_xp(did, gx)
 		for tid in team_ids():   # the other equipped dinosaurs get a small share
 			if tid != did:
-				add_xp(tid, gx * Dinos.team_share)
+				add_xp(tid, gx * Dinos.team_share * (float(Skills.value("rally", 1.0)) if Skills.has("rally") else 1.0))
 		if player.flies() and not player.on_ground:
 			badge_stats["flown_m"] = float(badge_stats.get("flown_m", 0.0)) + dm
 		if player.form == Forms.RAPTOR:
@@ -2118,7 +2144,7 @@ func _course_badges() -> void:
 func _charge_step(delta: float) -> void:
 	if charge_state == "" and metres() >= _next_charge and bonus_t <= 0.0 and portal == null:
 		charge_state = "warn"
-		charge_t = Tuning.CHARGE_WARN
+		charge_t = Tuning.CHARGE_WARN + (float(Skills.value("hunters_sense", 0.0)) if Skills.has("hunters_sense") else 0.0)   # Hunter's Sense: a longer warning
 		_next_charge = Progression.next_charge_m(metres() + 1.0)
 		trex.roar()
 		audio.play("trex_roar", 0.0, 0.85, 4.0)
@@ -3154,6 +3180,8 @@ func attack_breaks(o: Obstacle, power: float) -> bool:
 		return true
 	if o.kind in player.data().breaks:
 		return true
+	if player.form == Forms.ROK and Skills.has("shoulder_barge") and o.kind in ["wood", "fence"]:
+		return true   # Shoulder Barge: logs and fences
 	if player.form == Forms.ROK and Gear.weapon_with(String(player.data().id), "burns") != "" \
 			and (o.vine or o.kind in ["wood", "fence", "thorns"]):
 		return true   # the Torch burns wood, whatever the Power
@@ -3331,6 +3359,8 @@ func _attack_hit(target: Obstacle) -> Obstacle:
 		score += Tuning.SMASH_SCORE * points_mult()
 		audio.play("smash", 0.1, 0.8)
 		combo.feat()
+		if Skills.has("bonk_master"):
+			_bonk_next(target)
 		if player.form != Forms.ROK and Milestones.knows(String(player.data().id), "pounce"):
 			player._do_jump(true)   # Pounce: the bonk bounces it up like a free jump
 		_drop_card(target)
@@ -3657,6 +3687,14 @@ func _on_frenzy_ended() -> void:
 
 
 ## Eating a pepper: a short burst of speed that pulls away from the T-rex.
+## Foresight: once a run, a new hazard's first appearance slows time briefly.
+func _foresight() -> void:
+	if Skills.has("foresight") and not _skill_used.has("foresight") and state == State.PLAYING:
+		_skill_used["foresight"] = true
+		_foresight_t = float(Skills.value("foresight", 2.0))
+		fx.float_text(player.position + Vector2(-70, -260), "FORESIGHT!", Color(0.7, 0.85, 1.0), 28)
+
+
 ## Skills that act over the run: Second Wind (once, a speed burst when the
 ## hunter is about to catch Rok) and Patch Up (a quarter heart back every
 ## few hundred metres without a hit).
@@ -3769,6 +3807,24 @@ func start_roll() -> bool:
 	return true
 
 
+## Bonk Master: a bonked wild dinosaur knocks over the next one ahead.
+func _bonk_next(first: Obstacle) -> void:
+	var r := float(Skills.value("bonk_master", 450.0))
+	var next: Obstacle = null
+	for o in course.obstacles:
+		if o == first or o.critter == "" or o.bumped:
+			continue
+		var dx: float = o.position.x - first.position.x
+		if dx > 0.0 and dx <= r and (next == null or o.position.x < next.position.x):
+			next = o
+	if next:
+		next.bumped = true
+		course.remove_obstacle(next)
+		fx.smash(next.position + Vector2(0, -40), Color(0.75, 0.55, 0.4))
+		fx.float_text(next.position + Vector2(-40, -150), "BONK!", Color(1.0, 0.75, 0.35), 26)
+		combo.feat()
+
+
 ## Wing Buffet: ATTACK in the air knocks flying wild dinosaurs away.
 func _wing_buffet() -> void:
 	var r := float(Milestones.value("wing_buffet", 320.0))
@@ -3794,6 +3850,9 @@ func _press_slide() -> void:
 	if player.form == Forms.SPINOSAURUS and _brace_cd <= 0.0 and Milestones.knows(String(player.data().id), "sail_brace"):
 		_brace_t = 1.0
 		_brace_cd = float(Milestones.value("sail_brace", 6.0))
+	elif player.form == Forms.ROK and _brace_cd <= 0.0 and Skills.has("brace"):
+		_brace_t = 1.0   # Brace (a hero skill): the next hit within 1 s is blocked
+		_brace_cd = float(Skills.value("brace", 6.0))
 
 
 func _skill_step() -> void:

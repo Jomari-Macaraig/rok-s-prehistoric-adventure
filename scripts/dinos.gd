@@ -496,6 +496,8 @@ static func form_data(slot: int, id: String) -> Dictionary:
 		d.air_jumps = int(d.air_jumps) + int(Milestones.value("triple_jump", 1))
 	if Milestones.knows(id, "pack_instinct"):
 		d.score_mult = maxf(float(d.score_mult), float(Milestones.value("pack_instinct", 2.5)))
+	if slot == Forms.ROK and Skills.knows(id, "spring_step"):
+		d.jump = float(d.jump) * float(Skills.value("spring_step", 1.0))   # Spring Step: higher jumps
 	if slot == Forms.ROK and Skills.knows(id, "air_step"):
 		d.air_jumps = int(d.air_jumps) + int(Skills.value("air_step", 1))   # a third jump as the hero
 	return d

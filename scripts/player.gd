@@ -728,6 +728,8 @@ func step(delta: float, support_y: float, world_speed: float) -> void:
 			_fly(delta)
 		else:
 			vy += Tuning.GRAVITY * delta
+			if form == Forms.ROK and _jump_held and vy > 0.0 and Skills.has("featherfall"):
+				vy = minf(vy, float(Skills.value("featherfall", 220.0)))   # Featherfall: drift down slowly
 		position.y += vy * delta
 		if flies() and position.y < Tuning.FLY_CEILING:
 			position.y = Tuning.FLY_CEILING

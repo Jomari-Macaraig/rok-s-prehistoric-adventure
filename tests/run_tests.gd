@@ -85,6 +85,7 @@ func _process(_delta: float) -> bool:
 		_dino_milestone_checks()
 		_tri_spino_milestone_checks()
 		_ptera_expansion_milestone_checks()
+		_nira_boro_skill_checks()
 		main.start_run(false)
 		check(main.unlocked == [Forms.ROK], "fresh save: only Rok unlocked")
 		main.distance = (Progression.UNLOCKS[Forms.RAPTOR] + 10.0) * Tuning.PX_PER_M
@@ -352,7 +353,9 @@ func _gate_checks() -> void:
 	main.chase_gap = Tuning.CHASE_GAP_MAX
 	var shroom := c._obstacle("small", ["Mushrooms_02"], 1.0, p.position.x)
 	shroom.mushroom = true
+	main.roll_override = 0.99   # the Power roll fails (Rok breaks one about 1 in 9 times)
 	main._collide()
+	main.roll_override = -1.0
 	check(main.state == main.State.PLAYING and not c.obstacles.has(shroom), "running into a mushroom squashes it and the run goes on")
 	var dizzy_text: Array = main.fx.find_children("*", "Label", true, false).filter(func(l): return l.text == "Dizzy!")
 	check(not dizzy_text.is_empty() and dizzy_text[0].get_theme_color("font_color").b > dizzy_text[0].get_theme_color("font_color").g + 0.3, "the Dizzy! text is purple")
@@ -4511,6 +4514,135 @@ func _ptera_expansion_milestone_checks() -> void:
 	main.herd.close_herd()
 	main._shift(Forms.ROK)
 	_clear_obstacles()
+	main.unlocked = unlocked_keep
+	main.shift_cd = 0.0
+	main.dino_xp = xp_keep
+	Dinos.xp = main.dino_xp
+	SaveData.save_dino_xp(xp_keep)
+	Forms.clear_cache()
+	main.player.refresh_form()
+
+
+## Nira's and Boro's skill trees in a run (ticket 09).
+func _nira_boro_skill_checks() -> void:
+	var xp_keep: Dictionary = main.dino_xp.duplicate()
+	var owned_keep: Array = main.dinos_owned.duplicate()
+	var unlocked_keep: Array = main.unlocked.duplicate()
+	for h in ["nira", "boro"]:
+		if not main.dinos_owned.has(h):
+			main.dinos_owned.append(h)
+		main.dino_xp[h] = Dinos.xp_for(Dinos.max_level)
+	Dinos.xp = main.dino_xp
+	check(Skills.tree("nira") == ["pathfinder", "acrobat", "tracker"] and Skills.tree("boro") == ["bulwark", "crusher", "protector"], "Nira and Boro have their own three branches")
+	var all_ok := true
+	for h in ["nira", "boro"]:
+		for b in Skills.tree(h):
+			all_ok = all_ok and (Skills.branches[b].skills as Array).size() == 5 and (Skills.branches[b].skills as Array).all(func(sid): return Skills.info.has(sid))
+	check(all_ok, "five skills a branch, each with its name and text (shared ones reuse Rok's)")
+	# --- Nira
+	main.equip("nira")
+	main.reset_skills("nira")
+	var jump0 := float(Forms.get_data(Forms.ROK).jump)
+	for sid in Skills.branches["pathfinder"].skills + Skills.branches["acrobat"].skills:
+		main.learn_skill("nira", sid)
+	check(Skills.spent("nira") == 18, "Nira fills two branches")
+	check(absf(float(Forms.get_data(Forms.ROK).jump) - jump0 * float(Skills.value("spring_step"))) < 0.5, "Spring Step: higher jumps as the hero")
+	var diver := Obstacle.new()
+	diver.position.x = Tuning.PLAYER_X + Tuning.DIVE_FROM_X + 80.0
+	check(diver.dive_progress() > 0.0, "Keen Eyes: diving flyers start their dive farther ahead")
+	diver.free()
+	_play_as(Forms.ROK, 1)
+	var p: Player = main.player
+	main._foresight()
+	check(main._foresight_t > 0.0, "Foresight: a new hazard slows time briefly")
+	main._foresight_t = 0.0
+	main._foresight()
+	check(main._foresight_t == 0.0, "...once a run")
+	main.roll_override = 0.99
+	p.low = Player.Low.GLIDE   # mid-slide
+	main.course.small(p.position.x)
+	main._collide()
+	check(main.health == main.max_health() and p.invuln > 0.0, "Roll: sliding through a small rock dodges it")
+	p.release_slide()
+	main.roll_override = -1.0
+	_clear_obstacles()
+	p.low = Player.Low.NONE
+	p.invuln = 0.0
+	main.health = main.max_health()
+	main.course._named(main.course.rock_wall(p.position.x, 2), "wall")
+	main._collide()
+	check(main.health == main.max_health() and p.vy < 0.0, "Wall Hop: bounces off a wall instead of crashing")
+	_clear_obstacles()
+	p.on_ground = false
+	p._jump_held = true
+	p.vy = 900.0
+	p.step(0.016, 99999.0, main.speed)
+	check(p.vy <= float(Skills.value("featherfall")) + 0.01, "Featherfall: holding JUMP drifts down slowly")
+	p._jump_held = false
+	main.reset_skills("nira")
+	for sid in ["weak_spot", "quick_hands", "bonk_master", "hunters_sense"]:
+		main.learn_skill("nira", sid)
+	_play_as(Forms.ROK, 1)
+	p = main.player
+	main.course._spawn_key("stampede", p.position.x + 600.0)
+	var c1: Obstacle = main.course.obstacles[-1]
+	main.course._spawn_key("stampede", p.position.x + 900.0)
+	var c2: Obstacle = main.course.obstacles[-1]
+	c1.position.x = p.position.x + 70.0
+	c2.position.x = p.position.x + 320.0
+	main.attack_cd = 0.0
+	main._attack()
+	check(not main.course.obstacles.has(c1) and not main.course.obstacles.has(c2), "Bonk Master: a bonked wild dinosaur knocks over the next one")
+	_clear_obstacles()
+	main.charge_state = ""
+	main._next_charge = 0.0
+	main._charge_step(0.0)
+	check(main.charge_state == "warn" and is_equal_approx(main.charge_t, Tuning.CHARGE_WARN + float(Skills.value("hunters_sense"))), "Hunter's Sense: charges are warned 2 s earlier")
+	main.charge_state = ""
+	main._next_charge = Progression.next_charge_m(main.metres() + 1.0)
+	main.reset_skills("nira")
+	# --- Boro
+	main.equip("boro")
+	main.reset_skills("boro")
+	for sid in ["tough_hide", "thick_hide", "brace", "heavy_swing", "rock_breaker", "shoulder_barge", "shake_it_off", "steady", "rally", "patch_up", "guardian_spirit"]:
+		main.learn_skill("boro", sid)
+	check(Skills.spent("boro") == 17, "Boro learns across his branches")
+	_play_as(Forms.ROK, 1)
+	p = main.player
+	main._hurt("small", "test")   # (Tough Hide takes the first)
+	var h0: int = main.health
+	main._hurt("log", "test")
+	check(main.health == h0 - (Hearts.damage("log", Hearts.armor_of(p.data())) - 1), "Thick Hide: medium crashes cost a quarter less")
+	main.health = main.max_health()
+	main._brace_cd = 0.0
+	main._press_slide()
+	main.course.boulder(p.position.x)
+	main._collide()
+	check(main.health == main.max_health(), "Brace: SLIDE blocks the next hit")
+	p.release_slide()
+	_clear_obstacles()
+	var lg: Obstacle = main.course._named(main.course.log_(p.position.x + 2000.0), "log")
+	check(main.attack_breaks(lg, 0.0), "Shoulder Barge: ATTACK breaks logs")
+	_clear_obstacles()
+	p.invuln = 0.0
+	main.shift_cd = 0.0
+	main._shift(Forms.RAPTOR)
+	check(p.invuln >= float(Skills.value("steady")) - 0.01, "Steady: each shapeshift gives a free moment")
+	main._shift(Forms.ROK)
+	var tri_id: String = Forms.get_data(Forms.TRICERATOPS).id
+	var tx0 := Dinos.xp_of(tri_id)
+	main._badge_run_step(100.0)
+	check(absf(Dinos.xp_of(tri_id) - tx0 - 100.0 * main.xp_mult() * Dinos.team_share * float(Skills.value("rally"))) < 0.01, "Rally: a bigger team XP share")
+	main.shift_cd = 0.0
+	main._shift(Forms.RAPTOR)
+	p.invuln = 0.0
+	main.health = 1
+	main._hurt("wall", "test")
+	check(main.state == main.State.PLAYING and main.health == int(Skills.value("guardian_spirit")) and main.player.form == Forms.ROK, "Guardian Spirit: a fatal hit as a dinosaur turns you back into the hero with 1 heart")
+	main.reset_skills("boro")
+	main.equip("rok")
+	_clear_obstacles()
+	main.dinos_owned = owned_keep
 	main.unlocked = unlocked_keep
 	main.shift_cd = 0.0
 	main.dino_xp = xp_keep
