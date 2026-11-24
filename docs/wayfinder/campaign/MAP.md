@@ -101,6 +101,11 @@ Decide everything first; build afterwards.
   no gear, XP boosts, eggs or boss materials for sale; endless runs earn
   the meat, the campaign pays what meat can't buy; boss materials sellable,
   eggs not.
+- [What stages pay](09-rewards.md): first clears pay XP, zone materials, a
+  little meat, a card chance and every few stages a torch; replays about a
+  fifth; stars pay a small bonus plus chapter star chests; bosses 3 boss
+  materials first, 40% for 1 on replays; puzzles a rare material and a
+  Blessing chance; results shown one by one.
 
 ## Not yet specified
 
