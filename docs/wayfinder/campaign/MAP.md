@@ -56,6 +56,9 @@ build afterwards.
   a failed (or quit) stage costs one, clears are free; 5 max, one back per
   30 minutes on the real clock; meat refills, reward torches up to 10, ads
   later; endless runs stay free.
+- [When the campaign opens](04-campaign-opens.md): best distance 1,000 m and
+  the played hero at level 3 (config); a locked Campaign button shows what's
+  needed; a one-time tour when it opens.
 
 ## Not yet specified
 
