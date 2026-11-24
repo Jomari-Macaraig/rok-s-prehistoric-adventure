@@ -44,6 +44,7 @@ Each gameplay system has its own doc in [docs/systems/](docs/systems/README.md);
 
 ## Subsystem Documentation
 - **[docs/GAME_DESIGN.md](docs/GAME_DESIGN.md): the user's core loop** (endless runs, then campaigns, in a cycle) and the planned pet system (care, age, breeding with traits, turn-based card battles against a bot, PVP later), with the open design questions.
+- [GLOSSARY.md](GLOSSARY.md): the game's words (Campaign, Chapter, Stage, Endless Run, Level, Mission). [docs/wayfinder/](docs/wayfinder/): planning maps (the Campaign's is `campaign/MAP.md`); decide there before building.
 - **[docs/TODO.md](docs/TODO.md): the running list of open work (code, decisions, art).** Read it at the start of a session; tick or remove items when done and add new requests, in the same commit.
 - [docs/ITEM_ART_PLAN.md](docs/ITEM_ART_PLAN.md): the step-by-step plan for weapons, armor and accessories without drawing every hero holding every item (attack styles, guide sheets, outfit masks): what exists, what to generate, in order.
 - [docs/NEW_ITEM_ART.md](docs/NEW_ITEM_ART.md): the art to generate for one new weapon, armor or accessory (and what the game already handles), plus the one-time hero art per attack style.

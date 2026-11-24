@@ -14,7 +14,7 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Decisions (the user)
 
-- [ ] **Campaign mode** (the user's core loop, see [GAME_DESIGN.md](GAME_DESIGN.md)): set levels to beat; endless runs are where the player grows to beat them. A Campaign button beside an Endless Run button on the main menu. Design to come (open questions in GAME_DESIGN.md).
+- [ ] **Campaign mode**: being planned on a wayfinding map, [docs/wayfinder/campaign/MAP.md](wayfinder/campaign/MAP.md) (decide first, then build).
 
 - [ ] **Pet system** (the user's vision, see [GAME_DESIGN.md](GAME_DESIGN.md)): pets hatch from eggs (the Dino Egg art is kept for it), need care, age through stages and die, breed with traits passed to offspring, and fight turn-based card battles (each dinosaur's attack cards come from its traits) against a bot, PVP later. Breeding only within the same species, at most 8 times per dinosaur; more species are coming. Notes only: the user will discuss it later.
 - [ ] **Stomps:** which wild species are stompable, and does a stomp bounce Rok?
