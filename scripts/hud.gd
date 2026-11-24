@@ -187,11 +187,11 @@ func _ready() -> void:
 	skip_button.size = skip_button.custom_minimum_size
 	skip_button.visible = false
 	# the user's square menu buttons replace the drawn ones when imported, their name below
-	for trio in [[codex_button, "encyclopedia", "Encyclopedia"], [market_button, "marketplace", "Marketplace"], [herd_button, "dinosaurs", "Dinosaur Camp"], [tutorial_button, "tutorial", "Tutorial"], [crafting_button, "crafting", "Crafting"]]:
+	for trio in [[codex_button, "encyclopedia", "Encyclopedia"], [market_button, "marketplace", "Marketplace"], [herd_button, "dinosaurs", "Dinosaur Camp"], [tutorial_button, "tutorial", "Tutorial"], [crafting_button, "crafting", "Crafting"], [missions_button, "missions", "Missions", Tuning.TUTORIAL_BUTTON_SIZE]]:
 		var path := "res://assets/ui/square_%s.png" % trio[1]
 		if ResourceLoader.exists(path):
 			(trio[0] as TouchButton).caption = trio[2]
-			(trio[0] as TouchButton).set_banner(load(path), Tuning.SIDE_BUTTON_SIZE)
+			(trio[0] as TouchButton).set_banner(load(path), float(trio[3]) if trio.size() > 3 else Tuning.SIDE_BUTTON_SIZE)
 	# --- top left, after the pause/sound/book buttons: Rok's status panel,
 	# stacked: row 1 his hearts (and any shield), row 2 PRIMAL energy, row 3
 	# the hunter meter. Everything about Rok's survival in one spot.

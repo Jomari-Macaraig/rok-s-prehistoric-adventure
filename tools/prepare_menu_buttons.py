@@ -12,8 +12,12 @@
   the headers of the Field Guide (encyclopedia), the Market (marketplace)
   and the Camp (dinosaurs) (Market.title_banner).
 <name> is encyclopedia, marketplace or dinosaurs.
+- Missions and Crafting (../Assets/Rok_Missions_Crafting_UI: 512 px squares
+  and 768 x 256 banners) are scaled with macOS `sips` to the same 256 px and
+  384 x 128 and written under the same names; they win over the older packs.
 """
 import shutil
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -35,5 +39,15 @@ def main():
                 print(f"missing: {src}")
 
 
+def missions_crafting():
+    src = ASSETS / "Rok_Missions_Crafting_UI"
+    for name in ["missions", "crafting"]:
+        for f, dst, w, h in [(f"button_{name}_square.png", f"square_{name}.png", 256, 256), (f"button_{name}.png", f"banner_{name}.png", 384, 128)]:
+            if (src / f).exists():
+                subprocess.run(["sips", "-z", str(h), str(w), str(src / f), "--out", str(OUT / dst)], check=True, capture_output=True)
+                print(f"{src.name}/{f} -> assets/ui/{dst}")
+
+
 if __name__ == "__main__":
     main()
+    missions_crafting()
