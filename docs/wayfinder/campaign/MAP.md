@@ -120,6 +120,10 @@ Decide everything first; build afterwards.
   map per chapter (stage circles, Trails branching off, chapter buttons,
   star chests), a briefing popup, Endless Run and Campaign buttons on the
   main menu; prototype on branch `prototype/campaign-screens`.
+- [What happens when a stage fails](18-failing-a-stage.md): says what
+  happened, how far you got and the torch spent; keep XP and pickups, no
+  first-clear rewards, stars only on a clear; Retry, Back, Endless Run (or a
+  meat refill when out of torches); a tip after 3 failures in a row.
 
 ## Not yet specified
 
