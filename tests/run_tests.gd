@@ -86,6 +86,7 @@ func _process(_delta: float) -> bool:
 		_tri_spino_milestone_checks()
 		_ptera_expansion_milestone_checks()
 		_nira_boro_skill_checks()
+		_upgrade_checks()
 		main.start_run(false)
 		check(main.unlocked == [Forms.ROK], "fresh save: only Rok unlocked")
 		main.distance = (Progression.UNLOCKS[Forms.RAPTOR] + 10.0) * Tuning.PX_PER_M
@@ -3487,7 +3488,7 @@ func _market_checks() -> void:
 	# the Market sells the third slot and every non-starter power-up, at config prices
 	var c := ConfigFile.new()
 	c.load(Progression.CONFIG_PATH)
-	check(Market.items().size() == 6 + 3 + 28 + 2 + Crafting.market_ids().size() and Market.items().has(Market.SLOT_ID) and not Market.items().has("pepper"), "the Market sells the third slot, 3 Heart Containers, the five locked power-ups, 28 dinosaurs, 2 heroes and basic crafting materials (no gear, no card packs)")
+	check(Market.items().size() == 6 + 3 + 28 + 2 + Crafting.market_ids().size() + 1 and Market.items().has(Market.SLOT_ID) and Market.items().has(Market.BLESSING) and not Market.items().has("pepper"), "the Market sells the third slot, 3 Heart Containers, the five locked power-ups, 28 dinosaurs, 2 heroes, basic crafting materials and Kora's Blessing (no gear, no card packs)")
 	# the Dinosaur Expansion
 	check(Dinos.ids().size() == 28 and Dinos.ids().all(func(id): return Market.items().has(id)), "all 28 expansion dinosaurs are for sale")
 	check(Dinos.ids().all(func(id): return Market.price(id) == int(c.get_value("market", id, -1)) and Market.unlock_m(id) == int(c.get_value("market_unlocks", id, -1))), "dinosaur prices and distances come from the config")
@@ -4706,3 +4707,80 @@ func _nira_boro_skill_checks() -> void:
 	SaveData.save_dino_xp(xp_keep)
 	Forms.clear_cache()
 	main.player.refresh_form()
+
+
+## Gear upgrades +1 to +10 and Kora's Blessing (ticket 11).
+func _upgrade_checks() -> void:
+	var bank_keep: int = main.meat_bank
+	var best_keep: float = main.best_m
+	main.best_m = maxf(main.best_m, float(Crafting.bench_m()))
+	for i in 40:
+		main.grant_materials(Crafting.recipe("stone_axe"), false)
+	var ax: String = main.craft("stone_axe", "", 0.0)
+	main.equip_gear("rok", "weapon", ax)
+	var p0 := float(Gear.item_bonus(ax).power)
+	main.upgrade_roll_override = 0.99   # a roll that only a sure upgrade passes
+	main.upgrade_break_override = 0.99
+	for i in 6:
+		main.gear_wear[ax] = 1
+		main.upgrade_gear(ax)
+	check(Gear.upgrade_of(ax) == 6 and Gear.full_name(ax).begins_with("+6 ") and Gear.durability(ax) == Gear.max_durability(ax), "+1 to +6 always succeed, and each success restores durability")
+	check(absf(float(Gear.item_bonus(ax).power) - snappedf(p0 * (1.0 + 6.0 * float(Crafting.num("upgrade", "bonus_per_level"))), 0.1)) < 0.11, "each level adds 10% to its bonuses")
+	main.gear_wear[ax] = 1
+	var rep6 := Gear.repair_cost(ax)
+	var val6 := Economy.gear_value(ax)
+	main.gear_upgrade[ax] = 0
+	main._sync_gear()
+	check(rep6 > Gear.repair_cost(ax) and val6 > Economy.gear_value(ax), "upgrades raise its repair cost and its value")
+	main.gear_upgrade[ax] = 6
+	main.gear_wear.erase(ax)
+	main._sync_gear()
+	check(main.upgrade_gear(ax) == "dropped" and Gear.upgrade_of(ax) == 5, "+7 can fail: a miss costs the materials and drops a level")
+	main.gear_upgrade[ax] = 7
+	main._sync_gear()
+	main.blessings = 1
+	check(main.upgrade_gear(ax, true) == "kept" and Gear.upgrade_of(ax) == 7 and main.blessings == 0, "Kora's Blessing stops the drop (one used)")
+	main.upgrade_roll_override = 0.0
+	check(main.upgrade_gear(ax) == "up" and Gear.upgrade_of(ax) == 8, "a lucky roll gets it to +8")
+	main.upgrade_roll_override = 0.99
+	main.upgrade_break_override = 0.0
+	check(main.upgrade_gear(ax) == "broke" and not main.gear_owned.has(ax) and Gear.slot_item("rok", "weapon") == "", "from +8 a miss can break it for good (unequipped and gone)")
+	main.upgrade_break_override = 0.99
+	# the Market sells a few Blessings a week
+	main.meat_bank = 99999
+	main.blessings = 0
+	main.blessings_week = {}
+	check(Market.items().has(Market.BLESSING) and Market.price(Market.BLESSING) == int(Crafting.num("upgrade", "blessing_price")) and Market.on_sale(Market.BLESSING, main.best_m), "Kora's Blessing is on sale once the Crafting Bench is open")
+	var per := int(Crafting.num("upgrade", "blessings_per_week"))
+	for i in per:
+		main.buy(Market.BLESSING)
+	check(main.blessings == per and main.blessings_left_this_week() == 0 and main.market.owns(Market.BLESSING) and not main.buy(Market.BLESSING), "only a few a week (%d), then sold out" % per)
+	check(int(SaveData.load_gear().get("blessings", 0)) == per, "Blessings are saved")
+	# Kora's Items screen: UPGRADE (two taps), the Blessing toggle for a risky one
+	var ax2: String = main.craft("stone_axe", "", 0.0)
+	main.open_items("weapon")
+	var it: Workshop = main.items
+	it.show_tab("weapon")
+	it.select(ax2)
+	var ub := it.detail.find_child("Upgrade", true, false) as Button
+	check(ub != null and (it.detail.find_child("UpgradeInfo", true, false) as Label).text.contains("Upgrade to +1"), "the Items screen shows UPGRADE with its cost")
+	check(it.press_upgrade() == "" and Gear.upgrade_of(ax2) == 0 and it.kora_label.text != "", "one tap only arms it (Kora says the cost)")
+	check(it.press_upgrade() == "up" and Gear.upgrade_of(ax2) == 1, "the second upgrades it")
+	main.gear_upgrade[ax2] = 6
+	main._sync_gear()
+	it.refresh()
+	var bb := it.detail.find_child("Blessing", true, false) as Button
+	check(bb != null, "a risky upgrade shows the Blessing toggle when you have one")
+	bb.pressed.emit()
+	it.press_upgrade()
+	check(it.press_upgrade() == "kept" and Gear.upgrade_of(ax2) == 6 and main.blessings == per - 1, "with the Blessing on, a miss keeps the level")
+	it.close_screen()
+	main.upgrade_roll_override = -1.0
+	main.upgrade_break_override = -1.0
+	main.gear_owned.erase(ax2)
+	main.gear_upgrade.clear()
+	main.blessings = 0
+	main.blessings_week = {}
+	main._save_gear()
+	main.meat_bank = bank_keep
+	main.best_m = best_keep

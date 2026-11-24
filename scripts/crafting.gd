@@ -55,6 +55,9 @@ const DEFAULTS := {
 	},
 	"salvage": {"share": 0.5, "bonus": ["", "", "resin", "fossil_shard", "primal_crystal"]},
 	"repair": {"meat": [20, 35, 60, 100, 160]},
+	"upgrade": {"max": 10, "success": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.75, 0.55, 0.4, 0.25], "break": [0, 0, 0, 0, 0, 0, 0, 0.1, 0.1, 0.1],
+		"cost_share": [0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6, 0.75, 0.9, 1.0], "bonus_per_level": 0.1, "repair_per_level": 0.1, "value_per_level": 0.15,
+		"blessing_price": 450, "blessings_per_week": 3},
 	"drop_rarity": {"weights": [1.0, 0.45, 0.15, 0.05, 0.015]},
 	"break_drops": {"chance": 0.15, "count": [1, 2],
 		"wood": {"wood": 3, "fiber": 1}, "fiber": {"fiber": 3, "wood": 1},
@@ -266,6 +269,33 @@ static func salvage_return(item: String, rarity: int) -> Dictionary:
 	if b != "":
 		out[b] = int(out.get(b, 0)) + 1
 	return out
+
+
+## Upgrades (config [upgrade]): the materials to take an item to +`to`
+## (that share of its recipe, at least 1 of its first material).
+static func upgrade_cost(item: String, to: int) -> Dictionary:
+	var shares: Array = num("upgrade", "cost_share")
+	var share := float(shares[clampi(to - 1, 0, shares.size() - 1)])
+	var out := {}
+	var r := recipe(item)
+	for m in r:
+		var n := int(ceil(float(r[m]) * share - 0.001))
+		if n > 0:
+			out[m] = n
+	if out.is_empty() and not r.is_empty():
+		out[r.keys()[0]] = 1
+	return out
+
+
+## The chance an upgrade to +`to` succeeds, and (on a failure) breaks it.
+static func upgrade_odds(to: int) -> float:
+	var a: Array = num("upgrade", "success")
+	return float(a[clampi(to - 1, 0, a.size() - 1)])
+
+
+static func upgrade_break(to: int) -> float:
+	var a: Array = num("upgrade", "break")
+	return float(a[clampi(to - 1, 0, a.size() - 1)])
 
 
 ## Meat to repair a piece of rarity `r` with `worn` of `mx` runs used up:

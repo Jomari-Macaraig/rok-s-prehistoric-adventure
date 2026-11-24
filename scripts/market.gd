@@ -21,6 +21,8 @@ extends CanvasLayer
 signal closed
 
 const SLOT_ID := "booster_slot_3"
+const BLESSING := "kora_blessing"   # Kora's Blessing: protects a risky upgrade (a few a week)
+const BLESSING_ICON := "res://assets/ui/icons/kora_blessing.png"
 ## Heart Containers: each adds a heart for good. They go on sale by best SCORE
 ## (one run, config [market_score]), each after the one before it.
 const HEART_IDS := ["heart_1", "heart_2", "heart_3"]
@@ -75,6 +77,7 @@ static func items() -> Array:
 	a.append_array(Dinos.ids())
 	a.append_array(Heroes.IDS.filter(func(h): return Heroes.has(h)))   # Nira, Boro
 	a.append_array(Crafting.market_ids())   # basic crafting materials (gear is crafted, not sold)
+	a.append(BLESSING)
 	# (no Card Pack: dinosaur cards are dropped by wild dinosaurs, main._drop_card)
 	a.sort_custom(func(x, y): return unlock_m(x) < unlock_m(y) if unlock_m(x) != unlock_m(y) else price(x) < price(y))
 	return a
@@ -84,7 +87,7 @@ static func items() -> Array:
 static func category(id: String) -> String:
 	if Gear.has(id) or id == Gear.CARD_PACK or id.begins_with(Crafting.MAT_PREFIX):
 		return "gear"
-	if id == SLOT_ID or is_heart(id):
+	if id == SLOT_ID or is_heart(id) or id == BLESSING:
 		return "other"
 	if Heroes.has(id):
 		return "heroes"
@@ -92,6 +95,8 @@ static func category(id: String) -> String:
 
 
 static func price(id: String) -> int:
+	if id == BLESSING:
+		return int(Crafting.num("upgrade", "blessing_price"))
 	if id.begins_with(Crafting.MAT_PREFIX):
 		return int(Crafting.mat(id.substr(Crafting.MAT_PREFIX.length())).price)
 	if Gear.has(id):
@@ -103,6 +108,8 @@ static func price(id: String) -> int:
 
 ## Best distance that puts an item on sale.
 static func unlock_m(id: String) -> int:
+	if id == BLESSING:
+		return Crafting.bench_m()
 	if id.begins_with(Crafting.MAT_PREFIX):   # never before the Crafting Bench opens
 		return maxi(Crafting.bench_m(), int(Crafting.mat(id.substr(Crafting.MAT_PREFIX.length())).unlock_m))
 	if Gear.has(id):
@@ -187,6 +194,8 @@ static func item_name(id: String) -> String:
 		return Gear.name_of(id)
 	if id == Gear.CARD_PACK:
 		return "Dino Card Pack"
+	if id == BLESSING:
+		return "Kora's Blessing"
 	if id == SLOT_ID:
 		return "Third Booster Slot"
 	if is_heart(id):
@@ -201,6 +210,8 @@ func owns(id: String) -> bool:
 		return game.gear_owned.has(id)
 	if id == Gear.CARD_PACK or id.begins_with(Crafting.MAT_PREFIX):
 		return false   # buy as many as you like
+	if id == BLESSING:
+		return game.blessings_left_this_week() <= 0   # sold out until next Monday
 	if id == SLOT_ID:
 		return game.slot_count >= Boosters.MAX_SLOTS
 	if is_heart(id):
@@ -747,6 +758,8 @@ func _icon_of(id: String) -> Texture2D:
 		return Dinos.icon(id)
 	if Gear.has(id) or id == Gear.CARD_PACK:
 		return Gear.icon(id)
+	if id == BLESSING:
+		return SpriteLib.tex(BLESSING_ICON) if ResourceLoader.exists(BLESSING_ICON) else Gear.icon(Gear.CARD_PACK)
 	if id.begins_with(Crafting.MAT_PREFIX):
 		return Crafting.icon(id.substr(Crafting.MAT_PREFIX.length()))
 	return Boosters.icon(id)
@@ -1200,10 +1213,12 @@ func _build_detail() -> void:
 		desc = "Carry a third booster at once (the most Rok can hold)."
 	elif is_heart(id):
 		desc = "One more heart in every run, for good (%d in all once you have it)." % (Tuning.MAX_HEARTS + heart_index(id))
+	elif id == BLESSING:
+		desc = "Protects one risky upgrade (+7 and up) at Kora's: a failure loses only the materials, no level and no break. You have %d. %d left this week." % [game.blessings, game.blessings_left_this_week()]
 	elif Gear.has(id):
 		desc = "%s %s%s%s. Equip it at the Dinosaur Camp." % [Gear.ITEMS[id].desc, Gear.bonus_text(id),
 				(", reach %d" % int(Gear.ITEMS[id].reach)) if Gear.ITEMS[id].has("reach") else "",
-				(", lasts %d hits" % Gear.max_durability(id)) if Gear.max_durability(id) > 0 else ""]
+				(", lasts %d runs" % Gear.max_durability(id)) if Gear.max_durability(id) > 0 else ""]
 	elif id.begins_with(Crafting.MAT_PREFIX):
 		var m := id.substr(Crafting.MAT_PREFIX.length())
 		desc = "%d %s for crafting weapons and armor at the Crafting Bench. You have %d. Also from: %s" % [

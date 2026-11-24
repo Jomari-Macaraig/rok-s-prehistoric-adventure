@@ -50,7 +50,7 @@ static func gear_value(copy: String) -> float:
 	var r := Crafting.recipe(Gear.base(copy))
 	for m in r:
 		v += material_value(String(m)) * float(r[m])
-	v *= Crafting.bonus_mult(Gear.rarity_of(copy))
+	v *= Crafting.bonus_mult(Gear.rarity_of(copy)) * (1.0 + float(Crafting.num("upgrade", "value_per_level")) * Gear.upgrade_of(copy))
 	var mx := Gear.max_durability(copy)
 	if mx > 0:
 		v *= maxf(float(Gear.durability(copy)) / float(mx), float(num("value", "gear_min_share")))

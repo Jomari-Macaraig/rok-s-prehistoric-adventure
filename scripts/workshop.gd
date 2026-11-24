@@ -54,6 +54,7 @@ var kora_plate: Label             # her name on the scene kit's wooden plank (as
 var _kora_said := {}              # pool -> its last line (no repeats)
 var last_crafted := ""        # (tests) the copy the last Craft made
 var _confirm := ""            # an action waiting for its confirming tap
+var _bless := false           # use a Kora's Blessing on the next risky upgrade (the toggle)
 var _meta := {}
 var _dragging := false
 var _drag_dist := 0.0
@@ -745,12 +746,30 @@ func _item_detail() -> void:
 			fill.stretch_mode = TextureRect.STRETCH_SCALE
 			fill.size = Vector2(232, 13)
 			clip.add_child(fill)
-	_para(String(it.desc), Rect2(1066, 488, 380, 60), 18, INK, detail)
 	var who := _equipped_by(id)
-	_pill(Rect2(1060, 552, 388, 52), Color(0.85, 0.72, 0.5, 0.45), detail)
-	var eq := _label(("Equipped by %s\nChange it at the Dinosaur Camp." % Heroes.name_of(who)) if who != "" else "Not equipped\nEquip it at the Dinosaur Camp.",
-			Rect2(1074, 552, 366, 52), 16, ENOUGH if who != "" else INK, detail, true, HORIZONTAL_ALIGNMENT_LEFT)
-	eq.name = "Equip"
+	# UPGRADE (campaign ticket 11): its cost and odds, the button, and the
+	# Kora's Blessing toggle for a risky one
+	var u := Gear.upgrade_of(id)
+	var mx := int(Crafting.num("upgrade", "max"))
+	var info := ""
+	var risky := false
+	if u >= mx:
+		info = "Fully upgraded (+%d)." % mx
+	else:
+		var to := u + 1
+		var odds := Crafting.upgrade_odds(to)
+		risky = odds < 1.0
+		info = "Upgrade to +%d: %s" % [to, Crafting.cost_text(Crafting.upgrade_cost(Gear.base(id), to))]
+		if risky:
+			info += " · %d%% chance (a miss drops a level%s)" % [int(round(odds * 100.0)), ", may break" if Crafting.upgrade_break(to) > 0.0 else ""]
+	info += ("  ·  Equipped by %s" % Heroes.name_of(who)) if who != "" else "  ·  Not equipped"
+	var ui := _para(info, Rect2(1066, 488, 380, 62), 16, INK, detail)
+	ui.name = "UpgradeInfo"
+	if u < mx:
+		var bless_ok: bool = risky and game.blessings > 0
+		_button("SURE?" if _confirm == "upgrade" else "UPGRADE +%d" % (u + 1), "button_craft_green", Rect2(1077, 552, 236 if bless_ok else 354, 56), 22, detail, "Upgrade", press_upgrade)
+		if bless_ok:
+			_button(("BLESSED" if _bless else "BLESSING") + " ×%d" % game.blessings, "button_salvage_amber", Rect2(1321, 552, 110, 56), 14, detail, "Blessing", press_bless)
 	# REPAIR for worn or broken gear (the user's request: Kora mends it here
 	# too, not only at the Camp); beside SALVAGE when it isn't equipped
 	var worn := Gear.repair_cost(id) > 0
@@ -803,6 +822,57 @@ func press_repair() -> bool:
 		kora_say("repaired")
 	refresh()
 	return ok
+
+
+## UPGRADE: the first tap has Kora say the odds (or what's missing), the
+## second spends the materials and rolls (main.upgrade_gear); Kora says how
+## it went. Returns the result ("" if it didn't try).
+func press_upgrade() -> String:
+	var to := Gear.upgrade_of(selected) + 1
+	var cost := Crafting.upgrade_cost(Gear.base(selected), to)
+	var odds := Crafting.upgrade_odds(to)
+	if not Crafting.can_afford(cost):
+		_confirm = ""
+		game.audio.play("denied", 0.0)
+		kora_say("upgrade_short", Crafting.cost_text(cost))
+		refresh()
+		return ""
+	if _confirm != "upgrade":
+		_confirm = "upgrade"
+		game.audio.play("click", 0.0)
+		if odds < 1.0:
+			kora_say("upgrade_risky_blessed" if _bless else "upgrade_risky", "%d%%" % int(round(odds * 100.0)))
+		else:
+			kora_say("upgrade_ask", Crafting.cost_text(cost))
+		refresh()
+		return ""
+	_confirm = ""
+	var res: String = game.upgrade_gear(selected, _bless)
+	_bless = false
+	match res:
+		"up":
+			kora_play("craft")
+			kora_say("upgraded", "+%d" % to)
+			game.audio.play("unlock", 0.0, 1.2)
+		"dropped":
+			kora_say("upgrade_dropped")
+			game.audio.play("denied", 0.0)
+		"kept":
+			kora_say("upgrade_kept")
+		"broke":
+			kora_say("upgrade_broke")
+			game.audio.play("weapon_break", 0.05)
+			selected = ""
+	refresh()
+	return res
+
+
+## The Blessing toggle beside a risky UPGRADE.
+func press_bless() -> void:
+	_bless = not _bless
+	_confirm = ""
+	game.audio.play("click", 0.0)
+	refresh()
 
 
 func press_salvage() -> bool:
@@ -970,6 +1040,62 @@ const KORA_LINES := {
 		"Bring me %s and I'll patch it right up.",
 		"Short on meat. It takes %s.",
 		"Hmm, %s for this one. Come back with more!",
+	],
+	"upgrade_ask": [
+		"Make it stronger for %s? Tap UPGRADE again!",
+		"%s and it'll hit harder. Shall I?",
+		"A little more bite for %s. Tap again!",
+		"I can sharpen this for %s. Ready?",
+		"%s and it climbs a level. Go on, tap!",
+	],
+	"upgrade_risky": [
+		"This one's tricky: %s chance. Tap again if you dare!",
+		"%s it holds. If not, it slips a level... or worse.",
+		"Up here it's a gamble: %s. Still want to try?",
+		"Careful! Only %s. A Blessing would keep it safe.",
+		"%s chance. My hands are steady, but the stone isn't.",
+	],
+	"upgrade_risky_blessed": [
+		"%s chance, and my Blessing guards it. Tap again!",
+		"With the Blessing it's safe: %s to succeed. Go?",
+		"Blessed and ready: %s. Nothing to lose but stone.",
+		"The Blessing glows. %s, and no harm if it fails.",
+		"%s chance, safe under the Blessing. Tap!",
+	],
+	"upgrade_short": [
+		"An upgrade needs %s. Go find some!",
+		"Bring me %s and I'll strengthen it.",
+		"Not enough yet: %s for this one.",
+		"Short on materials. It takes %s.",
+		"Hmm, %s to go up a level. Come back with more!",
+	],
+	"upgraded": [
+		"Done! It's %s now. Feel that weight!",
+		"%s! Stronger, and good as new.",
+		"It took! %s, and freshly mended.",
+		"%s now. Go show those rocks who's boss!",
+		"Beautiful. %s, sturdy as a mammoth.",
+	],
+	"upgrade_dropped": [
+		"Oh no, it slipped a level. Sorry, scout.",
+		"The stone cracked wrong. It lost a level.",
+		"Ugh, it fought back. One level down.",
+		"Not today: it dropped a level.",
+		"It slipped! A level lost. Try again?",
+	],
+	"upgrade_kept": [
+		"It didn't take, but nothing was lost but the materials.",
+		"Not this time. The piece is safe, at least.",
+		"Missed, but the Blessing held. Same level as before.",
+		"No luck, but no harm done either.",
+		"It wouldn't budge. Still in one piece, though!",
+	],
+	"upgrade_broke": [
+		"It... shattered. I'm so sorry.",
+		"Broken for good. That's the risk up here.",
+		"Oh no. It's gone. A Blessing would have saved it.",
+		"Crack! Nothing left to mend. I'm sorry, scout.",
+		"It broke apart in my hands. That one's lost.",
 	],
 	"repaired": [
 		"Good as new! Go give it another beating.",

@@ -130,6 +130,11 @@ var missions_week := Missions.new("weekly")   # weekly missions (config/missions
 var gear_owned: Array = []         # crafted weapon and armor copies (gear.gd: "stone_axe#3")
 var gear_wear: Dictionary = {}     # weapon copy -> uses left (missing = new; Gear.wear)
 var gear_rarity: Dictionary = {}   # copy -> rarity 0-4 (missing = Common; Gear.rarity)
+var gear_upgrade: Dictionary = {}  # copy -> upgrade level 1-10 (missing = 0; Gear.upgrade)
+var blessings := 0                 # Kora's Blessings owned (protect a risky upgrade)
+var blessings_week: Dictionary = {} # {"week": Monday, "bought": n}: the Market's weekly limit
+var upgrade_roll_override := -1.0  # tests pin the upgrade dice (-1 = roll)
+var upgrade_break_override := -1.0 # ...and the break dice on a failure
 var gear_next := 1                 # the next copy number
 var materials: Dictionary = {}     # crafting material -> how many (crafting.gd)
 var run_materials: Dictionary = {} # materials found this run (for the summary's news)
@@ -186,6 +191,9 @@ func _ready() -> void:
 			gear_equipped[h]["weapon"] = ""
 	gear_wear = Dictionary(g.get("wear", {}))
 	gear_rarity = Dictionary(g.get("rarity", {}))
+	gear_upgrade = Dictionary(g.get("upgrade", {}))
+	blessings = int(g.get("blessings", 0))
+	blessings_week = Dictionary(g.get("blessings_week", {}))
 	_wear_v2 = bool(g.get("wear_v2", false))
 	gear_next = int(g.get("next", 1))
 	materials = Dictionary(g.get("materials", {}))
@@ -1312,6 +1320,13 @@ func buy(id: String) -> bool:
 		grant_materials({id.substr(Crafting.MAT_PREFIX.length()): Crafting.bundle()}, false)
 	elif id == Gear.CARD_PACK:
 		grant_card(Gear.random_card(false))
+	elif id == Market.BLESSING:
+		blessings += 1
+		var wk := Missions.week_key(Time.get_date_string_from_system())
+		if String(blessings_week.get("week", "")) != wk:
+			blessings_week = {"week": wk, "bought": 0}
+		blessings_week["bought"] = int(blessings_week.get("bought", 0)) + 1
+		_save_gear()
 	elif Dinos.has(id) or Heroes.has(id):   # bought dinosaurs and heroes live in dinos_owned
 		dinos_owned.append(id)
 		SaveData.save_dinos_owned(dinos_owned)
@@ -2824,6 +2839,7 @@ func _sync_gear() -> void:
 	Gear.sockets = gear_sockets
 	Gear.wear = gear_wear
 	Gear.rarity = gear_rarity
+	Gear.upgrade = gear_upgrade
 	Crafting.bank = materials
 	Forms.clear_cache()
 
@@ -2831,7 +2847,8 @@ func _sync_gear() -> void:
 func _save_gear() -> void:
 	_sync_gear()
 	SaveData.save_gear({"owned": gear_owned, "equipped": gear_equipped, "cards": cards, "sockets": gear_sockets, "wear": gear_wear,
-			"rarity": gear_rarity, "next": gear_next, "materials": materials, "wear_v2": true})
+			"rarity": gear_rarity, "next": gear_next, "materials": materials, "wear_v2": true,
+			"upgrade": gear_upgrade, "blessings": blessings, "blessings_week": blessings_week})
 
 
 ## Dinosaur cards are dropped by wild dinosaurs (the user's rule, not sold in
@@ -3092,9 +3109,73 @@ func salvage(copy: String) -> bool:
 	gear_sockets.erase(copy)   # its card goes back to the card pile
 	gear_wear.erase(copy)
 	gear_rarity.erase(copy)
+	gear_upgrade.erase(copy)
 	grant_materials(back, false)
 	audio.play("break_wood", 0.05)
 	return true
+
+
+## Upgrade a weapon or armor to its next level for materials
+## (Crafting.upgrade_cost). +1 to +6 always work; from +7 it can fail
+## (Crafting.upgrade_odds): a failure costs the materials and drops it a
+## level, and from +8 it may break for good (Crafting.upgrade_break). Kora's
+## Blessing (`bless`, one used per risky try) stops the drop and the break.
+## A success restores full durability. Returns "up", "dropped", "kept"
+## (protected or already +0), "broke", or "" if it couldn't try.
+func upgrade_gear(id: String, bless := false) -> String:
+	var lv := Gear.upgrade_of(id)
+	var to := lv + 1
+	if not gear_owned.has(id) or not Gear.ITEMS.has(Gear.base(id)) or to > int(Crafting.num("upgrade", "max")):
+		return ""
+	var cost := Crafting.upgrade_cost(Gear.base(id), to)
+	if not Crafting.can_afford(cost):
+		audio.play("denied", 0.0)
+		return ""
+	var risky := Crafting.upgrade_odds(to) < 1.0
+	var protect := bless and risky and blessings > 0
+	_spend(cost)
+	if protect:
+		blessings -= 1
+	var roll := upgrade_roll_override if upgrade_roll_override >= 0.0 else randf()
+	var result := ""
+	if roll < Crafting.upgrade_odds(to):
+		gear_upgrade[id] = to
+		gear_wear.erase(id)   # a successful upgrade restores full durability
+		result = "up"
+	elif protect:
+		result = "kept"   # Kora's Blessing: nothing lost but the materials
+	elif (upgrade_break_override if upgrade_break_override >= 0.0 else randf()) < Crafting.upgrade_break(to):
+		_destroy_gear(id)
+		result = "broke"
+	else:
+		if lv > 0:
+			gear_upgrade[id] = lv - 1
+		result = "dropped" if lv > 0 else "kept"
+	_save_gear()
+	if player.form == Forms.ROK:
+		player.refresh_form()
+	return result
+
+
+## A piece gone for good (a failed risky upgrade): unequipped, its slotted
+## card back to the pile.
+func _destroy_gear(id: String) -> void:
+	for h in gear_equipped:
+		for slot in gear_equipped[h].keys():
+			if gear_equipped[h][slot] == id:
+				gear_equipped[h][slot] = ""
+	gear_owned.erase(id)
+	gear_sockets.erase(id)
+	gear_wear.erase(id)
+	gear_rarity.erase(id)
+	gear_upgrade.erase(id)
+
+
+## Kora's Blessings left to buy this week in the Market (config [upgrade]).
+func blessings_left_this_week() -> int:
+	var wk := Missions.week_key(Time.get_date_string_from_system())
+	var bought := int(blessings_week.get("bought", 0)) if String(blessings_week.get("week", "")) == wk else 0
+	return maxi(int(Crafting.num("upgrade", "blessings_per_week")) - bought, 0)
 
 
 ## Materials pop out of something in a run and are collected at once (a

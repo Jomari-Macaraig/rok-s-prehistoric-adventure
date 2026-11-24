@@ -35,6 +35,8 @@ only its own items, in order of unlock distance.
 Dinosaur cards are **not** sold: wild dinosaurs drop them (the Card Pack was
 retired; its code path is left in `category`/`price`).
 
+Kora's Blessing (campaign ticket 11) is in the **Other** tab: 450 meat, 3 a week from when the Crafting Bench opens, protects one risky upgrade (see [weapons-and-armor](weapons-and-armor.md#upgrades-1-to-10-and-koras-blessing)). Its icon is the user's (`assets/ui/icons/kora_blessing.png`).
+
 ## Rules
 
 **Going on sale**

@@ -92,6 +92,7 @@ const CARD_PREFIX := "card:"
 
 static var owned: Array = []          # gear copy ids (main.gear_owned)
 static var rarity: Dictionary = {}    # copy id -> rarity 0-4 (missing = 0 Common; main.gear_rarity)
+static var upgrade: Dictionary = {}   # copy id -> upgrade level 0-10 (missing = 0; main.gear_upgrade)
 static var equipped: Dictionary = {}  # hero id -> {"weapon": id or "card:<dino>", "armor": id}
 static var cards: Dictionary = {}     # dino id -> how many (main.cards)
 static var sockets: Dictionary = {}   # weapon copy id -> the dino id of the card slotted in it (main.gear_sockets)
@@ -133,10 +134,17 @@ static func rarity_of(id: String) -> int:
 	return int(rarity.get(id, 0))
 
 
-## "Epic Stone Axe" (just "Stone Axe" for Common and for cards).
+## A copy's upgrade level, 0 to 10.
+static func upgrade_of(id: String) -> int:
+	return int(upgrade.get(id, 0))
+
+
+## "+3 Epic Stone Axe" (no rarity word for Common, no "+" at +0; cards: their name).
 static func full_name(id: String) -> String:
 	var r := rarity_of(id)
-	return name_of(id) if r == 0 or not has(id) else "%s %s" % [Crafting.rarity_name(r), name_of(id)]
+	var n := name_of(id) if r == 0 or not has(id) else "%s %s" % [Crafting.rarity_name(r), name_of(id)]
+	var u := upgrade_of(id)
+	return ("+%d %s" % [u, n]) if u > 0 else n
 
 
 ## The attribute bonuses an item gives.
@@ -147,7 +155,7 @@ static func item_bonus(id: String) -> Dictionary:
 		return {lean: float(CARD_BONUS[clampi(Dinos.tier(d), 0, CARD_BONUS.size() - 1)])}
 	if not ITEMS.has(base(id)):
 		return {}
-	var k := Crafting.bonus_mult(rarity_of(id))
+	var k := Crafting.bonus_mult(rarity_of(id)) * (1.0 + float(Crafting.num("upgrade", "bonus_per_level")) * upgrade_of(id))   # rarity and upgrades
 	var out := {}
 	var b: Dictionary = ITEMS[base(id)].bonus
 	for a in b:
@@ -191,7 +199,8 @@ static func repair_cost(id: String) -> int:
 	var mx := max_durability(id)
 	if mx <= 0 or durability(id) >= mx:
 		return 0
-	return Crafting.repair_meat(rarity_of(id), mx - durability(id), mx)
+	var u := 1.0 + float(Crafting.num("upgrade", "repair_per_level")) * upgrade_of(id)   # upgrades cost more to mend
+	return int(ceil(Crafting.repair_meat(rarity_of(id), mx - durability(id), mx) * u - 0.001))
 
 
 ## A working (not broken) weapon with this property ("burns", "ranged"), or "".

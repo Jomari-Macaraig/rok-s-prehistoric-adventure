@@ -69,6 +69,18 @@ Redesigned for the campaign (build ticket [10](../wayfinder/campaign-build/10-ge
 
 A crafted piece starts at full durability (its rarity's `durability_mult` × the base runs).
 
+## Upgrades +1 to +10 and Kora's Blessing
+
+Campaign build ticket [11](../wayfinder/campaign-build/11-upgrades-blessing.md). Numbers in **`config/crafting.cfg` `[upgrade]`**.
+
+- **Where**: Kora's Items screen (`Workshop.press_upgrade`): under the stats a line "Upgrade to +7: 3 Wood, 3 Stone, 2 Fiber · 75% chance (a miss drops a level) · Equipped by Rok", an **UPGRADE +7** button (two taps; the first has Kora say the cost or the odds, or what's missing) and, for a risky upgrade when you own one, a **BLESSING ×n** toggle (`press_bless`).
+- **Cost**: materials, `cost_share` of the recipe per level (`Crafting.upgrade_cost`, at least 1 of its first material).
+- **Odds** (`Crafting.upgrade_odds`): +1 to +6 always succeed; +7 75%, +8 55%, +9 40%, +10 25%. A miss costs the materials and **drops a level**; from +8 a miss may **break** the piece for good (`Crafting.upgrade_break`, 10%: unequipped and gone, its slotted card back to the pile, `main._destroy_gear`).
+- **Kora's Blessing** (`main.blessings`, saved with the gear): toggled on, one is used on a risky try and a miss loses only the materials (no drop, no break). Sold in the Market (`Market.BLESSING`, Other tab, `blessing_price` 450 meat, `blessings_per_week` 3 a week from when the Crafting Bench opens, `main.blessings_left_this_week`; sold out shows until Monday). Chests and bosses will give them later.
+- **A success** raises the level (`main.gear_upgrade`, `Gear.upgrade_of`) and **restores full durability**.
+- **What a level does**: +10% of the piece's bonuses each (`bonus_per_level`; +10 doubles them; drawbacks don't grow), +10% repair cost (`repair_per_level`) and +15% value when sold (`value_per_level`). The name shows it: "+6 Epic Stone Axe" (`Gear.full_name`).
+- `main.upgrade_gear(id, bless)` returns "up", "dropped", "kept" or "broke"; tests pin the dice with `upgrade_roll_override` / `upgrade_break_override`.
+
 ## Dinosaur cards
 
 - One per dinosaur (the playable four and the 28 species).
