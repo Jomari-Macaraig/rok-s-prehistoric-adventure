@@ -2,7 +2,7 @@
 title: How recommended strength is worked out
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: [11-levels-rethink, 12-gear-slots]
 ---
 
