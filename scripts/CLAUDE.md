@@ -63,6 +63,7 @@ Each system is documented on its own in [docs/systems/](../docs/systems/README.m
 | `market_scene.gd` | [marketplace](../docs/systems/marketplace.md), [screens-and-navigation](../docs/systems/screens-and-navigation.md) |
 | `menu_tour.gd` | [tutorial](../docs/systems/tutorial.md) |
 | `missions.gd` | [goals](../docs/systems/goals.md) |
+| `missions_view.gd` | [goals](../docs/systems/goals.md) (the Missions scene) |
 | `milestones.gd` | [dinosaurs](../docs/systems/dinosaurs.md#milestones) (milestones and evolution, from `config/milestones.cfg`) |
 | `obstacle.gd` | [obstacles-and-gates](../docs/systems/obstacles-and-gates.md) |
 | `obstacle_looks.gd` | [progression](../docs/systems/progression.md) (a NEW banner per obstacle look) |

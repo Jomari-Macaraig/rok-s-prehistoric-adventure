@@ -49,10 +49,7 @@ var danger_rect: TextureRect
 var chase_meter: ChaseMeter
 var combo_meter: ComboMeter   # combo streak + Primal Frenzy, under the meat pill
 var event_label: Label        # a mid-run event and its countdown, under the combo meter
-var missions_panel: PanelContainer   # daily and weekly missions, opened by missions_button
-var missions_label: Label
-var missions_button: TouchButton     # the main menu's Missions button (the user's call: its own button)
-var missions_open := false
+var missions_button: TouchButton     # the main menu's Missions button: opens the Missions scene (MissionsView)
 var banner: PanelContainer
 var info_card: Control
 var info_icon: TextureRect
@@ -424,27 +421,6 @@ func _ready() -> void:
 	# wrapped a little narrower, so the side banner buttons fit beside the panel
 	help_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help_label.custom_minimum_size = Vector2(Tuning.VIEW_W - 2.0 * (Tuning.SIDE_BUTTON_SIZE + 30.0 + Tuning.UI_MARGIN) - 120.0, 0)
-
-	# --- daily and weekly missions: a panel in the middle of the main menu,
-	# opened by the Missions button (any tap closes it)
-	missions_panel = PanelContainer.new()
-	missions_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var mp := cp.duplicate() as StyleBoxFlat
-	mp.content_margin_left = 22
-	mp.content_margin_right = 22
-	mp.content_margin_top = 10
-	mp.content_margin_bottom = 12
-	mp.set_corner_radius_all(16)
-	missions_panel.add_theme_stylebox_override("panel", mp)
-	missions_panel.set_anchors_preset(Control.PRESET_CENTER)
-	missions_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	missions_panel.grow_vertical = Control.GROW_DIRECTION_BOTH
-	missions_panel.offset_top = -60
-	missions_label = _label(20, Color(1, 0.93, 0.8))
-	missions_label.add_theme_constant_override("line_spacing", 2)
-	missions_panel.add_child(missions_label)
-	missions_panel.visible = false
-	root.add_child(missions_panel)
 
 	# --- banners for new hazards / unlocks (below the top bar): BANNER_SLOTS
 	# of them stacked, so two new things can show at once (the user's call)
@@ -966,33 +942,6 @@ func pulse_slot(i: int) -> void:
 
 ## The run's meat counter; -1 hides it (title screen, which shows the bank).
 ## It pops when the number goes up.
-## Today's missions on the title screen (an empty list hides them).
-## The missions panel's text: the daily set and the weekly set. It only
-## shows while open (open_missions); [] for both empties and closes it.
-func set_missions(lines: Array, header := "DAILY MISSIONS", week: Array = [], week_header := "WEEKLY MISSIONS") -> void:
-	var t := header + "\n" + "\n".join(lines)
-	if not week.is_empty():
-		t += "\n\n" + week_header + "\n" + "\n".join(week)
-	missions_label.text = t
-	if lines.is_empty() and week.is_empty():
-		close_missions()
-
-
-func open_missions() -> void:
-	missions_open = true
-	missions_panel.visible = true
-	center_panel.visible = false   # the panel takes the title's place
-
-
-func close_missions() -> void:
-	if not missions_open:
-		missions_panel.visible = false
-		return
-	missions_open = false
-	missions_panel.visible = false
-	center_panel.visible = true
-
-
 ## The Missions button shows on the main menu; its dot means something to look at.
 func set_missions_button(visible_now: bool, dot := false) -> void:
 	missions_button.visible = visible_now

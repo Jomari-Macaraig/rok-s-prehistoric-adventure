@@ -2172,7 +2172,7 @@ func _variety_checks() -> void:
 	main._to_title()
 	main._refresh_hud()
 	var hm: Hud = main.hud
-	check(hm.missions_button.visible and not hm.missions_panel.visible, "the main menu has a Missions button and no missions panel of its own")
+	check(hm.missions_button.visible and not main.missions_view.visible, "the main menu has a Missions button")
 	var side := [hm.codex_button, hm.herd_button, hm.market_button, hm.missions_button, hm.tutorial_button, hm.crafting_button]
 	var side_clash := false
 	for i in side.size():
@@ -2180,10 +2180,21 @@ func _variety_checks() -> void:
 			side_clash = side_clash or Rect2(side[i].position, side[i].size).intersects(Rect2(side[j].position, side[j].size))
 	check(not side_clash, "the main menu's side buttons don't overlap")
 	main._touch_pressed("missions")
-	check(hm.missions_open and hm.missions_panel.visible and hm.missions_label.text.contains("DAILY MISSIONS") and hm.missions_label.text.contains("WEEKLY MISSIONS") and not hm.center_panel.visible,
-			"Missions opens the daily and weekly lists")
-	main._touch_pressed("")
-	check(not hm.missions_open and main.state == main.State.TITLE and hm.center_panel.visible, "a tap closes it without starting a run")
+	var mv: MissionsView = main.missions_view
+	check(mv.visible and main._overlay_open() and mv.tab == "daily" and mv.root.find_child("Card_0", true, false) != null and mv.root.find_child("Tala", true, false) != null
+			and mv.bubble_label.text != "", "Missions opens its own scene: Tala with a line, and the daily missions as cards")
+	var cards := range(main.missions.ids.size()).map(func(i): return mv.root.find_child("Card_%d" % i, true, false))
+	check(cards.all(func(c): return c != null) and (mv.root.find_child("Text_0", true, false) as Label).text == main.missions.text(0)
+			and (mv.root.find_child("Reward_0", true, false) as Label).text == "+%d" % main.missions.meat(), "each card shows what to do and the meat it pays")
+	main.missions.done[0] = true
+	mv.refresh()
+	check((mv.root.find_child("State_0", true, false) as Label).text == "DONE", "a finished mission says DONE")
+	main.missions.done[0] = false
+	(mv.root.find_child("Tab_weekly", true, false) as Button).pressed.emit()
+	check(mv.tab == "weekly" and (mv.root.find_child("Text_0", true, false) as Label).text == main.missions_week.text(0), "the WEEKLY tab shows the week's missions")
+	check(main._overlay_open(), "while it's open, taps go to the scene (not a run)")
+	(mv.root.find_child("Back", true, false) as TextureButton).pressed.emit()
+	check(not mv.visible and main.state == main.State.TITLE and hm.center_panel.visible, "Back returns to the main menu")
 	# Settings (the user's request): sound-effect and music volumes, saved
 	main._touch_pressed("settings")
 	check(hm.settings_open and hm.settings_panel.visible and hm.sfx_slider != null and hm.music_slider != null, "the Settings button opens sound and music volumes")
@@ -2205,7 +2216,7 @@ func _variety_checks() -> void:
 	main._resume()
 	main.start_run(false)
 	main._refresh_hud()
-	check(not main.hud.missions_panel.visible and not main.hud.missions_button.visible, "...and nothing of it shows in a run")
+	check(not main.missions_view.visible and not main.hud.missions_button.visible, "...and nothing of it shows in a run")
 
 
 ## The user's Hunters, Crouches and Best Distance pack

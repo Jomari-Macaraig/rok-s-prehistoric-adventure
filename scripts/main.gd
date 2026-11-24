@@ -69,7 +69,8 @@ var run_bonus_meat := 0
 var _ranked := false
 var codex: Codex
 var market: Market
-var herd: Herd       # choose and compare the dinosaur on each button
+var herd: Herd
+var missions_view: MissionsView   # the Missions scene (the main menu's Missions button)       # choose and compare the dinosaur on each button
 var loader: Preloader   # the loading screen while art preloads (normal launches only)
 var bench: Workshop  # the Crafting Bench (workshop.gd, mode "bench")
 var items: Workshop  # the Items screen (workshop.gd, mode "items")
@@ -280,6 +281,12 @@ func _ready() -> void:
 	herd = Herd.new()
 	herd.game = self
 	add_child(herd)
+	missions_view = MissionsView.new()
+	missions_view.name = "MissionsView"
+	add_child(missions_view)
+	missions_view.closed.connect(func():
+		audio.play("click", 0.0)
+		_show_menu_text())
 	herd.closed.connect(func():
 		audio.play("click", 0.0)
 		_show_menu_text())
@@ -534,7 +541,8 @@ func start_run(intro := true) -> void:
 	bonus_zones = 0
 	lap = 1
 	_lap_banner_t = 0.0
-	hud.close_missions()
+	if missions_view.visible:
+		missions_view.close()
 	_refresh_missions()
 	weather.set_twist("", "")
 	next_bonus_m = Tuning.BONUS_FROM_M + randf_range(0.0, 500.0)
@@ -865,6 +873,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed("pause") or event.is_action_pressed("herd"):
 			herd.close_herd()
 		return
+	if missions_view.visible:
+		if event.is_action_pressed("pause") or event.is_action_pressed("missions"):
+			missions_view.close()
+		return
 	if menu_tour != null and state == State.TITLE:
 		# the menu tour: only its highlighted button's key works
 		var wanted := menu_tour.want()
@@ -893,9 +905,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if event.is_action_pressed("jump") or event.is_action_pressed("pause"):
 				_dismiss_info()
 		State.TITLE:
-			if hud.missions_open and event.is_action_pressed("jump"):
-				hud.close_missions()
-			elif (event.is_action_pressed("jump") or event.is_action_pressed("restart")) and _menu_t <= 0.0:
+			if (event.is_action_pressed("jump") or event.is_action_pressed("restart")) and _menu_t <= 0.0:
 				_start_from_menu()
 		State.OVER:   # the summary card: on to the main menu (R still restarts straight away)
 			if event.is_action_pressed("restart"):
@@ -1013,11 +1023,9 @@ func _touch_pressed(a: String) -> void:
 	if a == "missions":
 		if state == State.TITLE:
 			audio.play("click", 0.0)
-			if hud.missions_open:
-				hud.close_missions()
-			else:
-				_show_missions()
-				hud.open_missions()
+			if not missions_view.visible:
+				_refresh_missions()
+				missions_view.open(self)
 				if not seen.has(_missions_seen_key()):
 					seen.append(_missions_seen_key())
 					SaveData.save_seen(seen)
@@ -1045,9 +1053,6 @@ func _touch_pressed(a: String) -> void:
 		return   # the Settings panel takes the taps (Done or the button closes it)
 	match state:
 		State.TITLE:
-			if hud.missions_open:
-				hud.close_missions()   # a tap closes the missions panel, it doesn't start a run
-				return
 			if a != "pause" and _menu_t <= 0.0:
 				_start_from_menu()
 		State.PLAYING:
@@ -1110,7 +1115,7 @@ func open_items(t := "") -> void:
 
 ## A full screen (Field Guide, Market, Camp, Crafting Bench, Items) is open.
 func _overlay_open() -> bool:
-	return codex.visible or market.visible or herd.visible or (bench != null and bench.visible) or (items != null and items.visible)
+	return codex.visible or market.visible or herd.visible or missions_view.visible or (bench != null and bench.visible) or (items != null and items.visible)
 
 
 ## Market items on sale that haven't been looked at yet.
@@ -3489,10 +3494,8 @@ func _refresh_missions() -> void:
 ## longer shown on the main menu by itself: the user's call).
 func _show_missions() -> void:
 	_refresh_missions()
-	var head := "DAILY MISSIONS"
-	if missions.streak > 1 and missions.last_full >= Time.get_date_string_from_unix_time(int(Time.get_unix_time_from_system()) - 86400):
-		head += "  ·  %d-day streak" % missions.streak
-	hud.set_missions(missions.lines(), head, missions_week.lines(), "WEEKLY MISSIONS  ·  new every Monday")
+	if missions_view.visible:
+		missions_view.refresh()
 
 
 ## Red dot on the Missions button: a new day's or week's missions not looked at yet.
@@ -4061,8 +4064,8 @@ func _refresh_hud() -> void:
 	hud.set_missions_button(state == State.TITLE and not overlay, missions_badge())
 	hud.set_crafting(state == State.TITLE and not overlay and bench_open(), crafting_ready())
 	hud.set_run_controls(state != State.TITLE and state != State.OVER)
-	if hud.missions_open and (state != State.TITLE or overlay):
-		hud.close_missions()
+	if missions_view.visible and state != State.TITLE:
+		missions_view.close()
 	hud.set_hearts(health, max_health())
 	hud.update_play(int(score), int(metres()), energy, player.form, player.armor, state == State.PLAYING, unlocked,
 			Zones.zone_at(metres()).name, _meat_count())
