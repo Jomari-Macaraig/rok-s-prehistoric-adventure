@@ -1,6 +1,6 @@
 # Campaign (spec, not built yet)
 
-**Status: ready-for-agent.** Nothing here is built yet; build it in the order under Further Notes.
+**Status: ready-for-agent.** Nothing here is built yet; build it ticket by ticket from [docs/wayfinder/campaign-build/](../wayfinder/campaign-build/README.md) (29 slices with their blockers).
 
 The build-ready spec of the Campaign mode and the progression it runs on.
 Every decision comes from the wayfinder map
