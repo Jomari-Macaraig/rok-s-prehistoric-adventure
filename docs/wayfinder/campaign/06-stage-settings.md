@@ -2,7 +2,7 @@
 title: What settings define a stage
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: [01-boss-stages, 02-puzzle-stages, 05-star-goals]
 ---
 
