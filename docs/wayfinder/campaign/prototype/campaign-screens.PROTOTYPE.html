@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PROTOTYPE · Campaign screens</title>
+<!--
+  PROTOTYPE, throwaway (wayfinder ticket "The campaign screens").
+  Question: what should the campaign screens look like?
+  Three variants of the chapter map / stage picker, switchable via ?variant=A|B|C
+  or the bar at the bottom (arrow keys too). Shared: main menu, briefing,
+  stage loading screen, a fake run, results. Rough on purpose: shapes and
+  colours stand in for the game's art. Drawn at 1280x720 (toggle 1560x720).
+-->
+<style>
+  :root { --bg:#2a1a0e; --panel:#3b2614; --wood:#6b4423; --sand:#f1dfb8; --ink:#3a210f;
+          --gold:#ffcf5a; --green:#7fd15a; --yellow:#f3c84b; --red:#e2574c; --teal:#2fa39a; --dim:#8a7360; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#111; color:var(--sand); font:600 15px/1.3 "Baloo 2", system-ui, sans-serif; overflow:hidden; }
+  #wrap { position:fixed; inset:0 0 56px 0; }
+  #screen { position:relative; width:1280px; height:720px; background:linear-gradient(#7cc3e8 0 55%, #6b8e3a 55% 62%, #9a5a2c 62%);
+            overflow:hidden; position:absolute; left:50%; top:50%; transform-origin:center; border-radius:6px; }
+  .wide #screen { width:1560px; }
+  h1,h2,h3 { margin:0; font-weight:800; }
+  button { font:inherit; cursor:pointer; border:0; }
+  .btn { background:var(--gold); color:var(--ink); border-radius:14px; padding:10px 22px; font-weight:800; box-shadow:0 4px 0 #a9782a; }
+  .btn.green { background:var(--green); box-shadow:0 4px 0 #4b8a2c; }
+  .btn.ghost { background:#ffffff22; color:var(--sand); box-shadow:none; }
+  .btn:disabled { background:#777; box-shadow:0 4px 0 #555; color:#ddd; cursor:default; }
+  .panel { background:#2a1a0ee8; border:3px solid #8a5a2b; border-radius:22px; }
+  .paper { background:var(--sand); color:var(--ink); border:4px solid #8a5a2b; border-radius:18px; }
+  .top { position:absolute; left:0; right:0; top:0; height:64px; display:flex; align-items:center; gap:14px; padding:0 18px;
+         background:#2a1a0ecc; }
+  .back { width:46px; height:46px; border-radius:12px; background:var(--wood); color:var(--sand); font-size:24px; }
+  .title { font-size:28px; color:var(--gold); }
+  .grow { flex:1; }
+  .torches { display:flex; gap:4px; align-items:center; }
+  .torch { width:20px; height:30px; border-radius:6px 6px 3px 3px; background:linear-gradient(#ffb23f 0 40%, #7a4a1d 40%); }
+  .torch.out { background:linear-gradient(#555 0 40%, #4a3424 40%); }
+  .chip { background:#ffffff1c; border-radius:12px; padding:6px 12px; }
+  .str { color:var(--gold); }
+  .star { color:#ffd65a; } .star.off { color:#ffffff40; }
+  .small { font-size:13px; opacity:.85; }
+  .lock { opacity:.45; }
+  /* floating prototype switcher: obviously not part of the game */
+  #switcher { position:fixed; left:50%; bottom:8px; transform:translateX(-50%); display:flex; gap:8px; align-items:center;
+              background:#fff; color:#111; border-radius:999px; padding:6px 10px; box-shadow:0 6px 20px #0008; font:600 14px system-ui; z-index:99; }
+  #switcher button { background:#111; color:#fff; border-radius:999px; width:30px; height:30px; }
+  #switcher .lbl { min-width:270px; text-align:center; }
+  #switcher .sz { width:auto; padding:0 10px; background:#555; }
+  /* modal */
+  .modal { position:absolute; inset:0; background:#000a; display:flex; align-items:center; justify-content:center; }
+</style>
+</head>
+<body>
+<div id="wrap"><div id="screen"></div></div>
+<div id="switcher">
+  <button id="prev" title="previous variant (←)">‹</button>
+  <span class="lbl" id="vlabel"></span>
+  <button id="next" title="next variant (→)">›</button>
+  <button class="sz" id="size" title="toggle 1280 / 1560 wide">1280×720</button>
+</div>
+<script>
+// ---------------- fake data (what config/campaign would hold) ----------------
+const CHAPTERS = [
+  { id:"forest", name:"Forest", color:"#5f9a3a", boss:"T-rex", trails:["Pachycephalosaurus","Dimorphodon"] },
+  { id:"desert", name:"Desert", color:"#d9a548", boss:"Carnotaurus", trails:["Gallimimus","Pteranodon"] },
+  { id:"canyon", name:"Canyon", color:"#c0623a", boss:"Utahraptor", trails:["Coelophysis"] },
+  { id:"volcanic", name:"Volcanic Badlands", color:"#5b4b55", boss:"Allosaurus", trails:["Kentrosaurus","Quetzalcoatlus"] },
+];
+function makeStages(ch, ci){
+  const out=[];
+  for (let i=1;i<=10;i++){
+    const kind = i===10 ? "boss" : (i===4||i===7) ? "puzzle" : "run";
+    out.push({ ch:ch.id, n:i, name: kind==="boss" ? `${ch.boss} Showdown` : kind==="puzzle" ? `Puzzle: ${["Switchback","Gem Gate"][i===4?0:1]}` : `${ch.name} ${i}`,
+      kind, rec: 10 + ci*30 + i*3, stars: 0, cleared:false,
+      goals: kind==="boss" ? ["Beat the boss","Beat it with 2+ hearts","Beat it before half its escape"] :
+             kind==="puzzle" ? ["Finish the puzzle","No checkpoint returns","Collect every gem"] :
+             ["Clear the stage", `Collect ${15+i*2} amber`, i%2 ? "Take no damage" : "Never stumble"],
+      time: ["Day","Dusk","Night"][i%3], weather: ["Sunny","Cloudy","Rain"][(i+ci)%3], length: 900+i*100,
+      dinos: kind==="puzzle" ? ["Raptor","Spinosaurus"] : ["Raptor"], needs: kind==="puzzle" && ci>0 ? ["Spinosaurus"] : [] });
+  }
+  return out;
+}
+const STAGES = {}; CHAPTERS.forEach((c,i)=> STAGES[c.id]=makeStages(c,i));
+// progress: Forest cleared through 6 with stars, the rest locked
+STAGES.forest.forEach(s=>{ if (s.n<=6){ s.cleared=true; s.stars = [3,2,3,1,2,1][s.n-1]; } });
+const STATE = { torches:3, maxTorches:5, timer:"12:34", strength:32, chapter:"forest", screen:"menu", sel:null, unlocked:{forest:true} };
+const stageOpen = s => s.cleared || (s.ch==="forest" && s.n===7);
+const chStars = id => STAGES[id].reduce((a,s)=>a+s.stars,0);
+const strColor = rec => STATE.strength >= rec ? "var(--green)" : STATE.strength >= rec*0.85 ? "var(--yellow)" : "var(--red)";
+const stars = n => [0,1,2].map(i=>`<span class="star ${i<n?"":"off"}">★</span>`).join("");
+const torchRow = () => `<div class="torches">${Array.from({length:STATE.maxTorches},(_,i)=>`<div class="torch ${i<STATE.torches?"":"out"}"></div>`).join("")}
+   <span class="small" style="margin-left:6px">${STATE.torches<STATE.maxTorches?`next in ${STATE.timer}`:"full"}</span></div>`;
+const topBar = (title, back="menu") => `<div class="top"><button class="back" onclick="go('${back}')">←</button>
+   <h2 class="title">${title}</h2><div class="grow"></div>${torchRow()}<div class="chip">Strength <b class="str">${STATE.strength}</b></div></div>`;
+const kindIcon = k => k==="boss" ? "💀" : k==="puzzle" ? "🧩" : "🏃";
+
+// ---------------- shared screens ----------------
+function menu(){
+  return `<div class="top" style="background:none"><button class="back">⏸</button><button class="back">⚙</button></div>
+  <div class="panel" style="position:absolute;left:50%;top:150px;transform:translateX(-50%);width:640px;padding:22px;text-align:center">
+    <h1 style="font-size:58px;color:var(--gold)">ROK RUNNER</h1>
+    <p class="small">Best 2500 m · Strength <b class="str">${STATE.strength}</b></p>
+    <div style="display:flex;gap:20px;justify-content:center;margin-top:16px">
+      <button class="btn" style="font-size:26px;padding:16px 30px" onclick="go('run_endless')">Endless Run<br><span class="small">grow stronger · earn meat</span></button>
+      <button class="btn green" style="font-size:26px;padding:16px 30px" onclick="go('campaign')">Campaign<br><span class="small">Forest 7/10 · ${torchTxt()}</span></button>
+    </div>
+    <p class="small" style="margin-top:14px">(Locked look before it opens: “Campaign 🔒 · Reach 1,000 m ✓ · Rok level 3 (now 2)”)</p>
+  </div>
+  ${["Encyclopedia","Dinosaur Camp","Missions"].map((t,i)=>`<div class="chip" style="position:absolute;left:24px;top:${190+i*110}px;width:120px;height:90px;text-align:center;padding-top:30px">${t}</div>`).join("")}
+  ${["Tutorial","Marketplace","Crafting"].map((t,i)=>`<div class="chip" style="position:absolute;right:24px;top:${150+i*110}px;width:120px;height:90px;text-align:center;padding-top:30px">${t}</div>`).join("")}`;
+}
+const torchTxt = () => `🔥 ${STATE.torches}/${STATE.maxTorches}`;
+
+function briefing(s){
+  const ch = CHAPTERS.find(c=>c.id===s.ch);
+  const locked = s.needs.length && !stageOpen(s);
+  return `<div class="modal" onclick="if(event.target===this)go(STATE.screen)"><div class="paper" style="width:760px;padding:22px 28px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h2 style="font-size:30px">${kindIcon(s.kind)} ${s.name}</h2><span class="small">${ch.name} · Stage ${s.n} · ${s.time} · ${s.weather}</span></div>
+    <div style="display:flex;gap:24px;margin-top:12px">
+      <div style="flex:1">
+        <h3>Goals</h3>${s.goals.map((g,i)=>`<div>${i< s.stars ? "★" : "☆"} ${g}</div>`).join("")}
+        <h3 style="margin-top:10px">Suggested</h3><div>${s.dinos.join(", ")}${s.needs.length?` · <b style="color:#b3261e">Needs ${s.needs.join(", ")}</b>`:""}</div>
+        <h3 style="margin-top:10px">First clear</h3><div>XP · 4 ${ch.name} materials · 20 meat · card chance${s.n%3===0?" · 🔥 a torch":""}${s.kind==="boss"?" · 3 boss materials":""}</div>
+      </div>
+      <div style="width:230px;text-align:center">
+        <div class="small">Recommended</div><div style="font-size:44px;font-weight:800">${s.rec}</div>
+        <div class="small">Your Strength</div><div style="font-size:44px;font-weight:800;color:${strColor(s.rec)}">${STATE.strength}</div>
+        <div class="small">${STATE.strength>=s.rec?"You're ready":STATE.strength>=s.rec*0.85?"A bit short: doable with skill":"Well short: grow in Endless Runs"}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px;align-items:center">
+      <span class="small">A failed stage costs 🔥 1 (clears are free)</span>
+      <button class="btn ghost" style="color:var(--ink);background:#0001" onclick="go(STATE.screen)">Close</button>
+      <button class="btn green" ${STATE.torches<1||locked?"disabled":""} onclick="go('loading')">${STATE.torches<1?"Out of torches":"Start"}</button>
+    </div></div></div>`;
+}
+function loading(s){
+  return `<div style="position:absolute;inset:0;background:radial-gradient(#3f6b2a,#1d3313)"></div>
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+    <h1 style="font-size:46px;color:var(--gold)">${s.name}</h1>
+    <div class="panel" style="padding:14px 22px;min-width:520px">${s.goals.map(g=>`<div>☆ ${g}</div>`).join("")}
+      <div style="margin-top:6px">Recommended <b>${s.rec}</b> · You <b style="color:${strColor(s.rec)}">${STATE.strength}</b></div></div>
+    <div style="width:560px;height:22px;background:#5a3a1a;border-radius:12px;overflow:hidden"><div id="bar" style="height:100%;width:0;background:var(--gold)"></div></div>
+    <div class="small">TIP: Slide under the tail sweep, jump the roar.</div>
+    <button class="btn green" id="tap" style="visibility:hidden" onclick="go('run')">Tap to start</button></div>`;
+}
+function run(s){
+  return `<div style="position:absolute;left:18px;top:14px" class="chip">❤️❤️❤️ · PRIMAL ▓▓▓▓░</div>
+  <div class="chip" style="position:absolute;right:18px;top:14px;text-align:right">${s.kind==="boss"?"":`${s.length} m to the finish`}<br>
+   <span class="small">★ Clear · ☆ ${s.goals[1]} (12/…) · ☆ ${s.goals[2]}</span></div>
+  ${s.kind==="boss"?`<div style="position:absolute;left:50%;top:70px;transform:translateX(-50%);width:520px"><div class="small" style="text-align:center">${CHAPTERS.find(c=>c.id===s.ch).boss}</div>
+    <div style="height:18px;background:#0006;border-radius:9px"><div style="height:100%;width:58%;background:var(--red);border-radius:9px"></div></div></div>`:""}
+  ${s.kind==="puzzle"?`<div class="chip" style="position:absolute;left:50%;top:70px;transform:translateX(-50%)">Checkpoint 2/4 · 🔴 gem</div>`:""}
+  <div style="position:absolute;left:220px;top:330px;font-size:70px">🧍</div>
+  <div style="position:absolute;inset:auto 0 30px 0;display:flex;gap:14px;justify-content:center">
+    <button class="btn green" onclick="go('results',{win:true})">Pretend: clear it</button>
+    <button class="btn" style="background:var(--red);color:#fff" onclick="go('results',{win:false})">Pretend: fail</button></div>`;
+}
+function results(s, win){
+  if (win){ s.cleared = true; const before=s.stars; s.stars = Math.max(s.stars, 2); var gained = s.stars-before; }
+  else STATE.torches = Math.max(0, STATE.torches-1);
+  return `<div class="modal"><div class="paper" style="width:700px;padding:22px 28px;text-align:center">
+    <h1 style="font-size:40px">${win?"STAGE CLEAR!":"OUT OF HEARTS"}</h1>
+    ${win?`<div style="font-size:54px">${stars(s.stars)}</div><div class="small">${gained>0?"NEW! ":""}${s.goals.map((g,i)=>`${i<s.stars?"★":"☆"} ${g}`).join(" · ")}</div>
+      <div style="margin:12px auto;width:480px;text-align:left">
+        <div>Rok XP <span style="display:inline-block;width:260px;height:12px;background:#0002;border-radius:6px;vertical-align:middle"><span style="display:block;width:72%;height:100%;background:var(--teal);border-radius:6px"></span></span> +180</div>
+        <div>Raptor XP <span style="display:inline-block;width:260px;height:12px;background:#0002;border-radius:6px;vertical-align:middle"><span style="display:block;width:40%;height:100%;background:var(--teal);border-radius:6px"></span></span> +120</div>
+        <div style="margin-top:8px">NEW! 4 materials · 20 meat ${s.n%3===0?"· 🔥 +1 torch":""} ${s.kind==="boss"?"· 3 boss materials":""}</div></div>`
+      : `<p>🔥 1 torch spent (${STATE.torches} left). Stars already earned are kept.</p>
+         <p class="small">Recommended ${s.rec} · You <b style="color:${strColor(s.rec)}">${STATE.strength}</b>${STATE.strength<s.rec?" · Try growing in an Endless Run":""}</p>`}
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:12px">
+      <button class="btn ghost" style="color:var(--ink);background:#0001" onclick="go('campaign')">Back to ${CHAPTERS.find(c=>c.id===s.ch).name}</button>
+      ${win?`<button class="btn green" onclick="nextStage()">Next stage</button>`:`<button class="btn green" ${STATE.torches<1?"disabled":""} onclick="go('loading')">Retry (🔥 1 if you fail)</button>
+      <button class="btn" onclick="go('run_endless')">Endless Run</button>`}
+    </div></div></div>`;
+}
+function nextStage(){ const list=STAGES[STATE.sel.ch]; const nx=list.find(x=>x.n===STATE.sel.n+1); if(nx){STATE.sel=nx; go('campaign'); openBrief(nx);} else go('campaign'); }
+
+// ---------------- the three variants of the campaign screen ----------------
+// A: a winding trail map per chapter (stage nodes on a path, Trails branching off)
+function variantA(){
+  const ch = CHAPTERS.find(c=>c.id===STATE.chapter), list = STAGES[ch.id];
+  const pts = list.map((s,i)=>({x:90+i*104, y: 380 + Math.sin(i*0.9)*110}));
+  const path = pts.map((p,i)=>(i?"L":"M")+p.x+" "+p.y).join(" ");
+  return `${topBar("CAMPAIGN · "+ch.name.toUpperCase())}
+  <div style="position:absolute;inset:64px 0 0 0;background:${ch.color}"></div>
+  <svg width="100%" height="720" style="position:absolute;left:0;top:0">
+    <path d="${path}" stroke="#f1dfb8" stroke-width="14" fill="none" stroke-dasharray="2 18" stroke-linecap="round"/>
+    ${ch.trails.map((t,i)=>{const p=pts[3+i*4]; return `<path d="M${p.x} ${p.y} Q ${p.x+40} ${p.y-140} ${p.x+70} ${p.y-200}" stroke="#ffffff70" stroke-width="8" fill="none" stroke-dasharray="2 12"/>`}).join("")}
+  </svg>
+  ${list.map((s,i)=>{const p=pts[i], open=stageOpen(s), cur=open&&!s.cleared;
+    return `<div onclick="${open?`openBrief(STAGES.${ch.id}[${i}])`:""}" style="position:absolute;left:${p.x-38}px;top:${p.y-38}px;width:76px;height:76px;border-radius:50%;
+      background:${s.kind==="boss"?"#7a1f1a":open?"var(--sand)":"#6d5a48"};color:${s.kind==="boss"?"#fff":"var(--ink)"};border:5px solid ${cur?"var(--gold)":"#8a5a2b"};
+      display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:${open?"pointer":"default"};${cur?"box-shadow:0 0 0 8px #ffcf5a55":""}">
+      <b style="font-size:22px">${s.kind==="run"?s.n:kindIcon(s.kind)}</b><span style="font-size:12px">${s.cleared?stars(s.stars):open?"NEXT":"🔒"}</span></div>`}).join("")}
+  ${ch.trails.map((t,i)=>{const p=pts[3+i*4]; return `<div class="chip lock" style="position:absolute;left:${Math.min(p.x+40,1080)}px;top:${Math.max(p.y-260,80)}px;width:170px;text-align:center">🦕 ${t} Trail<br><span class="small">🔒 beat the ${ch.boss}</span></div>`}).join("")}
+  <div style="position:absolute;left:18px;bottom:18px;display:flex;gap:8px">
+    ${CHAPTERS.map(c=>`<button class="btn ${c.id===STATE.chapter?"green":"ghost"}" onclick="STATE.chapter='${c.id}';render()">${c.name}${c.id==="forest"?"":" 🔒"}</button>`).join("")}</div>
+  <div class="chip" style="position:absolute;right:18px;bottom:18px">★ ${chStars(ch.id)}/30 · chests at 10 ✓ · 20 · 30</div>`;
+}
+// B: the game's own shelf style: chapter tabs, a horizontal shelf of stage cards, a details strip (briefing inline)
+function variantB(){
+  const ch = CHAPTERS.find(c=>c.id===STATE.chapter), list = STAGES[ch.id];
+  const sel = STATE.sel && STATE.sel.ch===ch.id ? STATE.sel : list.find(s=>stageOpen(s)&&!s.cleared);
+  return `${topBar("CAMPAIGN")}
+  <div style="position:absolute;inset:64px 0 0 0;background:linear-gradient(${ch.color},#3a2612)"></div>
+  <div style="position:absolute;left:18px;right:18px;top:80px;display:flex;gap:8px">
+    ${CHAPTERS.map(c=>`<button class="btn ${c.id===ch.id?"green":"ghost"}" onclick="STATE.chapter='${c.id}';STATE.sel=null;render()">${c.name} <span class="small">★${chStars(c.id)}</span>${c.id==="forest"?"":" 🔒"}</button>`).join("")}
+    <div class="grow"></div><button class="btn ghost">Trails (${ch.trails.length}) 🔒</button></div>
+  <div class="panel" style="position:absolute;left:18px;right:18px;top:140px;height:230px;display:flex;gap:10px;padding:14px;overflow-x:auto">
+    ${list.map((s,i)=>{const open=stageOpen(s); return `<div onclick="${open?`STATE.sel=STAGES.${ch.id}[${i}];render()`:""}" class="paper ${open?"":"lock"}"
+      style="min-width:120px;padding:8px;text-align:center;cursor:${open?"pointer":"default"};${sel===s?"outline:5px solid var(--green)":""}">
+      <div style="font-size:30px">${kindIcon(s.kind)}</div><b>${s.n}. ${s.kind==="run"?ch.name:s.kind==="boss"?"BOSS":"PUZZLE"}</b>
+      <div>${open?stars(s.stars):"🔒"}</div><div class="small">Rec ${s.rec}</div><div class="small">${s.time} · ${s.weather}</div></div>`}).join("")}</div>
+  ${sel?`<div class="paper" style="position:absolute;left:18px;right:18px;top:386px;height:240px;padding:16px 22px;display:flex;gap:24px">
+    <div style="flex:1"><h2>${kindIcon(sel.kind)} ${sel.name}</h2>${sel.goals.map((g,i)=>`<div>${i<sel.stars?"★":"☆"} ${g}</div>`).join("")}
+      <div class="small" style="margin-top:6px">Suggested: ${sel.dinos.join(", ")} · First clear: XP, materials, meat${sel.n%3===0?", 🔥":""}</div></div>
+    <div style="width:220px;text-align:center"><div class="small">Recommended ${sel.rec}</div><div style="font-size:40px;font-weight:800;color:${strColor(sel.rec)}">${STATE.strength}</div>
+      <button class="btn green" style="font-size:24px;width:200px" onclick="STATE.sel=STAGES.${sel.ch}[${sel.n-1}];go('loading')" ${STATE.torches<1?"disabled":""}>START</button>
+      <div class="small">Fail costs 🔥 1</div></div></div>`:""}
+  <div class="chip" style="position:absolute;left:18px;bottom:16px">Star chests: 10 ✓ · 20 · 30</div>`;
+}
+// C: a world map of zone islands; tapping one opens a vertical list (chapter left, Trails right)
+function variantC(){
+  if (!STATE.cOpen){
+    return `${topBar("WORLD MAP")}
+    <div style="position:absolute;inset:64px 0 0 0;background:#3c7fb0"></div>
+    ${CHAPTERS.map((c,i)=>`<div onclick="${i===0?`STATE.cOpen='${c.id}';render()`:""}" style="position:absolute;left:${110+i*285}px;top:${230+(i%2)*120}px;width:240px;height:200px;border-radius:50% 46% 52% 44%;
+      background:${c.color};border:6px solid #f1dfb8;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:${i===0?"pointer":"default"};${i?"filter:grayscale(.7);opacity:.7":""}">
+      <h2>${c.name}</h2><div>${i===0?`★ ${chStars(c.id)}/30 · 6/10`:"🔒 beat the "+CHAPTERS[i-1].boss}</div>
+      <div class="small">Boss: ${c.boss}</div></div>`).join("")}
+    <svg width="100%" height="720" style="position:absolute;left:0;top:0;pointer-events:none"><path d="M350 330 L 395 450 L 680 330 L 965 450" stroke="#f1dfb8" stroke-width="6" stroke-dasharray="10 10" fill="none"/></svg>
+    <div class="chip" style="position:absolute;left:50%;bottom:18px;transform:translateX(-50%)">Tap an island to see its stages</div>`;
+  }
+  const ch = CHAPTERS.find(c=>c.id===STATE.cOpen), list = STAGES[ch.id];
+  return `${topBar(ch.name.toUpperCase())}
+  <div style="position:absolute;inset:64px 0 0 0;background:${ch.color}"></div>
+  <button class="btn ghost" style="position:absolute;left:18px;top:76px" onclick="STATE.cOpen=null;render()">← World map</button>
+  <div class="panel" style="position:absolute;left:18px;top:126px;width:760px;bottom:18px;padding:12px;overflow-y:auto">
+    ${list.map((s,i)=>{const open=stageOpen(s); return `<div onclick="${open?`openBrief(STAGES.${ch.id}[${i}])`:""}" class="${open?"":"lock"}" style="display:flex;align-items:center;gap:14px;padding:8px 12px;margin-bottom:6px;border-radius:12px;background:${open&&!s.cleared?"#ffcf5a33":"#ffffff10"};cursor:${open?"pointer":"default"}">
+      <b style="width:34px;font-size:22px">${s.n}</b><span style="font-size:22px">${kindIcon(s.kind)}</span><span style="flex:1">${s.name}<br><span class="small">${s.time} · ${s.weather}</span></span>
+      <span>${open?stars(s.stars):"🔒"}</span><span class="small" style="width:90px;text-align:right;color:${strColor(s.rec)}">Rec ${s.rec}</span></div>`}).join("")}</div>
+  <div class="panel" style="position:absolute;right:18px;top:126px;width:440px;bottom:18px;padding:14px">
+    <h2 style="color:var(--gold)">Trails</h2><p class="small">Open once you beat the ${ch.boss}. Each pays one random reward from its pool, each once.</p>
+    ${ch.trails.map(t=>`<div class="paper lock" style="padding:10px;margin-top:10px"><b>🦕 ${t} Trail</b> · 0/3<div class="small">Pool: card · XP · 30% Market discount · egg</div></div>`).join("")}
+    <h3 style="margin-top:16px">Star chests</h3><div>★ ${chStars(ch.id)}/30 · 10 ✓ · 20 · 30</div></div>`;
+}
+const VARIANTS = { A:["Trail map", variantA], B:["Shelf + details strip", variantB], C:["World map + list", variantC] };
+
+// ---------------- plumbing ----------------
+let variant = new URLSearchParams(location.search).get("variant") || "A";
+let modal = "";
+function openBrief(s){ STATE.sel = s; modal = briefing(s); render(true); }
+function go(to, opt={}){
+  modal = "";
+  if (to==="campaign" || to==="menu") STATE.screen = to;
+  if (to==="run_endless"){ alert("(An Endless Run would start here.)"); STATE.screen="menu"; }
+  if (to==="loading"){ STATE.screen="loading"; }
+  if (to==="run"){ STATE.screen="run"; }
+  if (to==="results"){ STATE.screen="campaign"; modal = results(STATE.sel, opt.win); }
+  render(true);
+  if (to==="loading"){ let p=0; const t=setInterval(()=>{ p+=7; const b=document.getElementById("bar"); if(!b){clearInterval(t);return;} b.style.width=Math.min(p,100)+"%"; if(p>=100){clearInterval(t); document.getElementById("tap").style.visibility="visible";} },60); }
+}
+function render(keepModal){
+  const scr = document.getElementById("screen");
+  let html = "";
+  if (STATE.screen==="menu") html = menu();
+  else if (STATE.screen==="campaign") html = VARIANTS[variant][1]();
+  else if (STATE.screen==="loading") html = loading(STATE.sel);
+  else if (STATE.screen==="run") html = run(STATE.sel);
+  scr.innerHTML = html + (keepModal ? modal : "");
+  if (!keepModal) modal = "";
+  document.getElementById("vlabel").textContent = `Variant ${variant} (${VARIANTS[variant][0]}) · campaign screen`;
+  fit();
+}
+function setVariant(v){ variant=v; const u=new URL(location); u.searchParams.set("variant",v); history.replaceState(null,"",u); STATE.screen = STATE.screen==="menu"?"menu":"campaign"; modal=""; render(); }
+const keys = Object.keys(VARIANTS);
+document.getElementById("prev").onclick = ()=> setVariant(keys[(keys.indexOf(variant)+keys.length-1)%keys.length]);
+document.getElementById("next").onclick = ()=> setVariant(keys[(keys.indexOf(variant)+1)%keys.length]);
+document.addEventListener("keydown", e=>{ if (e.target.closest("input,textarea,[contenteditable]")) return;
+  if (e.key==="ArrowLeft") document.getElementById("prev").click(); if (e.key==="ArrowRight") document.getElementById("next").click(); });
+document.getElementById("size").onclick = e=>{ document.body.classList.toggle("wide"); e.target.textContent = document.body.classList.contains("wide")?"1560×720":"1280×720"; fit(); };
+function fit(){ const s=document.getElementById("screen"), w=document.getElementById("wrap"); const k=Math.min(w.clientWidth/s.offsetWidth, w.clientHeight/s.offsetHeight, 1); s.style.transform=`translate(-50%,-50%) scale(${k})`; }
+addEventListener("resize", fit);
+render();
+</script>
+</body>
+</html>
