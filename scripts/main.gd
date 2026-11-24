@@ -3457,9 +3457,10 @@ func mission_event(stat: String, amount := 1.0) -> void:
 		_missions_done(missions_week.add(stat, amount), missions_week)
 
 
-## Missions just completed (of the daily set, or `ms`): meat straight into
-## the bank, a banner, a line in the run's news; all of a set done pays its
-## bonus (the daily one plus the streak). Rewards: config/missions.cfg.
+## Missions just completed (of the daily set, or `ms`): a banner and a line
+## in the run's news; their meat is claimed in the Missions scene
+## (claim_mission). All of a set done adds its bonus (the daily one plus the
+## streak), paid with the last claim. Rewards: config/missions.cfg.
 func _missions_done(idx: Array, ms: Missions = null) -> void:
 	if ms == null:
 		ms = missions
@@ -3467,27 +3468,44 @@ func _missions_done(idx: Array, ms: Missions = null) -> void:
 		return
 	var weekly := ms.period == "weekly"
 	for i in idx:
-		meat_bank += ms.meat()
-		new_this_run.append(("Weekly mission: " if weekly else "Mission: ") + ms.text(i))
-		hud.show_banner("WEEKLY MISSION COMPLETE!" if weekly else "MISSION COMPLETE!", "%s  +%d meat" % [ms.text(i), ms.meat()], Color(0.55, 1.0, 0.6), 2.6)
+		new_this_run.append(("Weekly mission done: " if weekly else "Mission done: ") + ms.text(i) + " (claim it in Missions)")
+		hud.show_banner("WEEKLY MISSION COMPLETE!" if weekly else "MISSION COMPLETE!", "%s  ·  claim +%d meat in Missions" % [ms.text(i), ms.meat()], Color(0.55, 1.0, 0.6), 2.6)
 	audio.play("unlock", 0.0, 1.1)
 	if ms.all_done() and ms.last_full != ms.date:
 		var before := Time.get_date_string_from_unix_time(int(Time.get_unix_time_from_system()) - (7 if weekly else 1) * 86400)
 		var bonus := ms.complete_day(Missions.week_key(before) if weekly else before)
-		meat_bank += bonus
-		new_this_run.append("All %s missions done: +%d meat" % ["weekly" if weekly else "daily", bonus])
-		hud.show_banner("ALL WEEKLY MISSIONS DONE!" if weekly else "ALL MISSIONS DONE!", "+%d meat%s" % [bonus, " · %d-day streak!" % ms.streak if ms.streak > 1 and not weekly else ""], Color(0.55, 1.0, 0.6), 3.0)
+		ms.bonus_due += bonus
+		new_this_run.append("All %s missions done: +%d meat bonus to claim" % ["weekly" if weekly else "daily", bonus])
+		hud.show_banner("ALL WEEKLY MISSIONS DONE!" if weekly else "ALL MISSIONS DONE!", "+%d meat bonus%s · claim it in Missions" % [bonus, " · %d-day streak!" % ms.streak if ms.streak > 1 and not weekly else ""], Color(0.55, 1.0, 0.6), 3.0)
+	SaveData.save_missions(ms.to_dict(), ms.period)
+
+
+## CLAIM in the Missions scene: mission i of `ms` pays its meat (and the
+## all-done bonus with the last one). Returns the meat paid.
+func claim_mission(ms: Missions, i: int) -> int:
+	var paid := ms.claim(i)
+	if paid <= 0:
+		audio.play("denied", 0.0)
+		return 0
+	meat_bank += paid
 	SaveData.save_meat(meat_bank)
 	SaveData.save_missions(ms.to_dict(), ms.period)
+	audio.play("amber", 0.0, 0.9)
+	_refresh_hud()
+	return paid
 
 
 ## Today's and this week's missions (new ones when the day or week turned).
 func _refresh_missions() -> void:
 	var today := Time.get_date_string_from_system()
-	if missions.refresh(today, best_m, unlocked):
-		SaveData.save_missions(missions.to_dict())
-	if missions_week.refresh(today, best_m, unlocked):
-		SaveData.save_missions(missions_week.to_dict(), "weekly")
+	for ms in [missions, missions_week]:
+		var waiting: int = ms.unclaimed_meat()   # a new day or week shouldn't lose what was earned
+		if ms.refresh(today, best_m, unlocked):
+			if waiting > 0:
+				meat_bank += waiting
+				SaveData.save_meat(meat_bank)
+				new_this_run.append("Unclaimed mission rewards added: +%d meat" % waiting)
+			SaveData.save_missions(ms.to_dict(), ms.period)
 
 
 ## The Missions button's panel: daily and weekly, with progress (it's no
@@ -3500,7 +3518,7 @@ func _show_missions() -> void:
 
 ## Red dot on the Missions button: a new day's or week's missions not looked at yet.
 func missions_badge() -> bool:
-	return not seen.has(_missions_seen_key())
+	return not seen.has(_missions_seen_key()) or missions.any_claimable() or missions_week.any_claimable()
 
 
 func _missions_seen_key() -> String:

@@ -6,9 +6,9 @@ extends CanvasLayer
 ## mission is done, and talks when tapped), with her nameplate and a speech
 ## bubble. On the right a wooden board with DAILY and WEEKLY tabs holds the
 ## period's three missions as parchment cards: icon, name, what to do, a
-## progress bar, the meat it pays and its state (DONE with a tick, or IN
-## PROGRESS). Missions pay by themselves the moment they're done (Missions,
-## main.missions / main.missions_week). The title banner and a Back button
+## progress bar, the meat it pays and its state: CLAIM (a glowing button that
+## pays its meat, main.claim_mission), DONE with a tick once claimed, or IN
+## PROGRESS (Missions, main.missions / main.missions_week). The title banner and a Back button
 ## sit on top. Laid out from the visible screen (1280x720 and wide phones).
 
 signal closed
@@ -106,6 +106,17 @@ func _label(t: String, size: int, color: Color, r: Rect2, parent: Control, align
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(l)
 	return l
+
+
+func _claim(m: Missions, i: int) -> void:
+	var paid: int = game.claim_mission(m, i)
+	if paid <= 0:
+		return
+	refresh()
+	_say("done" if m.all_done() else "some")
+	if bubble_label:
+		bubble_label.text = "+%d meat! " % paid + bubble_label.text
+	_play("thumbs")
 
 
 func refresh() -> void:
@@ -251,8 +262,10 @@ func _build_board(vs: Vector2) -> void:
 		sub += "  ·  %d-day streak" % m.streak
 	_label(sub, 17, Color(1, 0.88, 0.6), Rect2(r.position.x, r.position.y + 22.0, r.size.x, 26), root, HORIZONTAL_ALIGNMENT_CENTER)
 	var foot := "Complete missions to earn meat."
-	if m.ids.size() > 0:
-		foot = "All done: +%d meat bonus!" % int(Missions.num(m.period, "all_meat")) if m.all_done() else "Finish all %d for a +%d meat bonus." % [m.ids.size(), int(Missions.num(m.period, "all_meat"))]
+	if m.bonus_due > 0:
+		foot = "Claim them all for the +%d meat bonus!" % m.bonus_due
+	elif m.ids.size() > 0:
+		foot = "All done!" if m.all_done() else "Finish all %d for a +%d meat bonus." % [m.ids.size(), int(Missions.num(m.period, "all_meat"))]
 	_label(foot, 17, Color(1, 0.88, 0.6), Rect2(r.position.x, r.end.y - 50.0, r.size.x, 26), root, HORIZONTAL_ALIGNMENT_CENTER)
 	var top := r.position.y + 54.0
 	var bottom := r.end.y - 56.0
@@ -311,10 +324,26 @@ func _card(m: Missions, i: int, r: Rect2) -> void:
 	root.add_child(meat)
 	_label("+%d" % m.meat(), 24, INK, Rect2(rx, r.position.y + r.size.y * 0.5, reward_w, 32), root, HORIZONTAL_ALIGNMENT_CENTER).name = "Reward_%d" % i
 	var sr := Rect2(r.end.x - status_w - 14.0, r.position.y + r.size.y * 0.5 - 30.0, status_w, 60)
-	_nine("button_done" if done else "button_wait", sr, 22.0, root)
-	var st := _label("DONE" if done else "IN PROGRESS", 19 if not done else 22, CREAM, sr, root, HORIZONTAL_ALIGNMENT_CENTER, true)
+	var can := m.claimable(i)
+	if can:   # the glowing CLAIM button (its art has sparkles around it)
+		var cr := Rect2(sr.position - Vector2(10, 18), sr.size + Vector2(20, 36))
+		var cb := TextureButton.new()
+		cb.name = "Claim_%d" % i
+		cb.texture_normal = _tex("button_claim")
+		cb.ignore_texture_size = true
+		cb.stretch_mode = TextureButton.STRETCH_SCALE
+		cb.position = cr.position
+		cb.size = cr.size
+		cb.pressed.connect(func(): _claim(m, i))
+		root.add_child(cb)
+		var pulse := cb.create_tween().set_loops()
+		pulse.tween_property(cb, "modulate", Color(1.2, 1.2, 1.0), 0.5)
+		pulse.tween_property(cb, "modulate", Color(1, 1, 1), 0.5)
+	else:
+		_nine("button_done" if done else "button_wait", sr, 22.0, root)
+	var st := _label("CLAIM" if can else ("DONE" if done else "IN PROGRESS"), 24 if can else (22 if done else 19), CREAM, sr, root, HORIZONTAL_ALIGNMENT_CENTER, true)
 	st.name = "State_%d" % i
-	if done:
+	if done and not can:
 		var ck := TextureRect.new()
 		ck.texture = _tex("check")
 		ck.expand_mode = TextureRect.EXPAND_IGNORE_SIZE

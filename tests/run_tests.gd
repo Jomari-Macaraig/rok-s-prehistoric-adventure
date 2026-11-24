@@ -2145,11 +2145,26 @@ func _variety_checks() -> void:
 	main.missions.targets = [3, 999, 999]
 	main.missions.progress = [0.0, 0.0, 0.0]
 	main.missions.done = [false, false, false]
+	main.missions.claimed = [false, false, false]
+	main.missions.bonus_due = 0
 	main.missions.date = Time.get_date_string_from_system()
 	var bank0: int = main.meat_bank
 	main.badge_event("meat", 3)
-	check(main.missions.done[0] and main.meat_bank == bank0 + main.missions.meat() and main.new_this_run.any(func(x): return String(x).begins_with("Mission")),
-			"completing a mission mid-run banks its meat and is news")
+	check(main.missions.done[0] and main.meat_bank == bank0 and main.missions.claimable(0) and main.missions_badge() and main.new_this_run.any(func(x): return String(x).begins_with("Mission")),
+			"completing a mission mid-run is news and waits to be claimed (a red dot on Missions)")
+	check(main.claim_mission(main.missions, 0) == main.missions.meat() and main.meat_bank == bank0 + main.missions.meat() and not main.missions.claimable(0)
+			and main.claim_mission(main.missions, 0) == 0 and SaveData.load_missions().get("claimed", [false])[0], "CLAIM pays its meat once, saved")
+	main.missions.done = [true, true, true]
+	main.missions.claimed = [true, false, true]
+	main.missions.bonus_due = 50
+	var bank_b: int = main.meat_bank
+	check(main.claim_mission(main.missions, 1) == main.missions.meat() + 50 and main.meat_bank == bank_b + main.missions.meat() + 50 and main.missions.bonus_due == 0, "the all-done bonus comes with the last claim")
+	main.missions.done = [true, false, false]
+	main.missions.claimed = [false, false, false]
+	main.missions.date = "2000-01-01"
+	var bank_r: int = main.meat_bank
+	main._refresh_missions()
+	check(main.meat_bank == bank_r + int(Missions.num("daily", "meat")) and main.new_this_run.any(func(x): return String(x).contains("Unclaimed")), "a new day pays what was left unclaimed")
 	# weekly missions (config/missions.cfg [weekly])
 	var wk := Missions.new("weekly")
 	wk.refresh("2026-11-25", 500.0, [Forms.ROK])
@@ -2163,11 +2178,13 @@ func _variety_checks() -> void:
 	main.missions_week.targets = [5, 999, 999]
 	main.missions_week.progress = [0.0, 0.0, 0.0]
 	main.missions_week.done = [false, false, false]
+	main.missions_week.claimed = [false, false, false]
 	main.missions_week.date = Missions.week_key(Time.get_date_string_from_system())
 	var bank1: int = main.meat_bank
 	main.badge_event("meat", 5)
-	check(main.missions_week.done[0] and main.meat_bank >= bank1 + main.missions_week.meat() and SaveData.load_missions("weekly").get("done", [false])[0],
-			"a weekly mission counts the same stats, pays its meat and is saved")
+	check(main.missions_week.done[0] and main.missions_week.claimable(0) and SaveData.load_missions("weekly").get("done", [false])[0]
+			and main.claim_mission(main.missions_week, 0) == main.missions_week.meat() and main.meat_bank >= bank1 + main.missions_week.meat(),
+			"a weekly mission counts the same stats, is claimed for its meat and is saved")
 	# its own button on the main menu (the user's call), not a panel by itself
 	main._to_title()
 	main._refresh_hud()
@@ -2187,9 +2204,16 @@ func _variety_checks() -> void:
 	check(cards.all(func(c): return c != null) and (mv.root.find_child("Text_0", true, false) as Label).text == main.missions.text(0)
 			and (mv.root.find_child("Reward_0", true, false) as Label).text == "+%d" % main.missions.meat(), "each card shows what to do and the meat it pays")
 	main.missions.done[0] = true
+	main.missions.claimed[0] = false
 	mv.refresh()
-	check((mv.root.find_child("State_0", true, false) as Label).text == "DONE", "a finished mission says DONE")
+	var cb := mv.root.find_child("Claim_0", true, false) as TextureButton
+	check(cb != null and (mv.root.find_child("State_0", true, false) as Label).text == "CLAIM", "a finished mission shows a CLAIM button")
+	var bank_c: int = main.meat_bank
+	cb.pressed.emit()
+	check(main.meat_bank == bank_c + main.missions.meat() and (mv.root.find_child("State_0", true, false) as Label).text == "DONE" and mv.root.find_child("Claim_0", true, false) == null,
+			"tapping CLAIM pays its meat and it says DONE")
 	main.missions.done[0] = false
+	main.missions.claimed[0] = false
 	(mv.root.find_child("Tab_weekly", true, false) as Button).pressed.emit()
 	check(mv.tab == "weekly" and (mv.root.find_child("Text_0", true, false) as Label).text == main.missions_week.text(0), "the WEEKLY tab shows the week's missions")
 	check(main._overlay_open(), "while it's open, taps go to the scene (not a run)")

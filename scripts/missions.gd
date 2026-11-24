@@ -7,9 +7,11 @@ extends RefCounted
 ## Daily missions (the user's pick for long runs): three small goals a day,
 ## picked from POOL by the date (the same three all day), only from what the
 ## player can already do. Progress counts across every run that day ("total")
-## or within one run ("best"); each one done pays MISSION_MEAT into the bank,
-## and finishing all three pays MISSION_ALL_MEAT plus a streak bonus for
-## consecutive days (MISSION_STREAK_MEAT per day, up to MISSION_STREAK_MAX).
+## or within one run ("best"); each one done is CLAIMED in the Missions scene
+## for its meat (`claim`), and finishing all three adds the all-done bonus
+## plus a streak bonus for consecutive days, paid with the last claim
+## (`bonus_due`). Rewards a new day replaces unclaimed are paid then
+## (`unclaimed_meat`, main._refresh_missions).
 ## main owns one (`main.missions`), feeds it through `add`/`best` (from
 ## badge_event / badge_best and a few direct hooks) and saves it with
 ## SaveData.save_missions. The title and game-over screens list them
@@ -44,6 +46,8 @@ var ids: Array = []
 var targets: Array = []
 var progress: Array = []
 var done: Array = []
+var claimed: Array = []   # done and its meat taken (the CLAIM button)
+var bonus_due := 0        # the all-done (and streak) bonus, paid with the last claim
 var streak := 0           # days in a row with all three done
 var last_full := ""       # the last date all three were done
 
@@ -121,7 +125,40 @@ func refresh(today: String, best_m: float, unlocked: Array) -> bool:
 	targets = ids.map(func(id): return target_for(id, best_m, period))
 	progress = ids.map(func(_id): return 0.0)
 	done = ids.map(func(_id): return false)
+	claimed = ids.map(func(_id): return false)
+	bonus_due = 0
 	return true
+
+
+## Done, and its meat not taken yet.
+func claimable(i: int) -> bool:
+	return i < ids.size() and done[i] and not claimed[i]
+
+
+func any_claimable() -> bool:
+	return range(ids.size()).any(func(i): return claimable(i))
+
+
+## Take mission i's meat (and the all-done bonus with the last one).
+## Returns the meat (0 if it couldn't be claimed).
+func claim(i: int) -> int:
+	if not claimable(i):
+		return 0
+	claimed[i] = true
+	var paid := meat()
+	if bonus_due > 0 and claimed.all(func(c): return c):
+		paid += bonus_due
+		bonus_due = 0
+	return paid
+
+
+## Meat still waiting to be claimed (rewards and any bonus).
+func unclaimed_meat() -> int:
+	var t := bonus_due
+	for i in ids.size():
+		if claimable(i):
+			t += meat()
+	return t
 
 
 ## A "total" stat went up. Returns the indices of missions it completed.
@@ -177,7 +214,7 @@ func lines() -> Array:
 
 func to_dict() -> Dictionary:
 	return {"date": date, "ids": ids, "targets": targets, "progress": progress, "done": done,
-			"streak": streak, "last_full": last_full}
+			"claimed": claimed, "bonus_due": bonus_due, "streak": streak, "last_full": last_full}
 
 
 func from_dict(d: Dictionary) -> void:
@@ -186,6 +223,10 @@ func from_dict(d: Dictionary) -> void:
 	targets = Array(d.get("targets", []))
 	progress = Array(d.get("progress", []))
 	done = Array(d.get("done", []))
+	claimed = Array(d.get("claimed", done.duplicate()))   # older saves paid on completion
+	bonus_due = int(d.get("bonus_due", 0))
+	if claimed.size() != done.size():
+		claimed = done.duplicate()
 	streak = int(d.get("streak", 0))
 	last_full = String(d.get("last_full", ""))
 	if not (ids.size() == targets.size() and ids.size() == progress.size() and ids.size() == done.size()) \
