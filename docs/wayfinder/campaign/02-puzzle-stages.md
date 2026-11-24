@@ -2,7 +2,7 @@
 title: What a puzzle stage is
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: []
 ---
 
