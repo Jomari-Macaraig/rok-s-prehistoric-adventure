@@ -110,6 +110,12 @@ Decide everything first; build afterwards.
   number, Strength (hero level, skills and gear plus the four equipped
   dinosaurs); green/yellow/red against the stage's, set per stage in config
   and checked by a bot; shown at the Camp and by the Campaign button.
+- [Loading each stage](15-stage-loading.md): a small always-loaded core; a
+  stage loads only its zone, boss, puzzle pieces, wild species and the
+  equipped dinosaurs; endless runs stream the current and next zone (launch
+  loads only the core and first zone); instant retries; a stage loading
+  screen with goals and Strength, "Tap to start"; a memory budget checked
+  by a test.
 
 ## Not yet specified
 
