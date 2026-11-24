@@ -79,6 +79,11 @@ build afterwards.
 
 ## Out of scope
 
+- **Redesigning hero and dinosaur levels**: the user wants levelling to be
+  more intuitive and fun (2026-11-24); it gets its own map. Until it's done,
+  "How recommended strength is worked out" should wait for it, and the
+  "hero level 3" in "When the campaign opens" may need revisiting.
+
 - **Pets in the campaign**: the user wants pets to join stages later; that
   belongs to the pet system's own map. Stage settings shouldn't make it
   impossible, nothing more.

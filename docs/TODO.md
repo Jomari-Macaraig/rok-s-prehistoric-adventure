@@ -14,6 +14,8 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 ## Decisions (the user)
 
+- [ ] **Rethink hero and dinosaur levels** (the user's request, 2026-11-24): make levelling more intuitive and fun. Today: 1 XP per metre run as that character, levels 1-10 needing 450 x (1+...+L-1) XP, then meat at the Camp, and each level adds about half a point to one attribute the player picks (docs/systems/leveling.md). To plan on its own wayfinding map. The Campaign map's "When the campaign opens" (hero level 3) and "How recommended strength is worked out" lean on it.
+
 - [ ] **Campaign mode**: being planned on a wayfinding map, [docs/wayfinder/campaign/MAP.md](wayfinder/campaign/MAP.md) (decide first, then build).
 
 - [ ] **Pet system** (the user's vision, see [GAME_DESIGN.md](GAME_DESIGN.md)): pets hatch from eggs (the Dino Egg art is kept for it), need care, age through stages and die, breed with traits passed to offspring, and fight turn-based card battles (each dinosaur's attack cards come from its traits) against a bot, PVP later. Breeding only within the same species, at most 8 times per dinosaur; more species are coming. Notes only: the user will discuss it later.
