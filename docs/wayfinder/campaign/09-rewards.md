@@ -2,7 +2,7 @@
 title: What stages pay
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: [03-play-cost, 12-gear-slots, 14-market-role]
 ---
 
