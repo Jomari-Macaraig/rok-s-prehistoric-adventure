@@ -116,6 +116,10 @@ Decide everything first; build afterwards.
   loads only the core and first zone); instant retries; a stage loading
   screen with goals and Strength, "Tap to start"; a memory budget checked
   by a test.
+- [The campaign screens](16-campaign-screens.md): variant A, a winding trail
+  map per chapter (stage circles, Trails branching off, chapter buttons,
+  star chests), a briefing popup, Endless Run and Campaign buttons on the
+  main menu; prototype on branch `prototype/campaign-screens`.
 
 ## Not yet specified
 
