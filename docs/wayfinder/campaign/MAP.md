@@ -96,6 +96,11 @@ Decide everything first; build afterwards.
   worn-out gear works at half strength; 1 durability per run or stage;
   repair costs meat (by rarity and upgrade); a successful upgrade restores
   durability; selling still scales with wear.
+- [What the Market is for](14-market-role.md): keeps today's goods, adds
+  torch refills and Kora's Blessing (few a week) and a daily deals shelf;
+  no gear, XP boosts, eggs or boss materials for sale; endless runs earn
+  the meat, the campaign pays what meat can't buy; boss materials sellable,
+  eggs not.
 
 ## Not yet specified
 
@@ -129,3 +134,5 @@ Decide everything first; build afterwards.
 - **Ads**: they'll later refill the play cost; this map only leaves room for
   them.
 - **Pet battles and PVP**: their own effort (see docs/GAME_DESIGN.md).
+- **Real money** (a premium currency, purchases): later; the Market leaves
+  room for it ([What the Market is for](14-market-role.md)).
