@@ -27,7 +27,8 @@ system's doc in [systems/](systems/README.md) says how what's built works, and
   the campaign.
 - **Care**: the player tends their pets (feeding, playing, keeping them
   happy). Neglect should matter.
-- **Age**: a pet ages through stages (baby, young, adult, old). It can
+- **Age**: a pet ages through stages (baby, young, adult, old). Its grown-up
+  looks share art with runner dinosaurs' Evolutions (decided 2026-11-24). It can
   battle from a certain age, and one day it dies.
 - **Breeding**: two pets can breed. Each pet has **traits** (body parts,
   colours, attributes, attack cards), and an offspring inherits traits from

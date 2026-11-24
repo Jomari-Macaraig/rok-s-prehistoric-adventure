@@ -70,8 +70,20 @@ _Avoid_: Hunter (when it's the one being fought), enemy
 ## Growth
 
 **Level**:
-A hero's or dinosaur's rank, 1 to 10, raised at the Camp with XP and meat.
+A hero's or dinosaur's rank, 1 to 20, gained automatically when it has the XP.
 _Avoid_: Using "level" for a Stage
+
+**Milestone**:
+A set Level at which a dinosaur gains something visible: a new trick, a perk or a new look.
+_Avoid_: Reward tier, unlock
+
+**Evolution**:
+A runner dinosaur's change to a new look and a jump in strength at Levels 10 and 20.
+_Avoid_: Ascension, prestige, growing (pets grow by age)
+
+**Skill Tree**:
+A hero's own set of skills, bought with the Skill Points that hero earns by levelling; it can be reset for free.
+_Avoid_: Talents, perks (perks come from badges)
 
 **Mission**:
 A daily or weekly goal that pays meat, behind the Missions button.

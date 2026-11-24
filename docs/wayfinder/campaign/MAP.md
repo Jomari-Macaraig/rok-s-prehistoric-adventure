@@ -80,6 +80,12 @@ Decide everything first; build afterwards.
   that chapter; a Trail pays one random reward from its pool (card, XP,
   Market discount, egg), each once; stages set time and weather (night and
   rain matter a little), and endless runs get random weather too.
+- [Rethink hero and dinosaur levels](11-levels-rethink.md): instant
+  automatic level-ups (no meat, no Camp trip) up to 20, XP from runs,
+  stages, bosses, chests and a team share; dinosaurs grow automatically with
+  milestone rewards and evolve at 10 and 20; heroes spend skill points in
+  their own skill tree (free reset); a level path at the Camp; old meat
+  refunded.
 
 ## Not yet specified
 
@@ -97,6 +103,12 @@ Decide everything first; build afterwards.
   pointing at endless runs).
 - **Balance**: how hard the first stages are, how fast difficulty climbs,
   and checking it with a bot (like the endless-run autopilot).
+
+- **What's in each milestone and skill tree**: the actual milestone rewards
+  per species (tricks, perks, looks) and each hero's skills. Content to
+  write once gear and the Market are settled, so perks don't overlap them.
+- **The level path and skill tree screens**: how they look at the Camp
+  (joins the campaign screens prototype).
 
 ## Out of scope
 
