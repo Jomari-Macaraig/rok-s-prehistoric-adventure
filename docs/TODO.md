@@ -40,14 +40,16 @@ The running list of open work, so nothing gets lost between sessions. **Keep it 
 
 Transparent PNGs in the game's cartoon style. Animations are 4x2 sheets (8 frames) like the power-up and chest sheets. "No animation" means the game moves it in code (pulse, bob, glow, pop). Make them in this order.
 
-- [ ] **1. Icons** (first; the first build steps use them):
+- [x] **1. Icons**: received (`../Assets/Rok_Section1_Icons`), imported with the tickets that use them (torches 17, Strength 14, Blessing 11, Boss Materials 22-23, accessories 12, stars 18).
+  Spec as asked: (first; the first build steps use them):
   - Torch: lit, square ~128 px, plus a dark "spent" version; **flame flicker loop** 4x2, 128 px frames, ~120 ms.
   - Strength: a fist or dino paw with a spark, ~96 px.
   - Kora's Blessing: a glowing charm or amulet, ~128 px; **glow loop** 4x2, 128 px, ~160 ms.
   - Boss Materials (material-icon size): T-rex tooth, Carnotaurus horn, Utahraptor quill, Allosaurus claw.
   - Accessories (gear-icon size): Amber Pendant, Meat Hook, Lodestone, Sun Bead, Torch Totem, Lucky Fossil.
   - Star: gold, ~64 px, plus an empty/grey version.
-- [ ] **2. Campaign map**:
+- [x] **2. Campaign map**: received (`../Assets/Rok_Campaign_Map_Pack`), imported with the trail map (ticket 16).
+  Spec as asked::
   - Stage circles, each locked (dim, with a lock) / next / cleared (room for a number and 3 small stars): normal ~120 px, puzzle (gem mark) ~120 px, boss (skull or claw mark) ~160 px with an optional menace loop (glowing eyes or embers, 4x2).
   - Path pieces: a dotted or stone path tile per zone (Forest, Desert, Canyon, Volcanic), or one neutral to start.
   - Trail sign: a wooden signpost, open and locked.

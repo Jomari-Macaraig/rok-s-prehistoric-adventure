@@ -46,6 +46,9 @@ var levels_refund := 0             # meat refunded on load for levels an old sav
 var skills_learned: Dictionary = {}   # hero -> [skill ids] (Skills.learned points here)
 var _skill_used := {}             # once-a-run skills already used this run (tough_hide, last_stand, second_wind)
 var _last_hit_m := 0.0            # metres at the last hit (Patch Up)
+var run_milestones: Array = []    # "Raptor learned Double Dash" lines this run (the summary's card)
+var _quick_start_t := 0.0         # Quick Start's burst left (s)
+var _dashed := false              # Double Dash used in this jump
 var run_dino_m: Dictionary = {}    # this run: id -> metres run as it (the summary card)
 var run_rank: Array = Tuning.RUN_RANKS[0]   # this run's rank (RunSummary.rank_for): its multiplier boosts meat and XP
 var run_bonus_meat := 0
@@ -466,6 +469,8 @@ func start_run(intro := true) -> void:
 	new_this_run.clear()
 	run_dino_m.clear()
 	run_levelups.clear()
+	run_milestones.clear()
+	_quick_start_t = 0.0
 	if levels_refund > 0:
 		new_this_run.append("Levels now come by themselves: %d meat refunded" % levels_refund)
 		levels_refund = 0
@@ -644,7 +649,7 @@ func _finish_game_over() -> void:
 	summary.show_run({"caught": death_cause == "caught", "cause": death_cause, "metres": m, "score": s, "best_m": best_m,
 			"new_best": new_best, "new_best_m": record, "meat": last_run_meat, "banked": meat_bank,
 			"rank": run_rank, "bonus_meat": run_bonus_meat, "xp_mult": xp_mult(),
-			"zones": int(floorf(float(m) / Zones.ZONE_LEN_M)) + 1, "dinos": played.map(func(id): return [id, run_dino_m[id]]), "levelups": run_levelups.duplicate(), "news": news})
+			"zones": int(floorf(float(m) / Zones.ZONE_LEN_M)) + 1, "dinos": played.map(func(id): return [id, run_dino_m[id]]), "levelups": run_levelups.duplicate(), "milestones": run_milestones.duplicate(), "news": news})
 	hud.center_panel.visible = false
 
 
@@ -1196,17 +1201,27 @@ func add_xp(id: String, amount: float) -> bool:
 	if after <= before:
 		return false
 	run_levelups[id] = after
+	var learned: Array = []
+	for mid in Milestones.gained(id, before, after):
+		learned.append("%s learned %s" % [Herd.name_of(id), Milestones.name_of(mid)])
+	if Milestones.stage_at(id, after) > Milestones.stage_at(id, before):
+		learned.append("%s evolved!" % Herd.name_of(id))
+	run_milestones.append_array(learned)
 	Forms.clear_cache()
 	if is_instance_valid(hud):
 		hud.refresh_form_icons()
 	if owns_form(id):
 		new_this_run.append("%s reached Lv %d" % [Herd.name_of(id), after])
+		for t in learned:
+			new_this_run.append(t)
 		if state == State.PLAYING and is_instance_valid(player):
 			var at := player.position + Vector2(0, -90)
 			fx.float_text(at, "LEVEL UP! %s Lv %d" % [Herd.name_of(id), after], Color(1, 0.85, 0.3), 30)
 			fx.sparkle(player.position + Vector2(0, -40), Color(1, 0.9, 0.4))
 			player.sprite.modulate = Color(1.6, 1.5, 0.9)
-			create_tween().tween_property(player.sprite, "modulate", Color(1, 1, 1), 0.6)
+			create_tween().tween_property(player.sprite, "modulate", player.evo_tint(), 0.6)
+			if not learned.is_empty():
+				fx.float_text(at + Vector2(0, -44), "NEW: " + String(learned[0]), Color(0.75, 1.0, 0.6), 26)
 			audio.play("unlock", 0.0, 1.15)
 	return true
 
@@ -1365,6 +1380,8 @@ func _shift(f: int) -> void:
 		_coach_done("shift")
 	var from: Dictionary = player.data()
 	player.shift_to(f)
+	if f != Forms.ROK and Milestones.knows(String(Forms.get_data(f).id), "quick_start"):
+		_quick_start_t = 1.0   # Quick Start: a 1 s burst that gains on the hunter
 	shift_cd = 0.0 if power_on("primal_berry") else Tuning.SHIFT_COOLDOWN
 	var c: Color = Forms.get_data(f).color
 	if player.play_transform(from):   # the user's burst hides the change
@@ -1571,6 +1588,7 @@ func _play_step(delta: float) -> void:
 
 	_check_unlocks()
 	_skill_step()
+	_milestone_step(delta)
 	_update_chase(delta, slope)
 	_trex_voice(delta)
 	trex.follow(Tuning.PLAYER_X, chase_gap, terrain, delta, speed / Tuning.START_SPEED)
@@ -1790,6 +1808,8 @@ func _check_quicksand(delta: float) -> bool:
 		rate = Tuning.SINK_RATE_FAST
 	elif player.form == Forms.TRICERATOPS or player.form == Forms.SPINOSAURUS:
 		rate = Tuning.SINK_RATE_HEAVY
+	if player.form != Forms.ROK and Milestones.knows(String(player.data().id), "light_step"):
+		rate *= float(Milestones.value("light_step", 1.0))   # Light Step: quicksand holds it longer
 	if player.form == Forms.ROK and Skills.has("light_feet"):
 		rate = float(Skills.value("light_feet", 0.0))   # the hero's Light Feet: no sinking
 	var deep := on_sand and terrain.deep_sand_at(player.position.x)
@@ -2219,7 +2239,7 @@ func _stumble(amount: float, text: String, color := Color(1, 0.5, 0.4)) -> void:
 	_clean_from = metres()   # Untouchable counts from the last stumble
 	player.invuln = maxf(player.invuln, 0.9)
 	player.sprite.modulate = Color(color.r * 1.6, color.g * 1.2, color.b * 1.25)   # flash in the text colour
-	create_tween().tween_property(player.sprite, "modulate", Color.WHITE, 0.4)
+	create_tween().tween_property(player.sprite, "modulate", player.evo_tint(), 0.4)
 	fx.float_text(player.position + Vector2(-50, -200), text, color)
 	fx.add_shake(5.0)
 	audio.play("denied", 0.0)
@@ -3108,6 +3128,13 @@ func _attack() -> Obstacle:
 	attack_cd_max = attack_cd
 	if player.form == Forms.ROK and Skills.has("ground_pound") and player.is_low():
 		_ground_pound()
+	if player.form != Forms.ROK and not player.on_ground and not _dashed and Milestones.knows(String(player.data().id), "double_dash"):
+		_dashed = true   # Double Dash: once a jump, a dash forward that gains on the hunter
+		chase_gap = minf(chase_gap + float(Milestones.value("double_dash", 30.0)), Tuning.CHASE_GAP_FAR)
+		player.vy = minf(player.vy, 0.0)
+		for i in 4:
+			fx.speed_line(player.position + Vector2(-40.0, -randf_range(20.0, 100.0)))
+		fx.float_text(player.position + Vector2(-40, -200), "DASH!", Color(0.7, 0.9, 1.0), 26)
 	var target := attack_target()
 	var clip := attack_clip()
 	# running on the ground with a seamless running attack for this weapon:
@@ -3247,6 +3274,8 @@ func _attack_hit(target: Obstacle) -> Obstacle:
 		score += Tuning.SMASH_SCORE * points_mult()
 		audio.play("smash", 0.1, 0.8)
 		combo.feat()
+		if player.form != Forms.ROK and Milestones.knows(String(player.data().id), "pounce"):
+			player._do_jump(true)   # Pounce: the bonk bounces it up like a free jump
 		_drop_card(target)
 		_wild_materials(target)
 	elif _small_hazard(target):
@@ -3549,6 +3578,16 @@ func _on_frenzy_ended() -> void:
 ## Skills that act over the run: Second Wind (once, a speed burst when the
 ## hunter is about to catch Rok) and Patch Up (a quarter heart back every
 ## few hundred metres without a hit).
+## Milestones that act over time: Quick Start's burst after shifting in, and
+## Double Dash recharging on landing.
+func _milestone_step(delta: float) -> void:
+	if _quick_start_t > 0.0:
+		_quick_start_t -= delta
+		chase_gap = minf(chase_gap + float(Milestones.value("quick_start", 60.0)) * delta, Tuning.CHASE_GAP_FAR)
+	if player.on_ground:
+		_dashed = false
+
+
 func _skill_step() -> void:
 	if Skills.has("second_wind") and not _skill_used.has("second_wind") and chase_gap > 0.0 \
 			and chase_gap < float(Skills.value("second_wind", 40.0)):

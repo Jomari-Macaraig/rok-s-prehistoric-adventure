@@ -244,6 +244,13 @@ static func _pts_at(id: String, l: int) -> Dictionary:
 			if g > 0.001:
 				pts[a] = snappedf(float(pts.get(a, 0.0)) + g, 0.01)
 				break
+		var evo := Milestones.stage_at(id, lv)
+		if evo > Milestones.stage_at(id, lv - 1):   # Evolution: +1 to every attribute (the 2nd lets the best pass its cap by 1)
+			for a in ATTRS:
+				var cap := float(level_cap(id, a)) + (1.0 if evo >= 2 and a == ranked[0] else 0.0)
+				var add := minf(1.0, cap - (float(base_stat(id, a)) + float(pts.get(a, 0.0))))
+				if add > 0.001:
+					pts[a] = snappedf(float(pts.get(a, 0.0)) + add, 0.01)
 	_pts_cache[key] = pts
 	return pts
 
@@ -481,6 +488,10 @@ static func form_data(slot: int, id: String) -> Dictionary:
 	d.stumble_mult = 1.0 - delta.call("armor") * 0.05
 	if stat(id, "armor") >= ARMOR_SHIELD and int(d.armor) == 0:
 		d.armor = 1
+	if Milestones.knows(id, "triple_jump"):
+		d.air_jumps = int(d.air_jumps) + int(Milestones.value("triple_jump", 1))
+	if Milestones.knows(id, "pack_instinct"):
+		d.score_mult = maxf(float(d.score_mult), float(Milestones.value("pack_instinct", 2.5)))
 	if slot == Forms.ROK and Skills.knows(id, "air_step"):
 		d.air_jumps = int(d.air_jumps) + int(Skills.value("air_step", 1))   # a third jump as the hero
 	return d

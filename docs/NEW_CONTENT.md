@@ -42,6 +42,7 @@ Art conventions shared by everything:
 - **Real-world facts** in `scripts/dino_facts.gd`: when, where, size, food and a fun fact.
 - **Wild version** (optional): a zone's stampede or swooper in `scripts/critters.gd`, with its own attributes. It drops its card and materials.
 - **Card bonus:** automatic, from its tier (`Gear.CARD_BONUS`).
+- **Milestones:** expansion dinosaurs follow their category's list in `config/milestones.cfg` (ticket 06); a new original species gets its own `[species.<id>]` with six milestones and their code ([dinosaurs](systems/dinosaurs.md#milestones)).
 - **Dinosaur Camp stage:** automatic: it idles with its idle clip and shows off its attack clip now and then.
 
 ### Import and check

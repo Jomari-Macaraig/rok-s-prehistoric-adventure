@@ -82,6 +82,7 @@ func _process(_delta: float) -> bool:
 		_hill_chase_checks()
 		_guide_scroll_check()
 		_skill_checks()
+		_dino_milestone_checks()
 		main.start_run(false)
 		check(main.unlocked == [Forms.ROK], "fresh save: only Rok unlocked")
 		main.distance = (Progression.UNLOCKS[Forms.RAPTOR] + 10.0) * Tuning.PX_PER_M
@@ -3340,9 +3341,10 @@ func _species_checks() -> void:
 	Dinos.xp = main.dino_xp
 	Forms.clear_cache()
 	check(Dinos.level("raptor") == Dinos.max_level and Dinos.level_text("raptor") == "Lv 20 MAX", "level 20 is the most")
-	check(is_equal_approx(Dinos.stat("raptor", "speed"), Dinos.LEVEL_LEAN_MAX[0]), "levels can't lift its lean past one below the next tier (the Raptor's Speed stops at 6)")
-	var pts_total: float = Dinos.ATTRS.reduce(func(t, a): return t + Dinos.stat("raptor", a) - Dinos.base_stat("raptor", a), 0.0)
-	check(pts_total < 0.5 * (Dinos.max_level - 1) and pts_total > 0.2 * (Dinos.max_level - 1), "diminishing returns: levels add less than half a point each (%.1f in all)" % pts_total)
+	var p9: Dictionary = Dinos._pts_at("raptor", 9)
+	check(is_equal_approx(Dinos.base_stat("raptor", "speed") + float(Dinos._pts_at("raptor", 19).get("speed", 0.0)), Dinos.LEVEL_LEAN_MAX[0]), "levels can't lift its lean past one below the next tier (the Raptor's Speed stops at 6 before its second evolution)")
+	var pts_total: float = p9.values().reduce(func(t, v): return t + float(v), 0.0)
+	check(pts_total < 0.5 * 8 and pts_total > 0.2 * 8, "diminishing returns: levels add less than half a point each (%.1f over 8 levels)" % pts_total)
 	check(SaveData.load_dino_levels().is_empty(), "nothing but XP is saved for levels")
 	main.dino_xp["rok"] = 1e9
 	Dinos.xp = main.dino_xp
@@ -4221,3 +4223,65 @@ func _skill_checks() -> void:
 	SaveData.save_dino_xp(xp_keep)
 	Forms.clear_cache()
 	main.meat_bank = meat_keep
+
+
+## Dinosaur milestones (config/milestones.cfg, Milestones) and evolution, and
+## the Raptor's six in a run.
+func _dino_milestone_checks() -> void:
+	var xp_keep: Dictionary = main.dino_xp.duplicate()
+	var unlocked_keep: Array = main.unlocked.duplicate()
+	main.unequip("runner")
+	var rm := Milestones.of("raptor")
+	check(rm.keys().map(func(k): return int(k)) == Milestones.levels and Milestones.levels == [3, 5, 8, 13, 15, 18] and Milestones.evolutions == [10, 20], "the Raptor has a milestone at each of levels 3, 5, 8, 13, 15, 18; evolutions at 10 and 20")
+	check(["quick_start", "light_step", "pack_instinct"].all(func(m): return Milestones.kind_of(m) == "trait") and ["double_dash", "pounce", "triple_jump"].all(func(m): return Milestones.kind_of(m) == "trick"), "Tricks and Traits as planned")
+	main.dino_xp["raptor"] = Dinos.xp_for(2)
+	Dinos.xp = main.dino_xp
+	check(not Milestones.knows("raptor", "quick_start"), "a milestone waits for its level")
+	main.start_run(false)
+	main.state = main.State.PLAYING
+	main.unlocked = Forms.ORDER.duplicate()
+	main.add_xp("raptor", Dinos.xp_for(5) - Dinos.xp_of("raptor"))
+	check(Milestones.knows("raptor", "quick_start") and Milestones.knows("raptor", "double_dash") and main.run_milestones.has("Raptor learned Double Dash") and main.new_this_run.has("Raptor learned Quick Start"), "levelling past a milestone learns it, as news and for the summary's card")
+	# Quick Start
+	main.energy = 100.0
+	main.chase_gap = 100.0
+	main._shift(Forms.RAPTOR)
+	check(is_equal_approx(main._quick_start_t, 1.0), "Quick Start: shifting in starts a 1 s burst")
+	var g0: float = main.chase_gap
+	main._milestone_step(0.5)
+	check(absf(main.chase_gap - g0 - 0.5 * float(Milestones.value("quick_start"))) < 0.01, "...that gains on the hunter")
+	# Double Dash
+	main.player.on_ground = false
+	main._dashed = false
+	main.attack_cd = 0.0
+	g0 = main.chase_gap
+	main._attack()
+	check(absf(main.chase_gap - g0 - float(Milestones.value("double_dash"))) < 0.01 and main._dashed, "Double Dash: ATTACK in the air dashes, gaining on the hunter")
+	main.attack_cd = 0.0
+	g0 = main.chase_gap
+	main._attack()
+	check(main.chase_gap == g0, "...once a jump")
+	main.player.on_ground = true
+	main._milestone_step(0.0)
+	check(not main._dashed, "...and it recharges on landing")
+	# evolution
+	var a9: Dictionary = Dinos._pts_at("raptor", 9)
+	var a10: Dictionary = Dinos._pts_at("raptor", 10)
+	check(absf(float(a10.get("armor", 0.0)) - float(a9.get("armor", 0.0)) - 1.0) < 0.01 and Milestones.stage_at("raptor", 10) == 1, "Evolution at level 10: +1 to every attribute")
+	main.add_xp("raptor", Dinos.xp_for(10) - Dinos.xp_of("raptor"))
+	main.player.refresh_form()
+	check(main.run_milestones.has("Raptor evolved!") and main.player.evo_tint() != Color(1, 1, 1) and main.player.sprite.modulate == main.player.evo_tint(), "an evolved dinosaur glows (until its evolved art exists)")
+	main.add_xp("raptor", Dinos.xp_for(20) - Dinos.xp_of("raptor"))
+	Forms.clear_cache()
+	check(Milestones.stage("raptor") == 2 and is_equal_approx(Dinos.stat("raptor", "speed"), Dinos.LEVEL_LEAN_MAX[0] + 1.0), "the second evolution lets its best attribute (Speed) pass its cap by 1")
+	check(int(Forms.get_data(Forms.RAPTOR).air_jumps) == int(Forms.DATA[Forms.RAPTOR].air_jumps) + 1, "Triple Jump: a third jump in the air")
+	check(is_equal_approx(float(Forms.get_data(Forms.RAPTOR).score_mult), float(Milestones.value("pack_instinct"))), "Pack Instinct: its x2 score becomes x2.5")
+	check(Milestones.knows("raptor", "light_step") and Milestones.knows("raptor", "pounce"), "Light Step and Pounce come at 8 and 13")
+	main._shift(Forms.ROK)
+	main.unlocked = unlocked_keep
+	main.shift_cd = 0.0
+	main.dino_xp = xp_keep
+	Dinos.xp = main.dino_xp
+	SaveData.save_dino_xp(xp_keep)
+	Forms.clear_cache()
+	main.player.refresh_form()

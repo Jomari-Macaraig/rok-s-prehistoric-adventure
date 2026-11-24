@@ -417,6 +417,17 @@ func flies() -> bool:
 	return data().get("flies", false)
 
 
+## The tint of an evolved dinosaur (Milestones.stage): gold after its first
+## evolution, violet after its second; plain otherwise.
+func evo_tint() -> Color:
+	match Milestones.stage(String(data().id)):
+		1:
+			return Color(1.12, 1.06, 0.88)
+		2:
+			return Color(1.15, 1.0, 1.22)
+	return Color(1, 1, 1)
+
+
 func _apply_form(f: int) -> void:
 	var was_flying := flies() and not on_ground
 	if swimming:
@@ -427,6 +438,7 @@ func _apply_form(f: int) -> void:
 	carry = ""   # (set_carry puts a carry run back for this form)
 	sprite.offset = -d.pivot
 	sprite.scale = Vector2.ONE * d.scale
+	sprite.modulate = evo_tint()   # an evolved dinosaur glows until its evolved art exists
 	gear.hero = String(d.id) if f == Forms.ROK else ""   # gear shows in human form only
 	atk_gear.hero = gear.hero
 	air_jumps_left = mini(air_jumps_left, d.air_jumps) if not on_ground else d.air_jumps
@@ -473,7 +485,7 @@ func shift_to(f: int) -> void:
 	var t := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	t.tween_property(sprite, "scale", Vector2.ONE * data().scale, 0.3)
 	sprite.modulate = Color(2.2, 2.2, 2.2)
-	create_tween().tween_property(sprite, "modulate", Color.WHITE, 0.35)
+	create_tween().tween_property(sprite, "modulate", evo_tint(), 0.35)
 	shifted.emit(f)
 
 
@@ -832,7 +844,7 @@ func die() -> void:
 	sprite.speed_scale = 1.0
 	sprite.play("die")
 	sprite.modulate = Color(1.3, 1.3, 1.3)
-	create_tween().tween_property(sprite, "modulate", Color.WHITE, 0.3)
+	create_tween().tween_property(sprite, "modulate", evo_tint(), 0.3)
 	shadow.visible = false
 	z_index = 60   # in front of everything while it falls away
 

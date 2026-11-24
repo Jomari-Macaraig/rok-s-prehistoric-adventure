@@ -67,6 +67,8 @@ dinosaur's best attribute by base value (ties in `Dinos.ATTRS` order), 2 = its
 second best... The default `[1, 2, 1, 3]` gives the best attribute half the
 levels. A capped attribute passes its turn to the next rank.
 
+**Evolution** at levels 10 and 20 adds +1 to every attribute on top (see [dinosaurs](dinosaurs.md#milestones)).
+
 **Caps**: the lean can't pass `LEVEL_LEAN_MAX` (6 / 8 / 8 / 10 / 10 by tier:
 one below the next tier's base); no attribute passes 10.
 

@@ -54,6 +54,41 @@ Each category's 7 expansion dinosaurs: 2 Starter, 2 Skilled, 2 Expert, 1 Legend
 - Pterosaurs use their fly loop on the ground; Tanks use their run loop to swim.
 - `Hud.refresh_form_icons()` swaps button portraits on equip; the Field Guide page describes the equipped species.
 
+## Milestones
+
+Levels change how a form plays (campaign build ticket
+[04](../wayfinder/campaign-build/04-milestones-evolution-raptor.md)). At levels
+**3, 5, 8, 13, 15 and 18** a dinosaur learns a **Trick** (something new its form
+can do) or a **Trait** (always on); at **10 and 20** it **evolves**.
+
+| | |
+|---|---|
+| Config | **`config/milestones.cfg`**: `[levels] milestones / evolutions`, `[species.<id>]` level = milestone id, `[milestone.<id>]` name, kind (trick/trait), text, `value` |
+| Code | `scripts/milestones.gd` (`Milestones.of`, `knows`, `gained`, `stage_at`/`stage`, `value`), effects in `main.gd` and `Dinos.form_data` |
+| Saved | nothing: it all comes from the level (XP) |
+
+**Evolution** (`Dinos._pts_at`): at level 10, +1 to every attribute (within its
+caps); at 20, +1 again and the best attribute may go 1 past its cap (the
+Raptor's Speed reaches 7). Heroes don't evolve. Until evolved art exists the
+form glows (`Player.evo_tint`: gold after the first, violet after the second;
+hit flashes and the level-up burst fade back to it).
+
+**The Raptor** (built; the other three originals are tickets 05 and 06):
+
+| Lv | Milestone | In the game |
+|---|---|---|
+| 3 | Trait **Quick Start** | shifting in starts a 1 s burst gaining 60 px/s on the hunter (`_shift`, `_milestone_step`) |
+| 5 | Trick **Double Dash** | ATTACK in the air: +30 px chase gap and the fall stops, once a jump (recharges on landing) |
+| 8 | Trait **Light Step** | quicksand sinks it at half the rate (`_check_quicksand`). The spec's "crumbling ledges" part doesn't apply: the Raptor is light and never crumbles bridges |
+| 13 | Trick **Pounce** | an ATTACK bonk on a wild dinosaur bounces it up like a free jump (`_attack_hit`) |
+| 15 | Trait **Pack Instinct** | its ×2 score becomes ×2.5 (`form_data` `score_mult`) |
+| 18 | Trick **Triple Jump** | +1 air jump (`form_data` `air_jumps`) |
+
+**Shown**: a new milestone or evolution floats "NEW: Raptor learned Double
+Dash" mid-run, is run news, and gets a green **NEW** card on the summary
+(`main.run_milestones`, `RunSummary` `MilestoneCard`). The Camp's level path
+(ticket 07) will show them all.
+
 ## Market cards
 
 - `Dinos.icon(id)` is the first idle frame; `Dinos.frame(id, i)` / `frame_times(id)` give the card loop (frames cut into cached `ImageTexture`s).

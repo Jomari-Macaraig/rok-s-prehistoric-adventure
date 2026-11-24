@@ -99,7 +99,7 @@ static func cause_text(cause: String) -> String:
 
 ## r: caught, cause, metres, score, best_m, new_best (score), new_best_m,
 ## meat, banked, zones, dinos ([id, metres this run]), levelups (id -> level
-## reached this run), news (Array of text).
+## reached this run), milestones (lines for the NEW card), news (Array of text).
 func show_run(r: Dictionary) -> void:
 	for c in root.get_children():
 		c.queue_free()
@@ -202,8 +202,16 @@ func show_run(r: Dictionary) -> void:
 		for d in dinos.slice(0, 5):   # Rok and one per dino button
 			_dino_row(grid, d[0], float(d[1]), float(r.rank[2]) * float(r.get("xp_mult", 1.0)))
 
+	# a card for each milestone learned (and evolution) this run
+	var ms: Array = r.get("milestones", [])
+	if not ms.is_empty():
+		var card := _chip("NEW: " + "  ·  ".join(ms.slice(0, 3)) + ("!" if not String(ms[0]).ends_with("!") else ""), Color(0.35, 0.55, 0.2), 17)
+		card.name = "MilestoneCard"
+		card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		card.custom_minimum_size = Vector2(740, 0)
+		vb.add_child(card)
 	# news: badges, Market items, unlocks, dinosaurs ready to level
-	var news: Array = r.news
+	var news: Array = (r.news as Array).filter(func(t): return not ms.has(t))
 	if not news.is_empty():
 		var nl := _text("NEW: " + "  ·  ".join(news.slice(0, 6)) + (" +%d more" % (news.size() - 6) if news.size() > 6 else ""), 16, Color(0.4, 0.28, 0.15))
 		nl.name = "News"
