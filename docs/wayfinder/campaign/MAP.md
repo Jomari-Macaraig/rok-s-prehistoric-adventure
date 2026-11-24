@@ -139,11 +139,14 @@ Decide everything first; build afterwards.
 
 ## Not yet specified
 
-- **How the campaign cycles with endless runs in practice**: does anything
-  in endless runs change once the campaign exists (new hazards first met in
-  stages, campaign-only rewards that help endless runs)?
-- **Balance**: how hard the first stages are, how fast difficulty climbs,
-  and checking it with a bot (like the endless-run autopilot).
+(Nothing left: the last two topics became questions 20 and 21.)
+
+## Open questions
+
+- [How the campaign and endless runs feed each other](20-campaign-and-endless-cycle.md)
+  (being worked).
+- [Difficulty balance and the bot check](21-difficulty-balance.md)
+  (after 20).
 
 ## Out of scope
 
