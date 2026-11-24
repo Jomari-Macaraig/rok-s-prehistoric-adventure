@@ -176,7 +176,7 @@ has come shows.
 | shift | a dino button glows (a gate ahead, or a big hazard it handles) and there's energy | that dino's button | "Change into this dinosaur" | shifted into a dinosaur (×2) |
 | energy | as a dinosaur with energy < `COACH_LOW_ENERGY` (22) | Rok's button | "Low energy: back to Rok" | turned back into Rok while low (×1) |
 | market | main menu after a run; something in the Market is new or affordable | Marketplace | "Spend your meat here" | opened the Market (×1) |
-| camp | main menu after a run; something can level up | Dinosaurs (Camp) | "Level up at the Camp" | opened the Camp (×1) |
+| camp | main menu after a run; gear to equip (`gear_ready`) | Dinosaurs (Camp) | "Equip gear at the Camp" | opened the Camp (×1) |
 
 The one-off ATTACK banner 2.5 s into the first run was replaced by the attack
 lesson.

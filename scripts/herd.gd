@@ -9,10 +9,9 @@ extends CanvasLayer
 ## green, losses in red, with the difference. Equip puts it on the button
 ## (main.equip / main.unequip); the button itself still unlocks by distance.
 ##
-## LEVELS: an owned dinosaur (the originals too) shows its level as stars
-## (Dinos.level_stars, 1-5). Each attribute row has a "+": the first tap asks
-## to confirm with the price, the second levels it up (main.level_up), adding
-## +1 to that attribute. Attributes are on a 10-point scale.
+## LEVELS: an owned hero or dinosaur shows its level, its XP bar and what its
+## next level adds; levels come by themselves from XP (main.add_xp), nothing is
+## bought here. Attributes are on a 10-point scale.
 
 signal closed
 
@@ -418,19 +417,6 @@ func press_repair(gid: String) -> void:
 	refresh()
 
 
-## "+" beside an attribute: the first tap shows the price, the second levels up.
-func press_level(attr: String) -> void:
-	if _drag_dist > 12.0:
-		return
-	if _confirm != attr:
-		_confirm = attr
-		game.audio.play("click", 0.0)
-	else:
-		_confirm = ""
-		game.level_up(selected, attr)
-	refresh()
-
-
 func press_equip(id: String) -> void:
 	if not owns(id):
 		return
@@ -452,7 +438,7 @@ func refresh() -> void:
 		var tb: Button = tab_buttons[cat]
 		tb.button_pressed = cat == tab
 		var have := members(cat).filter(func(id): return owns(id)).size()
-		var ready: bool = members(cat).any(func(id): return game.level_ready().has(id)) or (cat == "rok" and game.gear_ready())
+		var ready: bool = cat == "rok" and game.gear_ready()
 		tb.text = "%s %d/%d%s" % [tab_name(cat), have, members(cat).size(), " ●" if ready else ""]
 	for c in list.get_children():
 		list.remove_child(c)
@@ -769,10 +755,6 @@ func _row(id: String) -> Control:
 			lock.set_anchors_preset(Control.PRESET_CENTER_TOP)
 			lock.position = Vector2(-14, 22)
 			b.add_child(lock)
-	if game.level_ready().has(id):
-		var up := _light("● LEVEL UP!", 14, Color(1.0, 0.45, 0.35))
-		up.name = "LevelReady"
-		vb.add_child(up)
 	_ignore_mouse(vb)
 	return b
 
@@ -854,7 +836,7 @@ func _build_detail_content() -> void:
 	tv.add_child(Market._text(name_of(id), 28))
 	tv.add_child(Market._text(tier_text(id) if tab == "rok" else "%s · %s" % [tab_name(tab), tier_text(id)], 16, Dinos.tier_color(id)))
 	if have:
-		var lv := Market._text("Lv %d  %s" % [Dinos.level(id), Dinos.level_stars(id)], 16, Color(0.85, 0.55, 0.1))
+		var lv := Market._text(Dinos.level_text(id), 16, Color(0.85, 0.55, 0.1))
 		lv.name = "Level"
 		tv.add_child(lv)
 		# experience toward the next level (1 XP per metre run as it)
@@ -877,7 +859,7 @@ func _build_detail_content() -> void:
 		bar.add_theme_stylebox_override("background", bbg)
 		bar.add_theme_stylebox_override("fill", bfg)
 		xb.add_child(bar)
-		var xt := "MAX" if not Dinos.can_level(id) else "%d / %d XP" % [int(pr.x), int(pr.y)]
+		var xt := "MAX" if Dinos.level(id) >= Dinos.max_level else "%d / %d XP" % [int(pr.x), int(pr.y)]
 		xb.add_child(Market._text(xt, 14, Color(0.2, 0.4, 0.65)))
 		tv.add_child(xb)
 	tv.add_child(Market._text(Dinos.tradeoff(id), 15, Color(0.45, 0.3, 0.18)))
@@ -887,10 +869,9 @@ func _build_detail_content() -> void:
 	head.name = "CompareHead"
 	detail.add_child(head)
 	var lean: String = lean_of(tab)
-	var lvl_ok := have and Dinos.can_level(id)
 	var bars := GridContainer.new()
 	bars.name = "Bars"
-	bars.columns = 5 if lvl_ok else 4
+	bars.columns = 4
 	bars.add_theme_constant_override("h_separation", 10)
 	bars.add_theme_constant_override("v_separation", 4)
 	detail.add_child(bars)
@@ -925,25 +906,17 @@ func _build_detail_content() -> void:
 		dl.name = "Delta_" + a
 		dl.custom_minimum_size = Vector2(34, 0)
 		bars.add_child(dl)
-		if lvl_ok:
-			var g := Dinos.gain(id, a)
-			var pb := Market._button("Confirm?" if _confirm == a else ("+" + Dinos.fmt(g) if Dinos.can_raise(id, a) else "max"), Vector2(64, 30))
-			pb.name = "Level_" + a
-			pb.add_theme_font_size_override("font_size", 15)
-			pb.disabled = not Dinos.can_raise(id, a) or game.meat_bank < Dinos.level_cost(id) or not Dinos.xp_ok(id)
-			pb.tooltip_text = "Up to %d" % Dinos.level_cap(id, a)
-			pb.pressed.connect(func(): press_level(a))
-			bars.add_child(pb)
-	if have and Dinos.can_level(id):
-		var note := "Level %d for %d meat: tap + on an attribute (higher ones grow less)." % [Dinos.level(id) + 1, Dinos.level_cost(id)]
-		if _confirm != "" and not _confirm.begins_with("repair:"):   # a level-up waiting (not a repair)
-			note = "Tap Confirm? to raise %s by %s for %d meat." % [Dinos.ATTR_NAMES[_confirm], Dinos.fmt(Dinos.gain(id, _confirm)), Dinos.level_cost(id)]
-		elif not Dinos.xp_ok(id):
-			note = "Run %d m more as %s to reach Lv %d (1 XP per metre)." % [ceili(Dinos.xp_for(Dinos.level(id) + 1) - Dinos.xp_of(id)), name_of(id) if Heroes.is_hero(id) else "the " + name_of(id), Dinos.level(id) + 1]
-		elif game.meat_bank < Dinos.level_cost(id):
-			note = "Next level: %d meat (you have %d)." % [Dinos.level_cost(id), game.meat_bank]
+	if have and Dinos.level(id) < Dinos.max_level:
+		var who: String = name_of(id) if Heroes.is_hero(id) else "the " + name_of(id)
+		var left := ceili(Dinos.xp_for(Dinos.level(id) + 1) - Dinos.xp_of(id))
+		var grow := Dinos.next_growth(id)
+		var parts: Array = []
+		for a in grow:
+			parts.append("+%s %s" % [Dinos.fmt(float(grow[a])), Dinos.ATTR_NAMES[a]])
+		var note := "Lv %d in %d m%s. %s levels up by itself as it runs." % [Dinos.level(id) + 1, left, (": " + ", ".join(parts)) if not parts.is_empty() else "", who.capitalize() if not Heroes.is_hero(id) else who]
 		var ln := Market._text(note, 15, Color(0.5, 0.3, 0.12))
 		ln.name = "LevelNote"
+		ln.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		detail.add_child(ln)
 	elif have:
 		detail.add_child(Market._text("Max level!", 15, Color(0.85, 0.55, 0.1)))

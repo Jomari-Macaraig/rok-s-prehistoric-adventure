@@ -39,8 +39,10 @@ var best_flag: BestFlag      # the flag at the best distance (null if no record 
 var _run_best := 0.0         # best distance when this run began
 var dizzy_t := 0.0   # seconds left of mushroom dizziness (lower jumps, wobble)
 var dinos_owned: Array = []    # expansion dinosaurs bought in the Market (Dinos ids)
-var dino_levels: Dictionary = {}   # id -> {"lv", "pts"} from levelling (Dinos.levels points here)
-var dino_xp: Dictionary = {}       # id -> XP, 1 per metre run as it (Dinos.xp points here)
+var dino_levels: Dictionary = {}   # old saves only: levels bought with meat (refunded by _migrate_levels)
+var dino_xp: Dictionary = {}       # id -> XP, 1 per metre run as it (Dinos.xp points here); levels come from it
+var run_levelups: Dictionary = {}  # id -> level reached this run (the summary's LEVEL UP chip)
+var levels_refund := 0             # meat refunded on load for levels an old save bought
 var run_dino_m: Dictionary = {}    # this run: id -> metres run as it (the summary card)
 var run_rank: Array = Tuning.RUN_RANKS[0]   # this run's rank (RunSummary.rank_for): its multiplier boosts meat and XP
 var run_bonus_meat := 0
@@ -174,7 +176,6 @@ func _ready() -> void:
 	badge_tiers = bl[1]
 	Codex.species_owned = dinos_owned
 	dino_levels = SaveData.load_dino_levels()
-	Dinos.levels = dino_levels
 	dino_xp = SaveData.load_dino_xp()
 	Dinos.xp = dino_xp
 	Forms.clear_cache()
@@ -190,6 +191,7 @@ func _ready() -> void:
 	Market.hearts_owned = heart_containers
 	Market.best_score = best
 	meat_bank = SaveData.load_meat()
+	_migrate_levels()
 	market_seen = SaveData.load_market_seen()
 	if best_m >= Progression.SLOT_UNLOCK_M and slot_count < 2:
 		slot_count = 2   # already earned on an older save
@@ -456,6 +458,10 @@ func start_run(intro := true) -> void:
 	_market_announced.clear()
 	new_this_run.clear()
 	run_dino_m.clear()
+	run_levelups.clear()
+	if levels_refund > 0:
+		new_this_run.append("Levels now come by themselves: %d meat refunded" % levels_refund)
+		levels_refund = 0
 	_ranked = false
 	run_bonus_meat = 0
 	run_rank = Tuning.RUN_RANKS[0]
@@ -629,7 +635,7 @@ func _finish_game_over() -> void:
 	summary.show_run({"caught": death_cause == "caught", "cause": death_cause, "metres": m, "score": s, "best_m": best_m,
 			"new_best": new_best, "new_best_m": record, "meat": last_run_meat, "banked": meat_bank,
 			"rank": run_rank, "bonus_meat": run_bonus_meat, "xp_mult": xp_mult(),
-			"zones": int(floorf(float(m) / Zones.ZONE_LEN_M)) + 1, "dinos": played.map(func(id): return [id, run_dino_m[id]]), "news": news})
+			"zones": int(floorf(float(m) / Zones.ZONE_LEN_M)) + 1, "dinos": played.map(func(id): return [id, run_dino_m[id]]), "levelups": run_levelups.duplicate(), "news": news})
 	hud.center_panel.visible = false
 
 
@@ -1067,18 +1073,12 @@ func market_new() -> Array:
 	return Market.items().filter(func(id): return Market.on_sale(id, best_m) and not market.owns(id) and not market_seen.has(id))
 
 
-## Heroes and dinosaurs you own that can level up right now (enough XP and
-## meat, not maxed): the Camp button and their rows show a red dot.
-func level_ready() -> Array:
+## The species on each unlocked dinosaur button (the team that shares XP).
+func team_ids() -> Array:
 	var out: Array = []
-	var ids: Array = Heroes.IDS.filter(func(h): return h == "rok" or dinos_owned.has(h))
 	for f in Forms.ORDER:
 		if f != Forms.ROK and unlocked.has(f):
-			ids.append(Forms.DATA[f].id)
-	ids.append_array(dinos_owned.filter(func(d): return Dinos.has(d)))
-	for id in ids:
-		if Dinos.can_level(id) and Dinos.xp_ok(id) and meat_bank >= Dinos.level_cost(id):
-			out.append(id)
+			out.append(Forms.get_data(f).id)
 	return out
 
 
@@ -1125,27 +1125,61 @@ func equip(id: String) -> bool:
 	return true
 
 
-## Level up an owned dinosaur (the originals count as owned): +1 to `attr`,
-## paid in meat (Dinos.level_cost). Returns true if it levelled.
-func level_up(id: String, attr: String) -> bool:
-	if not Dinos.known(id) or not owns_form(id):
-		return false
-	if not Dinos.can_raise(id, attr) or not Dinos.xp_ok(id):
-		return false   # at its cap, or not enough XP yet (run more as it)
-	var cost := Dinos.level_cost(id)
-	if meat_bank < cost:
-		return false
-	meat_bank -= cost
-	SaveData.save_meat(meat_bank)
-	Dinos.levels = dino_levels
-	var g := Dinos.gain(id, attr)
-	var e := Dinos.level_entry(id)
-	e.pts[attr] = snappedf(float(e.pts.get(attr, 0.0)) + g, 0.01)
-	e.lv = int(e.lv) + 1
+## Old saves bought levels with meat: refund that meat, keep each level (its
+## XP is raised to what the level needs now) and forget the bought points, so
+## attributes come from the new growth. Runs once; the save then has no levels.
+func _migrate_levels() -> void:
+	if dino_levels.is_empty():
+		return
+	var refund := 0
+	for id in dino_levels:
+		var e: Variant = dino_levels[id]
+		if not (e is Dictionary) or not Dinos.known(id):
+			continue
+		var lv := 1
+		if e.has("lv"):
+			lv = int(e.lv)
+		else:
+			for a in e:
+				lv += int(e[a])
+		lv = clampi(lv, 1, Dinos.max_level)
+		for l in range(2, lv + 1):
+			refund += Dinos.OLD_LEVEL_COST[Dinos.tier(id)] * l
+		dino_xp[id] = maxf(float(dino_xp.get(id, 0.0)), Dinos.xp_for(lv))
+	dino_levels = {}
 	SaveData.save_dino_levels(dino_levels)
+	SaveData.save_dino_xp(dino_xp)
+	meat_bank += refund
+	SaveData.save_meat(meat_bank)
+	levels_refund += refund
 	Forms.clear_cache()
-	hud.refresh_form_icons()
-	audio.play("unlock", 0.0)
+
+
+## Give `id` XP. The moment it has a level's XP it levels up, mid-run if
+## playing: a LEVEL UP! burst, sound and glow, and play goes on. Returns
+## true if it levelled.
+func add_xp(id: String, amount: float) -> bool:
+	if amount <= 0.0 or not Dinos.known(id):
+		return false
+	var before := Dinos.level(id)
+	dino_xp[id] = float(dino_xp.get(id, 0.0)) + amount
+	badge_stats["xp"] = float(badge_stats.get("xp", 0.0)) + amount
+	var after := Dinos.level(id)
+	if after <= before:
+		return false
+	run_levelups[id] = after
+	Forms.clear_cache()
+	if is_instance_valid(hud):
+		hud.refresh_form_icons()
+	if owns_form(id):
+		new_this_run.append("%s reached Lv %d" % [Herd.name_of(id), after])
+		if state == State.PLAYING and is_instance_valid(player):
+			var at := player.position + Vector2(0, -90)
+			fx.float_text(at, "LEVEL UP! %s Lv %d" % [Herd.name_of(id), after], Color(1, 0.85, 0.3), 30)
+			fx.sparkle(player.position + Vector2(0, -40), Color(1, 0.9, 0.4))
+			player.sprite.modulate = Color(1.6, 1.5, 0.9)
+			create_tween().tween_property(player.sprite, "modulate", Color(1, 1, 1), 0.6)
+			audio.play("unlock", 0.0, 1.15)
 	return true
 
 
@@ -1900,12 +1934,11 @@ func _badge_run_step(dm: float) -> void:
 		_dino_m += dm
 	if true:   # XP for whoever is running: the equipped species, the original, or Rok himself
 		var did: String = player.data().id
-		var was_ready := Dinos.xp_ok(did)
 		var gx := dm * xp_mult()
-		dino_xp[did] = float(dino_xp.get(did, 0.0)) + gx
-		badge_stats["xp"] = float(badge_stats.get("xp", 0.0)) + gx
-		if not was_ready and Dinos.xp_ok(did) and Dinos.can_level(did) and owns_form(did):
-			new_this_run.append("%s ready for Lv %d" % [Herd.name_of(did), Dinos.level(did) + 1])
+		add_xp(did, gx)
+		for tid in team_ids():   # the other equipped dinosaurs get a small share
+			if tid != did:
+				add_xp(tid, gx * Dinos.team_share)
 		if player.flies() and not player.on_ground:
 			badge_stats["flown_m"] = float(badge_stats.get("flown_m", 0.0)) + dm
 		if player.form == Forms.RAPTOR:
@@ -2306,9 +2339,7 @@ func _apply_rank() -> void:
 	run_bonus_meat = int(roundf(run_meat * extra))
 	run_meat += run_bonus_meat
 	for id in run_dino_m:   # Rok included: he levels too
-		var bx := float(run_dino_m[id]) * xp_mult() * extra
-		dino_xp[id] = float(dino_xp.get(id, 0.0)) + bx
-		badge_stats["xp"] = float(badge_stats.get("xp", 0.0)) + bx
+		add_xp(id, float(run_dino_m[id]) * xp_mult() * extra)
 
 
 # ------------------------------------------------------------ combo and frenzy
@@ -3329,8 +3360,7 @@ func _open_chest(k: Pickup, roll := -1.0, pick := "") -> void:
 		"xp":
 			var did: String = player.data().id
 			var gx := float(Chest.xp(r, n)) * xp_mult()
-			dino_xp[did] = float(dino_xp.get(did, 0.0)) + gx
-			badge_stats["xp"] = float(badge_stats.get("xp", 0.0)) + gx
+			add_xp(did, gx)
 			text = "+%d XP for %s" % [int(gx), Herd.name_of(did)]
 		"booster":
 			var owned := boosters_owned.duplicate()
@@ -3629,7 +3659,7 @@ func _refresh_hud() -> void:
 	hud.set_tutorial_bar(in_run and tutorial_run != null, stop_armed > 0.0)
 	hud.set_codex(menu and not overlay, menu and Codex.has_new(unlocked, best_m, seen, guide_viewed))
 	hud.set_market(state == State.TITLE and not overlay, market_badge())
-	hud.set_herd(state == State.TITLE and not overlay, not level_ready().is_empty() or gear_ready())
+	hud.set_herd(state == State.TITLE and not overlay, gear_ready())
 	hud.set_tutorial(state == State.TITLE and not overlay and menu_tour == null)   # (the tour's bubble sits there)
 	hud.set_missions_button(state == State.TITLE and not overlay, missions_badge())
 	hud.set_crafting(state == State.TITLE and not overlay and bench_open(), crafting_ready())
@@ -3706,7 +3736,7 @@ func _coach_target(id: String, where: String) -> String:
 		"market":
 			return "market" if played_once and market_badge() else ""
 		"camp":
-			return "herd" if played_once and not level_ready().is_empty() else ""
+			return "herd" if played_once and gear_ready() else ""
 		"booster":
 			_slot_wait = _slot_wait + get_process_delta_time() if slots.slice(0, slot_count).any(func(k): return k != "" and booster_ready(k)) else 0.0
 			if _slot_wait < Tuning.COACH_SLOT_WAIT:

@@ -44,30 +44,55 @@ const TIER_BUDGET := [17, 19, 21, 25, 29]
 const TIER_LEAN_MAX := [5, 7, 7, 9, 9]   # base values: levels take them higher (nothing starts at 10)
 const ATTR_MAX := 10
 
-## LEVELS: every dinosaur you own (the originals too) levels from 1 to
-## MAX_LEVEL (10) with meat; each level-up raises one attribute the player
-## picks (main.level_up) by about half a point, less the higher it already is
-## (gain(): +0.5 below 5, +0.4 below 7, +0.3 below 9, +0.2 above), so the
-## first points are the cheapest. A level costs LEVEL_COST[tier] x the new
-## level, far less than buying a dinosaur. Levelling can't lift the lean
+## LEVELS (config/leveling.cfg, docs/systems/leveling.md): a hero or dinosaur
+## levels up by itself the moment it has the XP, from 1 to max_level (20); no
+## meat, no Camp trip. Its level is worked out from its XP alone (level()), so
+## nothing else is saved. Each dinosaur level raises one attribute by about half
+## a point (+0.5 below 5, +0.4 below 7, +0.3 below 9, +0.2 above), the
+## attribute picked by the growth pattern (mostly its best one), so its points
+## are worked out from its level too (_pts_at()). Levelling can't lift the lean
 ## attribute past LEVEL_LEAN_MAX (one below the next tier's base), so a higher
-## tier keeps its edge; other attributes go up to ATTR_MAX. Attributes can hold
-## decimals (fmt() shows them). `levels` (id -> {"lv": level, "pts": {attr:
-## points added}}) is main.dino_levels (SaveData.load/save_dino_levels).
-const MAX_LEVEL := 10
-const LEVEL_COST := [30, 45, 60, 80, 100]
+## tier keeps its edge; other attributes go up to ATTR_MAX. Heroes don't grow
+## attributes by level (they get skill points). Attributes can hold decimals
+## (fmt() shows them).
+const DEFAULT_MAX_LEVEL := 20
+const DEFAULT_FIRST_LEVEL_M := 300.0
+const DEFAULT_STEP_M := 150.0
+const DEFAULT_TEAM_SHARE := 0.1
+const DEFAULT_PATTERN := [1, 2, 1, 3]
+static var max_level := DEFAULT_MAX_LEVEL
+static var first_level_m := DEFAULT_FIRST_LEVEL_M
+static var step_m := DEFAULT_STEP_M
+static var team_share := DEFAULT_TEAM_SHARE
+static var pattern: Array = DEFAULT_PATTERN
+static var _config_loaded := false
 ## [below this value, a level-up adds this much]; above the last, GAIN_TOP.
 const GAIN_STEPS := [[5.0, 0.5], [7.0, 0.4], [9.0, 0.3]]
 const GAIN_TOP := 0.2
+## What levels used to cost (meat x the new level, by tier), kept only to
+## refund old saves (main._migrate_levels).
+const OLD_LEVEL_COST := [30, 45, 60, 80, 100]
 
-## EXPERIENCE: a dinosaur earns 1 XP for every metre Rok runs as it
-## (main._badge_run_step). A level-up needs XP as well as meat: reaching level
-## L takes xp_for(L) XP in total, XP_STEP x (1 + 2 + ... + (L-1)), so level 2
-## needs 450 m, level 3 1350 m ... level 10 20250 m (raised from 120 per step:
-## the user found levelling too fast). `xp` (id -> XP) is main.dino_xp
-## (SaveData.load/save_dino_xp).
-const XP_STEP := 450.0
+## EXPERIENCE: 1 XP for every metre Rok runs as a character (main.add_xp).
+## `xp` (id -> XP) is main.dino_xp (SaveData.load/save_dino_xp).
 static var xp: Dictionary = {}
+static var _pts_cache: Dictionary = {}   # "id:level" -> {attr: points}
+
+
+static func _load_config() -> void:
+	if _config_loaded:
+		return
+	_config_loaded = true
+	var c := ConfigFile.new()
+	if c.load("res://config/leveling.cfg") != OK:
+		return
+	max_level = int(c.get_value("xp", "max_level", DEFAULT_MAX_LEVEL))
+	first_level_m = float(c.get_value("xp", "first_level_m", DEFAULT_FIRST_LEVEL_M))
+	step_m = float(c.get_value("xp", "step_m", DEFAULT_STEP_M))
+	team_share = float(c.get_value("xp", "team_share", DEFAULT_TEAM_SHARE))
+	var pt: Variant = c.get_value("growth", "pattern", DEFAULT_PATTERN)
+	if pt is Array and not pt.is_empty():
+		pattern = pt
 
 
 static func xp_of(id: String) -> float:
@@ -76,23 +101,30 @@ static func xp_of(id: String) -> float:
 
 ## Total XP needed to reach level `l`.
 static func xp_for(l: int) -> float:
-	return XP_STEP * (l - 1) * l / 2.0
-
-
-## Enough XP for the next level?
-static func xp_ok(id: String) -> bool:
-	return xp_of(id) >= xp_for(level(id) + 1)
+	_load_config()
+	var n := float(l - 1)
+	return first_level_m * n + step_m * n * (n - 1.0) / 2.0
 
 
 ## [XP into this level, XP this level needs] for a progress bar.
 static func xp_progress(id: String) -> Vector2:
 	var l := level(id)
-	if l >= MAX_LEVEL:
+	if l >= max_level:
 		return Vector2(1, 1)
 	var lo := xp_for(l)
 	return Vector2(clampf(xp_of(id) - lo, 0.0, xp_for(l + 1) - lo), xp_for(l + 1) - lo)
+
+
+## The level `x` XP reaches (1 to max_level).
+static func level_for_xp(x: float) -> int:
+	_load_config()
+	var l := 1
+	while l < max_level and x >= xp_for(l + 1) - 0.001:
+		l += 1
+	return l
+
+
 const LEVEL_LEAN_MAX := [6, 8, 8, 10, 10]
-static var levels: Dictionary = {}
 const ROSTER := {
 	# Runners: speed
 	"raptor":             {"cat": "runner", "speed": 5, "jump": 5, "stamina": 5, "power": 1, "armor": 1},  # the original: all-round sprinter
@@ -186,33 +218,56 @@ static func trained_stat(id: String, attr: String) -> float:
 	return snappedf(float(base_stat(id, attr)) + float(_pts(id).get(attr, 0.0)), 0.01)
 
 
-## Points its levels added, per attribute. (Older saves stored whole points
-## per attribute with no "lv": read those as one level per point.)
+## Points its levels added, per attribute.
 static func _pts(id: String) -> Dictionary:
-	var e: Dictionary = levels.get(id, {})
-	return e.get("pts", {}) if e.has("lv") else e
+	return _pts_at(id, level(id))
 
 
-## The save entry for a dinosaur's levels, created (and old ones converted) on demand.
-static func level_entry(id: String) -> Dictionary:
-	var e: Dictionary = levels.get(id, {})
-	if not e.has("lv"):
-		var old := e.duplicate()
-		var lv := 1
-		for a in old:
-			lv += int(old[a])
-		e = {"lv": lv, "pts": old}
-		levels[id] = e
-	return e
+## Points a dinosaur has at level `l`: each level from 2 up raises the
+## attribute the growth pattern picks (by rank of base value, 1 = best; a
+## capped one passes its turn to the next rank). Heroes: none.
+static func _pts_at(id: String, l: int) -> Dictionary:
+	if Heroes.is_hero(id):
+		return {}
+	var key := "%s:%d" % [id, l]
+	if _pts_cache.has(key):
+		return _pts_cache[key]
+	_load_config()
+	var ranked: Array = ATTRS.duplicate()
+	ranked.sort_custom(func(a, b): return base_stat(id, a) > base_stat(id, b) or (base_stat(id, a) == base_stat(id, b) and ATTRS.find(a) < ATTRS.find(b)))
+	var pts := {}
+	for lv in range(2, l + 1):
+		var r := int(pattern[(lv - 2) % pattern.size()]) - 1
+		for k in ranked.size():
+			var a: String = ranked[(r + k) % ranked.size()]
+			var g := _gain_at(float(base_stat(id, a)) + float(pts.get(a, 0.0)), float(level_cap(id, a)))
+			if g > 0.001:
+				pts[a] = snappedf(float(pts.get(a, 0.0)) + g, 0.01)
+				break
+	_pts_cache[key] = pts
+	return pts
 
 
-## How much the next level-up adds to an attribute (less the higher it is).
-static func gain(id: String, attr: String) -> float:
-	var v := trained_stat(id, attr)
+static func _gain_at(v: float, cap: float) -> float:
 	for step in GAIN_STEPS:
 		if v < step[0]:
-			return minf(step[1], level_cap(id, attr) - v)
-	return minf(GAIN_TOP, level_cap(id, attr) - v)
+			return minf(step[1], cap - v)
+	return minf(GAIN_TOP, cap - v)
+
+
+## What its next level adds: {attr: points} ({} for a hero or at the top).
+static func next_growth(id: String) -> Dictionary:
+	var l := level(id)
+	if Heroes.is_hero(id) or l >= max_level:
+		return {}
+	var now := _pts_at(id, l)
+	var nxt := _pts_at(id, l + 1)
+	var out := {}
+	for a in nxt:
+		var d := float(nxt[a]) - float(now.get(a, 0.0))
+		if d > 0.001:
+			out[a] = snappedf(d, 0.01)
+	return out
 
 
 ## An attribute as text: "7", "7.5", "8.3".
@@ -225,19 +280,14 @@ static func base_stat(id: String, attr: String) -> int:
 	return int(HERO_STATS[id][attr]) if Heroes.is_hero(id) else int(ROSTER[id][attr])
 
 
-## Its level, 1 to MAX_LEVEL.
+## Its level, 1 to max_level, worked out from its XP.
 static func level(id: String) -> int:
-	var e: Dictionary = levels.get(id, {})
-	if e.has("lv"):
-		return int(e.lv)
-	var t := 1
-	for a in e:
-		t += int(e[a])
-	return t
+	return level_for_xp(xp_of(id))
 
 
+## Has its levels changed its attributes? (A hero's never do.)
 static func has_levels(id: String) -> bool:
-	return level(id) > 1
+	return not _pts(id).is_empty()
 
 
 ## The highest an attribute can be levelled to.
@@ -247,19 +297,6 @@ static func level_cap(id: String, attr: String) -> int:
 	if attr == CATEGORIES[category_of(id)].lean:
 		return LEVEL_LEAN_MAX[tier(id)]
 	return ATTR_MAX
-
-
-## Meat for the next level ("" if maxed is handled by can_level).
-static func level_cost(id: String) -> int:
-	return LEVEL_COST[tier(id)] * (level(id) + 1)
-
-
-static func can_level(id: String) -> bool:
-	return level(id) < MAX_LEVEL
-
-
-static func can_raise(id: String, attr: String) -> bool:
-	return can_level(id) and trained_stat(id, attr) < level_cap(id, attr) - 0.001
 
 
 ## A speed (1-10) in words.
@@ -292,7 +329,7 @@ static func tier(id: String) -> int:
 
 
 ## The tier's name ("Expert"; "Original" for the button's own dinosaur).
-## Stars are for levels now (level_stars), so tiers are names with a colour.
+## Tiers are names with a colour (levels show as "Lv 7").
 static func tier_label(id: String) -> String:
 	var t := tier(id)
 	return "Original" if t == 0 else TIER_NAMES[t - 1]
@@ -305,10 +342,10 @@ static func tier_color(id: String) -> Color:
 	return TIER_COLORS[tier(id)]
 
 
-## Its level as stars, one per level: "★★★☆☆☆☆☆☆☆" = level 3 of 10.
-static func level_stars(id: String) -> String:
+## Its level as text: "Lv 7", or "Lv 20 MAX".
+static func level_text(id: String) -> String:
 	var l := level(id)
-	return "★".repeat(l) + "☆".repeat(MAX_LEVEL - l)
+	return "Lv %d%s" % [l, " MAX" if l >= max_level else ""]
 
 
 ## The chance (0-1) to smash through a small rock, mushroom or vine instead of

@@ -47,5 +47,5 @@ The user wanted scenes, not modals.
 - Field Guide (Encyclopedia) and Camp (Dinosaurs) on the left edge, Market (Marketplace) on the right, vertically centred above the thumb clusters.
 - **Tutorial** (main menu only): a round button with Rok's portrait above the Marketplace (`TUTORIAL_BUTTON_SIZE`, `TUTORIAL_GAP`), its name drawn below (`TouchButton.caption_below`). It replays the training run (`main.replay_tutorial`, key U); see [tutorial](tutorial.md). It switches to the user's square art if `assets/ui/square_tutorial.png` is added.
 - The user's square buttons (`TouchButton.set_banner`: tapped anywhere on the rectangle, name drawn below), or drawn round captioned buttons until imported.
-- Red dots: new Field Guide entries or badges, a ready level-up or gear to equip, something new or affordable in the Market.
+- Red dots: new Field Guide entries or badges, gear to equip, something new or affordable in the Market.
 - The title panel's help text wraps narrower so they fit beside it.

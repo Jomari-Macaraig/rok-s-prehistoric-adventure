@@ -6,7 +6,7 @@ extends CanvasLayer
 ## 4, one per dino button; Rok levels too, so he comes first): a small
 ## idle-animated icon, name and level, metres, XP gained, an XP bar where this
 ## run's gain fills in with a glow (1 XP per metre; Dinos.xp_progress), and
-## READY FOR LV N! once it can level up. Below that, badges and other news.
+## LEVEL UP! LV N if it levelled this run. Below that, badges and other news.
 ## It ignores the mouse; a tap anywhere goes on to the main menu (main.gd
 ## _to_title: run again, Field Guide, Camp or Market), and it
 ## sits under the Field Guide, Market and Herd (layer 15).
@@ -20,6 +20,7 @@ const XP_GAIN := Color(0.45, 0.85, 1.0)
 var root: Control
 var panel: PanelContainer
 var _bars: Array = []   # XPBars, animated after the card pops in
+var _levelups: Dictionary = {}   # id -> level reached this run
 var _icons: Array = []  # [TextureRect, frames, times, frame, time left]: the table's idle loops
 static var _idle_cache := {}
 var _t := 0.0
@@ -97,12 +98,14 @@ static func cause_text(cause: String) -> String:
 
 
 ## r: caught, cause, metres, score, best_m, new_best (score), new_best_m,
-## meat, banked, zones, dinos ([id, metres this run]), news (Array of text).
+## meat, banked, zones, dinos ([id, metres this run]), levelups (id -> level
+## reached this run), news (Array of text).
 func show_run(r: Dictionary) -> void:
 	for c in root.get_children():
 		c.queue_free()
 	_bars.clear()
 	_icons.clear()
+	_levelups = r.get("levelups", {})
 	_t = 0.0
 	visible = true
 	var cc := CenterContainer.new()
@@ -257,18 +260,18 @@ func _dino_row(grid: GridContainer, id: String, m: float, mult := 1.0) -> void:
 	var l := Dinos.level(id)
 	var pr := Dinos.xp_progress(id)
 	var after := 1.0 if pr.y <= 0.0 else pr.x / pr.y
-	var before := 0.0 if pr.y <= 0.0 else clampf((Dinos.xp_of(id) - gained - Dinos.xp_for(l)) / pr.y, 0.0, after)
+	var before := 0.0 if pr.y <= 0.0 or _levelups.has(id) else clampf((Dinos.xp_of(id) - gained - Dinos.xp_for(l)) / pr.y, 0.0, after)
 	bar.before = before
 	bar.after = after
 	bar.shown = before
 	grid.add_child(bar)
 	_bars.append(bar)
-	if not Dinos.can_level(id):
+	if _levelups.has(id):
+		var up := _chip("LEVEL UP! LV %d" % l, Color(0.25, 0.55, 0.2), 13)
+		up.name = "LevelUp"
+		grid.add_child(up)
+	elif l >= Dinos.max_level:
 		grid.add_child(_chip("MAX LEVEL", Color(0.85, 0.55, 0.1), 13))
-	elif Dinos.xp_ok(id):
-		var rdy := _chip("READY FOR LV %d!" % (l + 1), Color(0.25, 0.55, 0.2), 13)
-		rdy.name = "Ready"
-		grid.add_child(rdy)
 	else:
 		grid.add_child(_text("%d to Lv %d" % [ceili(pr.y - pr.x), l + 1], 13, Color(0.55, 0.35, 0.15)))
 

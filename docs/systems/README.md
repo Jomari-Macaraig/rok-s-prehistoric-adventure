@@ -32,13 +32,13 @@ One file per gameplay system, so each can be read and polished on its own. Progr
 - [Heroes](heroes.md): Rok, Nira and Boro: buying and playing a hero, and the new-best celebration jump.
 - [Dinosaurs (the expansion roster)](dinosaurs.md): The 28 expansion dinosaurs: their tiers, how they're sold, equipped on a button and played.
 - [Attributes and cooldowns](attributes.md): The five attributes (Speed, Jump, Stamina, Power, Armor), categories and leans, tier budgets, Rok's stats, and the cooldowns they shorten.
-- [Levelling and XP](leveling.md): XP earned by metres, levels 1-10, level-up costs and what each level adds.
+- [Levelling and XP](leveling.md): XP earned by metres, automatic levels 1-20 (no meat), the team share and how a dinosaur grows.
 - [Crafting, materials, rarity and the Items screen](crafting.md): gear is crafted at the Crafting Bench from materials found in runs (or basic ones from the Market); each craft rolls a rarity; the Items screen lists what you own. All in `config/crafting.cfg`.
 - [Weapons, armor and dinosaur cards](weapons-and-armor.md): Hero gear: the weapon and armor slots, bonuses, reach, durability and repair, breaks, the Torch and Bow, dinosaur cards, and gear drawn on the hero.
 
 ## Screens and UI
 - [Marketplace](marketplace.md): The Market screen: what's sold and when, buying, the cave scene and Ugo the merchant, the UI art and layout.
-- [Dinosaur Camp (levelling and gear screen)](camp.md): The Dinosaur Camp screen (code name Herd): pick a hero or dinosaur per button, compare, level up, and equip gear.
+- [Dinosaur Camp (levelling and gear screen)](camp.md): The Dinosaur Camp screen (code name Herd): pick a hero or dinosaur per button, compare, see levels, and equip gear.
 - [Field Guide (Encyclopedia)](field-guide.md): The encyclopedia of dinosaurs, hazards, items and badges, with real-world facts.
 - [Screens and navigation](screens-and-navigation.md): How the full-screen places (Market, Field Guide, Camp) open and close, the shared scene look, and the side buttons on the main menu.
 - [HUD and touch controls](hud-and-controls.md): The on-screen layout: thumb clusters, touch buttons, cooldown display, button glow and the touch-first text rule.

@@ -47,10 +47,8 @@ Ones you don't own are silhouettes but can still be compared, with how to get th
 
 ## Levelling
 
-- A button beside each attribute shows what a level-up adds ("+0.4", "max" at the cap).
-- `press_level`: the first tap asks "Confirm?", the second calls `main.level_up`.
-- Disabled at the cap, without the meat, or without the XP (the note says how many metres to run as it).
-- An XP bar under the level shows progress; a note shows the next level's price (and how much meat you have when short). The header's meat counter is hidden for now (the user's call: the Camp doesn't need it; `MeatPouch`, `visible = false`).
+- Levels come by themselves from XP (see [leveling](leveling.md)); nothing is bought here.
+- The detail shows "Lv 7" (`Dinos.level_text`) and an XP bar; a note (`LevelNote`) says how many metres to the next level and what it adds ("Lv 4 in 450 m: +0.4 Speed. The Gallimimus levels up by itself as it runs."; heroes grow no attributes by level). The header's meat counter is hidden for now (the user's call: the Camp doesn't need it; `MeatPouch`, `visible = false`).
 
 ## Gear (Heroes tab)
 
@@ -61,7 +59,7 @@ Ones you don't own are silhouettes but can still be compared, with how to get th
 
 ## Red dots
 
-Where something can be done: `main.level_ready()` (owned characters with the XP and meat for a level) and `gear_ready()` light the Camp button (`Hud.set_herd`), its tabs ("●") and rows ("● LEVEL UP!").
+Where something can be done: `gear_ready()` lights the Camp button (`Hud.set_herd`) and the Heroes tab ("●"). Levels no longer need the Camp, so they light nothing.
 
 ## The scene kit look
 

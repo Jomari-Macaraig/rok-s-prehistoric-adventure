@@ -1400,8 +1400,7 @@ func _feedback_checks() -> void:
 			"a weapon without a running sheet keeps the plain run (the held weapon drawn on)")
 	main.equip_gear("rok", "armor", main.craft("shell_plate", "", 0.0))
 	check(Forms.get_data(Forms.ROK).has("stumble_mult") and float(Forms.get_data(Forms.ROK).stumble_mult) < 1.0, "armor makes Rok tougher in play")
-	var lv0 := Dinos.trained_stat("rok", "armor")
-	check(Dinos.stat("rok", "armor") > lv0 and Dinos.can_raise("rok", "armor") == (lv0 < Dinos.level_cap("rok", "armor") - 0.001), "gear never blocks levelling")
+	check(Dinos.stat("rok", "armor") > Dinos.trained_stat("rok", "armor"), "gear adds on top of what levels give")
 	var saved := SaveData.load_gear()
 	check((saved.owned as Array).has(axe) and saved.equipped.rok.weapon == axe and int(saved.materials.wood) == Crafting.have("wood"), "gear and materials are saved")
 	# --- weapon durability (each connecting ATTACK wears it; broken = no bonus until repaired)
@@ -1837,15 +1836,9 @@ func _feedback_checks() -> void:
 	main.cards.clear()
 	main._save_gear()
 	main.meat_bank = 0
-	# --- levelling is slower and ready level-ups show a dot
-	check(Dinos.XP_STEP >= 400.0, "levels need more XP than before")
-	main.dino_xp["rok"] = Dinos.xp_for(Dinos.level("rok") + 1)
-	Dinos.xp = main.dino_xp
-	main.meat_bank = Dinos.level_cost("rok")
-	check(main.level_ready().has("rok"), "a hero with the XP and meat to level up is ready (red dot)")
-	main.meat_bank = 0
-	check(not main.level_ready().has("rok"), "...and isn't without the meat")
-	main.dino_xp.erase("rok")
+	# --- levels come from config/leveling.cfg
+	check(Dinos.max_level == 20 and is_equal_approx(Dinos.xp_for(2), Dinos.first_level_m) and Dinos.first_level_m <= 400.0, "levels go to 20 and level 2 comes early (%d m)" % int(Dinos.first_level_m))
+	check(range(2, Dinos.max_level).all(func(l): return Dinos.xp_for(l + 1) - Dinos.xp_for(l) > Dinos.xp_for(l) - Dinos.xp_for(l - 1)), "each level needs a little more than the last")
 	# --- first sight: new things are introduced before they're picked up
 	main.start_run(false)
 	c = main.course
@@ -3248,22 +3241,17 @@ func _species_checks() -> void:
 	main.equip("carnotaurus")
 	var bc0 := Dinos.break_chance("carnotaurus", Forms.RAPTOR)
 	check(bc0 > 0.5 and bc0 < 1.0, "a base Carnotaurus (Power 7) breaks through small hazards most of the time (%.2f)" % bc0)
-	var lv_c: Dictionary = main.dino_levels.duplicate(true)
 	var xp_c: Dictionary = main.dino_xp.duplicate()
-	for k in Dinos.ROSTER:
-		main.dino_xp[k] = 1e6   # plenty of experience: these checks are about attributes
+	main.dino_xp["carnotaurus"] = Dinos.xp_for(Dinos.max_level)   # these checks are about attributes
 	Dinos.xp = main.dino_xp
-	main.meat_bank = 99999
-	for i in 4:
-		main.level_up("carnotaurus", "power")   # 7 -> 7.3 -> 7.6 -> 7.9 -> 8.2
-	check(Dinos.break_chance("carnotaurus", Forms.RAPTOR) > bc0, "levelling its Power raises the chance")
+	Forms.clear_cache()
+	check(Dinos.stat("carnotaurus", "power") > float(Dinos.base_stat("carnotaurus", "power")) and Dinos.break_chance("carnotaurus", Forms.RAPTOR) > bc0, "levels grow its best attribute (Power), raising the chance")
 	main.equip("ankylosaurus")
 	check(Forms.get_data(Forms.TRICERATOPS).armor == 0 and not Forms.get_data(Forms.TRICERATOPS).breaks.has("fence"), "a base Ankylosaurus (Armor 9, Power 9) has no shield or fence-smashing yet")
-	for i in 5:
-		main.level_up("ankylosaurus", "armor")
-	check(Forms.get_data(Forms.TRICERATOPS).armor == 1, "levelling its Armor to 10 gives it a shield")
-	main.dino_levels = lv_c
-	Dinos.levels = main.dino_levels
+	main.dino_xp["ankylosaurus"] = Dinos.xp_for(Dinos.max_level)
+	Dinos.xp = main.dino_xp
+	Forms.clear_cache()
+	check(Forms.get_data(Forms.TRICERATOPS).armor == 1, "levelling grows its Armor to 10, giving it a shield")
 	main.dino_xp = xp_c
 	Dinos.xp = main.dino_xp
 	Forms.clear_cache()
@@ -3323,82 +3311,68 @@ func _species_checks() -> void:
 	var owned_card := _market_card("gallimimus")
 	check(owned_card.find_child("Equip", true, false) == null and owned_card.find_child("HerdHint", true, false) != null, "the Market no longer equips: owned dinosaurs point to the Herd")
 	main.market.close_market()
-	# --- levels: +1 to a chosen attribute for meat, shown as stars
-	var lv_keep: Dictionary = main.dino_levels.duplicate(true)
+	# --- levels: automatic from XP (no meat), growing mostly the best attribute
 	var xp_keep: Dictionary = main.dino_xp.duplicate()
 	var meat_keep: int = main.meat_bank
-	# experience: a level-up needs XP (1 per metre run as the dinosaur) as well as meat
 	main.dino_xp = {}
 	Dinos.xp = main.dino_xp
+	Forms.clear_cache()
 	main.meat_bank = 5000
-	check(Dinos.xp_for(2) == Dinos.XP_STEP and Dinos.xp_for(3) == Dinos.XP_STEP * 3.0, "each level needs more XP (XP_STEP for level 2, 3 x XP_STEP in all for level 3)")
-	check(not Dinos.xp_ok("raptor") and not main.level_up("raptor", "speed") and main.meat_bank == 5000, "without XP a dinosaur can't level up, and no meat is spent")
+	check(Dinos.level("raptor") == 1 and Dinos.level_text("raptor") == "Lv 1" and is_equal_approx(Dinos.xp_for(3), 2.0 * Dinos.first_level_m + Dinos.step_m), "a dinosaur starts at level 1; each level needs more XP")
 	main.start_run(false)
 	main.unlocked = Forms.ORDER.duplicate()
 	main.energy = 100.0
 	main._shift(Forms.RAPTOR)
-	main._badge_run_step(Dinos.XP_STEP + 1.0)
-	check(is_equal_approx(Dinos.xp_of("raptor"), Dinos.XP_STEP + 1.0) and Dinos.xp_ok("raptor"), "running as the Raptor earns it XP, metre for metre")
-	check(main.new_this_run.any(func(t): return String(t).contains("Raptor ready for Lv 2")), "reaching a level's XP is news for the run")
+	var sp0 := Dinos.stat("raptor", "speed")
+	main._badge_run_step(Dinos.xp_for(2) / main.xp_mult() + 1.0)
+	check(Dinos.level("raptor") == 2 and main.run_levelups.get("raptor", 0) == 2 and main.meat_bank == 5000, "running as the Raptor levels it up by itself the moment it has the XP, for no meat")
+	check(main.new_this_run.any(func(t): return String(t).contains("Raptor reached Lv 2")), "a level-up is news for the run")
+	check(is_equal_approx(Dinos.stat("raptor", "speed"), sp0 + 0.4) and Dinos.fmt(Dinos.stat("raptor", "speed")) == "5.4", "its first level grows its best attribute (Speed 5 -> 5.4, shown with one decimal)")
+	check(absf(float(Forms.get_data(Forms.RAPTOR).chase_rate) - (float(Forms.DATA[Forms.RAPTOR].chase_rate) + 5.0 * 0.4)) < 0.01, "a levelled original plays faster at once (its numbers follow its attributes)")
 	check(Dinos.xp_of("rok") == 0.0 and float(main.run_dino_m.get("raptor", 0.0)) > 0.0, "XP goes to the form running (Rok earns none while he's a dinosaur); the run remembers each one's metres")
+	var tri_id: String = Forms.get_data(Forms.TRICERATOPS).id
+	check(is_equal_approx(Dinos.xp_of(tri_id), (Dinos.xp_for(2) + main.xp_mult()) * Dinos.team_share), "the other equipped dinosaurs get a small share of the XP (%.0f%%)" % (Dinos.team_share * 100.0))
 	main.player.shift_to(Forms.ROK)
 	main._badge_run_step(30.0)
 	check(is_equal_approx(Dinos.xp_of("rok"), 30.0 * main.xp_mult()), "Rok earns XP on his own feet")
-	for k in Dinos.ROSTER:
-		main.dino_xp[k] = 1e6
+	main.dino_xp["raptor"] = 1e9
 	Dinos.xp = main.dino_xp
-	main.unequip("runner")
-	main.meat_bank = 0
-	check(not main.level_up("raptor", "jump"), "no meat, no level-up")
-	main.meat_bank = 5000
-	var cost := Dinos.level_cost("raptor")
-	check(Dinos.level("raptor") == 1 and Dinos.level_stars("raptor") == "★" + "☆".repeat(Dinos.MAX_LEVEL - 1) and cost == Dinos.LEVEL_COST[0] * 2, "a dinosaur starts at level 1 (one star of 10); the next level costs its tier's price x 2")
-	var sp0 := Dinos.stat("raptor", "speed")
-	var g0 := Dinos.gain("raptor", "speed")
-	check(is_equal_approx(g0, 0.4) and is_equal_approx(Dinos.gain("raptor", "power"), 0.5) and is_equal_approx(Dinos.gain("raptor", "jump"), 0.4), "a level-up adds about half a point, less the higher the attribute already is (+0.5 below 5, +0.4 from 5)")
-	check(main.level_up("raptor", "speed") and main.meat_bank == 5000 - cost and is_equal_approx(Dinos.stat("raptor", "speed"), sp0 + g0) and Dinos.level("raptor") == 2, "levelling the original Raptor raises its Speed for meat")
-	check(absf(float(Forms.get_data(Forms.RAPTOR).chase_rate) - (float(Forms.DATA[Forms.RAPTOR].chase_rate) + 5.0 * g0)) < 0.01, "a levelled original plays faster (its numbers follow its attributes)")
-	check(Dinos.fmt(Dinos.stat("raptor", "speed")) == "5.4", "decimal attributes show with one decimal")
-	var guard := 0
-	while Dinos.can_raise("raptor", "speed") and guard < 10:
-		main.level_up("raptor", "speed")
-		guard += 1
-	check(is_equal_approx(Dinos.stat("raptor", "speed"), Dinos.LEVEL_LEAN_MAX[0]) and not main.level_up("raptor", "speed"), "levelling can't lift its lean past one below the next tier (the Raptor's Speed stops at 6)")
-	check(Dinos.level_cost("raptor") == Dinos.LEVEL_COST[0] * (Dinos.level("raptor") + 1), "each level costs more")
-	guard = 0
-	while Dinos.can_level("raptor") and guard < 20:
-		main.level_up("raptor", "armor")
-		guard += 1
-	check(Dinos.level("raptor") == Dinos.MAX_LEVEL and Dinos.MAX_LEVEL == 10 and not main.level_up("raptor", "power"), "level 10 is the most")
-	check(float(SaveData.load_dino_levels().get("raptor", {}).get("pts", {}).get("armor", 0.0)) > 0.0, "levels are saved")
-	check(Dinos.stat("raptor", "armor") < float(Dinos.base_stat("raptor", "armor")) + 0.5 * (Dinos.MAX_LEVEL - 1), "diminishing returns: many levels in one attribute add less than half a point each")
-	var owned_keep_l: Array = main.dinos_owned.duplicate()
-	main.dinos_owned = []
-	check(not main.level_up("gallimimus", "speed"), "a dinosaur you don't own can't be levelled")
-	main.dinos_owned = owned_keep_l
+	Forms.clear_cache()
+	check(Dinos.level("raptor") == Dinos.max_level and Dinos.level_text("raptor") == "Lv 20 MAX", "level 20 is the most")
+	check(is_equal_approx(Dinos.stat("raptor", "speed"), Dinos.LEVEL_LEAN_MAX[0]), "levels can't lift its lean past one below the next tier (the Raptor's Speed stops at 6)")
+	var pts_total: float = Dinos.ATTRS.reduce(func(t, a): return t + Dinos.stat("raptor", a) - Dinos.base_stat("raptor", a), 0.0)
+	check(pts_total < 0.5 * (Dinos.max_level - 1) and pts_total > 0.2 * (Dinos.max_level - 1), "diminishing returns: levels add less than half a point each (%.1f in all)" % pts_total)
+	check(SaveData.load_dino_levels().is_empty(), "nothing but XP is saved for levels")
+	main.dino_xp["rok"] = 1e9
+	Dinos.xp = main.dino_xp
+	Forms.clear_cache()
+	check(Dinos.level("rok") == Dinos.max_level and is_equal_approx(Dinos.stat("rok", "speed"), float(Dinos.ROK_STATS.speed)) and Dinos.next_growth("rok").is_empty(), "a hero levels too but grows no attributes by level (skill points come with the skill tree)")
+	main.dino_xp["gallimimus"] = 0.0
+	Dinos.xp = main.dino_xp
 	main.open_herd("runner")
 	herd = main.herd
 	herd._drag_dist = 0.0
 	herd.select("gallimimus")
-	var plus := herd.detail.find_child("Level_jump", true, false) as Button
-	check(plus != null and herd.detail.find_child("Level", true, false) != null, "the Herd shows an owned dinosaur's level and a + per attribute")
-	var j0: float = Dinos.stat("gallimimus", "jump")
-	plus.pressed.emit()
-	check(Dinos.stat("gallimimus", "jump") == j0 and (herd.detail.find_child("Level_jump", true, false) as Button).text == "Confirm?", "the first + tap only asks to confirm")
-	(herd.detail.find_child("Level_jump", true, false) as Button).pressed.emit()
-	check(Dinos.stat("gallimimus", "jump") > j0, "the second tap levels it up")
+	var ln := herd.detail.find_child("LevelNote", true, false) as Label
+	check(herd.detail.find_child("Level", true, false) != null and herd.detail.find_child("Level_jump", true, false) == null and ln != null and ln.text.contains("by itself") and ln.text.contains(": +"), "the Herd shows a dinosaur's level and what its next level adds, with nothing to buy")
 	herd.close_herd()
-	# Rok has attributes and levels too
-	main.dino_xp["rok"] = 1e6
-	Dinos.xp = main.dino_xp
-	check(Dinos.known("rok") and is_equal_approx(Dinos.stat("rok", "speed"), float(Dinos.ROK_STATS.speed)) and Dinos.level_cap("rok", "speed") == Dinos.ATTR_MAX, "Rok has attributes (capped at 10)")
-	var rok_c0: float = Forms.get_data(Forms.ROK).chase_rate
-	check(main.level_up("rok", "speed") and Forms.get_data(Forms.ROK).chase_rate > rok_c0, "levelling Rok's Speed lets him gain on the hunter")
-	main.level_up("rok", "stamina")
-	check(float(Forms.get_data(Forms.ROK).get("amber_mult", 1.0)) > 1.0 and float(Forms.get_data(Forms.ROK).drain) == 0.0, "Rok's Stamina makes amber refill more (and he still uses no energy)")
 	main.open_herd("rok")
-	check(main.herd.tab == "rok" and main.herd.list.get_child_count() == 3 and main.herd.detail.find_child("Level_speed", true, false) != null and main.herd.detail.find_child("Equip", true, false) == null, "the Herd's Heroes tab lists Rok, Nira and Boro and levels the hero in play")
+	check(main.herd.tab == "rok" and main.herd.list.get_child_count() == 3 and main.herd.detail.find_child("Level", true, false) != null and main.herd.detail.find_child("Equip", true, false) == null, "the Herd's Heroes tab lists Rok, Nira and Boro and shows the hero's level")
 	main.herd.close_herd()
+	# old saves: bought levels are kept (their XP raised), the meat refunded
+	main.dino_xp = {"raptor": 0.0}
+	Dinos.xp = main.dino_xp
+	main.dino_levels = {"raptor": {"lv": 3, "pts": {"speed": 0.8}}, "rok": {"speed": 1, "armor": 1}}
+	main.meat_bank = 0
+	main._migrate_levels()
+	var refund := Dinos.OLD_LEVEL_COST[0] * (2 + 3) * 2
+	check(main.meat_bank == refund and main.levels_refund == refund and SaveData.load_meat() == refund, "an old save gets back the meat its levels cost (%d)" % refund)
+	check(Dinos.level("raptor") == 3 and Dinos.level("rok") == 3 and main.dino_levels.is_empty() and SaveData.load_dino_levels().is_empty(), "...and keeps its levels (now from XP), with no bought points left")
+	main.start_run(false)
+	check(main.new_this_run.any(func(t): return String(t).contains("meat refunded")) and main.levels_refund == 0, "the refund is news for the next run")
+	main.dino_xp = xp_keep
+	Dinos.xp = main.dino_xp
+	Forms.clear_cache()
 	# --- heroes: Nira and Boro, bought in the Market, run in Rok's place
 	check(Heroes.has("nira") and Heroes.has("boro") and not Heroes.has("rok") and Market.category("nira") == "heroes", "Nira and Boro are heroes sold in the Market's Heroes tab")
 	check(Dinos.stat("nira", "speed") > Dinos.stat("rok", "speed") and Dinos.stat("boro", "armor") > Dinos.stat("rok", "armor") and Dinos.ATTRS.all(func(a): return true) and ["rok", "nira", "boro"].all(func(h): return Dinos.ATTRS.reduce(func(t, a): return t + Dinos.base_stat(h, a), 0) == Dinos.TIER_BUDGET[0]), "each hero has its own attributes on the originals' budget (Nira quicker, Boro tougher)")
@@ -3425,11 +3399,9 @@ func _species_checks() -> void:
 	check(Forms.get_data(Forms.ROK).id == "rok" and not Forms.equipped.has(Forms.ROK), "\"Play as Rok\" in the Herd puts Rok back")
 	main.herd.close_herd()
 	main.dinos_owned = owned_h
-	main.dino_levels = lv_keep
-	Dinos.levels = main.dino_levels
 	main.dino_xp = xp_keep
 	Dinos.xp = main.dino_xp
-	SaveData.save_dino_levels(lv_keep)
+	SaveData.save_dino_xp(xp_keep)
 	Forms.clear_cache()
 	main.meat_bank = meat_keep
 	main.equip("quetzalcoatlus")

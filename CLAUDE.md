@@ -9,6 +9,8 @@ Godot 4.7 (GDScript, Compatibility renderer) 2D endless runner with a prehistori
 
 **`config/crafting.cfg`** sets crafting: when the Crafting Bench opens, the 12 materials (rarity, Market bundle price), every weapon and armor recipe, rarity odds and multipliers, catalysts, salvage and repair costs, and what drops materials in runs (broken obstacles, wild dinosaurs, reward spots, chests, fossils). Weapons and armor are crafted, never bought. See [docs/systems/crafting.md](docs/systems/crafting.md).
 
+**`config/leveling.cfg`** sets levels: the XP curve to level 20, the team share and how dinosaurs grow (levels come by themselves, no meat). See [docs/systems/leveling.md](docs/systems/leveling.md).
+
 **`config/hints.cfg`** holds the loading screen's hints, each shown only once the player has reached what it talks about (see [run-loop](docs/systems/run-loop.md#loading-screen-scriptspreloadergd)).
 
 **`config/damage.cfg`** sets what running into each obstacle costs: damage tiers (light ¼, medium ½, heavy 1 heart) and each obstacle's tier; pits, liquids, quicksand, dino gates and being caught stay instant. See [docs/systems/health-and-damage.md](docs/systems/health-and-damage.md).

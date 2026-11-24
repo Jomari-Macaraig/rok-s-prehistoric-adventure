@@ -57,7 +57,7 @@ Keyboard (desktop testing): Space = jump / go on, R = restart now, X = stop, C =
 - EXTINCT! / CAUGHT! / RUN OVER with the cause in plain words (`cause_text`), NEW BEST! ribbon.
 - **Run rank**: big letter, its bonus, what the next rank needs.
 - Tiles: distance (and zones), score, meat (with the rank bonus), best run.
-- **Table** of Rok and the dinosaurs played (Rok first, then up to 4 by metres; `main.run_dino_m`): idle-animated icon, name with tier and level, metres, XP gained, an `XPBar` (before-the-run blue, this run's gain filling in), and READY FOR LV N! / "N to Lv N" / MAX LEVEL.
+- **Table** of Rok and the dinosaurs played (Rok first, then up to 4 by metres; `main.run_dino_m`): idle-animated icon, name with tier and level, metres, XP gained, an `XPBar` (before-the-run blue, this run's gain filling in), and LEVEL UP! LV N (it levelled this run, `main.run_levelups`) / "N to Lv N" / MAX LEVEL.
 - The run's news (`new_this_run`, Market items, badges).
 - It ignores the mouse; a tap goes to the main menu (`_to_title`), never straight into a run.
 - `hud.show_game_over` still fills its labels (tests read them) but stays hidden.
