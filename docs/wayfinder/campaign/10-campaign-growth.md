@@ -2,7 +2,7 @@
 title: How the campaign grows with more species
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: []
 ---
 
