@@ -92,6 +92,10 @@ Decide everything first; build afterwards.
   with set bonuses; no gear in the Market; upgrades +1 to +10, risky from
   +7 (a fail drops a level, from +8 a small chance to break), protection
   charms; dinosaurs wear no gear.
+- [Durability and repair: keep, change or drop](13-durability.md): softened:
+  worn-out gear works at half strength; 1 durability per run or stage;
+  repair costs meat (by rarity and upgrade); a successful upgrade restores
+  durability; selling still scales with wear.
 
 ## Not yet specified
 

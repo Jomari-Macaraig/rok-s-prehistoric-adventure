@@ -77,6 +77,10 @@ _Avoid_: Trinket, charm (a protection charm is something else)
 A gear piece's +1 to +10 strength steps, bought at Kora's bench; from +7 an upgrade can fail.
 _Avoid_: Enhance, level (Level is a character's rank)
 
+**Worn Out**:
+A gear piece at 0 durability: it still works, at half its bonus, until repaired.
+_Avoid_: Broken (a piece only breaks on a failed Upgrade, and is then gone)
+
 **Boss Material**:
 What a Boss drops, used to craft its Boss Set.
 _Avoid_: Trophy (trophies are the hunters' charge drops), loot
