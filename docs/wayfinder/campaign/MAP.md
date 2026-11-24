@@ -42,6 +42,11 @@ build afterwards.
   lives (pay only on failure) or stamina (about a day's refill); the fair
   trend is charging on success, never on failure; ads refill one life or
   some energy; runners usually charge nothing.
+- [What a boss stage is](01-boss-stages.md): the boss runs ahead and Rok
+  wears its health down with ATTACK (Power and gear matter); warned attacks
+  answered by jump/slide/shapeshift; enrages at half health; beating it
+  clears the stage; lose on hearts or if it escapes; any species, set in
+  config; no hunter during the fight.
 
 ## Not yet specified
 
