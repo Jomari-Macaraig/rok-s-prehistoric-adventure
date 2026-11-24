@@ -407,7 +407,9 @@ func _gate_checks() -> void:
 	p.invuln = 0.0
 	p.position.y = Tuning.GROUND_Y
 	main.chase_gap = Tuning.CHASE_GAP_MAX
+	main.roll_override = 0.99   # the Power roll fails (Rok breaks a small rock about 1 in 9 times)
 	main._collide()
+	main.roll_override = -1.0
 	check(main.state == main.State.PLAYING and absf(main.chase_gap - (Tuning.CHASE_GAP_MAX - Tuning.STUMBLE_ROCK)) < 0.1 and p.invuln > 0.0, "a small rock trips Rok (the T-rex gains) instead of ending the run")
 	check(p.react_kind == "trip" and p.react.animation == "trip", "tripping plays the trip animation")
 	c.remove_obstacle(rock)
@@ -418,7 +420,9 @@ func _gate_checks() -> void:
 	var vine := c.ledge(p.position.x)
 	p.position.y = Tuning.GROUND_Y
 	check(vine.vine and vine.hitbox().intersects(p.hitbox()), "the Forest ledge is a vine, at Rok's head height")
+	main.roll_override = 0.99   # the Power roll fails (Rok snaps a vine about 1 in 9 times)
 	main._collide()
+	main.roll_override = -1.0
 	check(main.state == main.State.PLAYING and absf(main.chase_gap - (Tuning.CHASE_GAP_MAX - Tuning.STUMBLE_VINE)) < 0.1, "running into a vine snags Rok (the T-rex gains) instead of ending the run")
 	check(p.react_kind == "snag", "a vine plays the snag animation")
 	p.invuln = 0.0
