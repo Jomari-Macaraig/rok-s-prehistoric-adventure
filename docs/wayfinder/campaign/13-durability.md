@@ -2,7 +2,7 @@
 title: Durability and repair: keep, change or drop
 label: wayfinder:grilling
 status: open
-assignee: 
+assignee: claude
 blocked_by: [12-gear-slots]
 ---
 
