@@ -18,6 +18,8 @@ layout, what stages ask of the player, what they cost and pay, how the
 campaign cycles with endless runs, and its screens; **plus the progression it
 runs on**, redesigned to be intuitive and fun: hero and dinosaur levels,
 gear (weapons, armor, accessories), durability and repair, and the Market
+and **how each stage loads** (memory-efficient preloading behind a loading
+screen like the main one)
 (widened by the user, 2026-11-24; the changes go into those systems' docs).
 Decide everything first; build afterwards.
 
